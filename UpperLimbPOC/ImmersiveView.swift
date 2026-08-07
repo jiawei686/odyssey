@@ -6,6 +6,7 @@ struct ImmersiveView: View {
     @EnvironmentObject private var overlay: OverlayState
     @EnvironmentObject private var peer: PeerSession
     @EnvironmentObject private var tracking: LandmarkTrackingService
+    @State private var manipulationEndSubscription: EventSubscription?
 
     private let localElbow = SIMD3<Float>(0, 0, 0.205)
     private let referenceForearmLength: Float = 0.2625
@@ -19,14 +20,38 @@ struct ImmersiveView: View {
                 }
                 let model = try await Entity(named: assetName)
                 model.name = "BoneOverlayRoot"
+                configureBoneHitTargets(in: model)
+                if #available(visionOS 26.0, *) {
+                    ManipulationComponent.configureEntity(model)
+                    setManualManipulation(
+                        enabled: !overlay.trackingEnabled && !overlay.locked,
+                        on: model
+                    )
+                }
                 let sectionRoot = await makeReferenceSectionRoot(
                     sliceCount: overlay.sliceCount
                 )
                 model.addChild(sectionRoot)
                 applyTransform(to: model)
-                applyOpacity(effectiveOpacity, to: model)
+                applyAppearance(effectiveOpacity, tint: overlay.tint, to: model)
                 applySectionState(to: sectionRoot)
                 content.add(model)
+                if #available(visionOS 26.0, *) {
+                    manipulationEndSubscription = content.subscribe(
+                        to: ManipulationEvents.WillEnd.self,
+                        on: model
+                    ) { event in
+                        guard !overlay.trackingEnabled,
+                              !overlay.locked else { return }
+                        Task { @MainActor in
+                            overlay.captureManualPlacement(
+                                position: event.entity.position,
+                                entityScale: event.entity.scale
+                            )
+                            peer.send(overlay.snapshot)
+                        }
+                    }
+                }
             } catch {
                 print("Could not load \(overlay.selectedRegion.name): \(error)")
             }
@@ -36,7 +61,13 @@ struct ImmersiveView: View {
             }) else { return }
 
             applyTransform(to: model)
-            applyOpacity(effectiveOpacity, to: model)
+            applyAppearance(effectiveOpacity, tint: overlay.tint, to: model)
+            if #available(visionOS 26.0, *) {
+                setManualManipulation(
+                    enabled: !overlay.trackingEnabled && !overlay.locked,
+                    on: model
+                )
+            }
             if let sectionRoot = model.findEntity(named: sectionRootName) {
                 applySectionState(to: sectionRoot)
             }
@@ -45,12 +76,84 @@ struct ImmersiveView: View {
         .onReceive(peer.$lastSnapshot.compactMap { $0 }) { snapshot in
             overlay.applyCalibration(snapshot)
         }
+        .onChange(of: peer.isConnected) { _, isConnected in
+            guard isConnected else { return }
+            peer.send(overlay.snapshot)
+        }
+        .onChange(of: overlay.trackingEnabled) { _, isEnabled in
+            if isEnabled {
+                Task { await tracking.start() }
+            } else {
+                tracking.stop()
+            }
+        }
+        .gesture(
+            TapGesture(count: 2)
+                .targetedToAnyEntity()
+                .exclusively(
+                    before: TapGesture(count: 1).targetedToAnyEntity()
+                )
+                .onEnded { result in
+                    switch result {
+                    case .first:
+                        overlay.cycleImagingMode()
+                        peer.send(overlay.snapshot)
+                    case .second(let value):
+                        overlay.focusBone(
+                            entityName: semanticEntityName(from: value.entity)
+                        )
+                    }
+                }
+        )
         .task {
             guard overlay.trackingEnabled else { return }
             await tracking.start()
         }
         .onDisappear {
             tracking.stop()
+        }
+    }
+
+    @available(visionOS 26.0, *)
+    private func setManualManipulation(enabled: Bool, on model: Entity) {
+        guard enabled else {
+            model.components.remove(ManipulationComponent.self)
+            return
+        }
+        guard model.components[ManipulationComponent.self] == nil else { return }
+
+        var component = ManipulationComponent()
+        var dynamics = component.dynamics
+        dynamics.translationBehavior = .unconstrained
+        dynamics.scalingBehavior = .unconstrained
+        dynamics.primaryRotationBehavior = .none
+        dynamics.secondaryRotationBehavior = .none
+        dynamics.inertia = .low
+        component.dynamics = dynamics
+        component.releaseBehavior = .stay
+        model.components.set(component)
+    }
+
+    private func semanticEntityName(from entity: Entity) -> String? {
+        var candidate: Entity? = entity
+        while let current = candidate, current.name != "BoneOverlayRoot" {
+            if !current.name.isEmpty, !current.name.hasPrefix("mesh_") {
+                return current.name
+            }
+            candidate = current.parent
+        }
+        return nil
+    }
+
+    private func configureBoneHitTargets(in entity: Entity) {
+        if entity.components[ModelComponent.self] != nil {
+            entity.generateCollisionShapes(recursive: false)
+            entity.components.set(InputTargetComponent())
+            entity.components.set(HoverEffectComponent())
+        }
+
+        for child in entity.children {
+            configureBoneHitTargets(in: child)
         }
     }
 
@@ -140,12 +243,24 @@ struct ImmersiveView: View {
         return min(requested, 0.18)
     }
 
-    private func applyOpacity(_ opacity: Float, to entity: Entity) {
+    private func applyAppearance(
+        _ opacity: Float,
+        tint: OverlayTint,
+        to entity: Entity
+    ) {
         guard entity.name != sectionRootName else { return }
+
+        let rgb = tint.rgb
 
         if var modelComponent = entity.components[ModelComponent.self] {
             modelComponent.materials = modelComponent.materials.map { source in
                 if var material = source as? PhysicallyBasedMaterial {
+                    material.baseColor.tint = .init(
+                        red: rgb.red,
+                        green: rgb.green,
+                        blue: rgb.blue,
+                        alpha: 1.0
+                    )
                     material.opacityThreshold = nil
                     material.blending = .transparent(
                         opacity: .init(floatLiteral: opacity)
@@ -155,7 +270,12 @@ struct ImmersiveView: View {
 
                 var material = PhysicallyBasedMaterial()
                 material.baseColor = .init(
-                    tint: .init(red: 0.25, green: 0.95, blue: 1.0, alpha: 1.0)
+                    tint: .init(
+                        red: rgb.red,
+                        green: rgb.green,
+                        blue: rgb.blue,
+                        alpha: 1.0
+                    )
                 )
                 material.roughness = .init(floatLiteral: 0.45)
                 material.blending = .transparent(
@@ -167,7 +287,7 @@ struct ImmersiveView: View {
         }
 
         for child in entity.children {
-            applyOpacity(opacity, to: child)
+            applyAppearance(opacity, tint: tint, to: child)
         }
     }
 
@@ -211,6 +331,7 @@ struct ImmersiveView: View {
     private func makeReferenceSectionRoot(sliceCount: Int) async -> Entity {
         let root = Entity()
         root.name = sectionRootName
+        var usedSyntheticFallback = false
 
         for index in 0..<sliceCount {
             let progress = sliceCount > 1
@@ -231,8 +352,10 @@ struct ImmersiveView: View {
                    withName: "procedural-reference-section-fallback-\(index)",
                    options: .init(semantic: .color)
                ) {
+                usedSyntheticFallback = true
                 material = UnlitMaterial(texture: fallbackTexture)
             } else {
+                usedSyntheticFallback = true
                 material = UnlitMaterial(color: .orange)
             }
 
@@ -249,6 +372,10 @@ struct ImmersiveView: View {
             slice.isEnabled = index == overlay.selectedSliceIndex
             root.addChild(slice)
         }
+
+        overlay.setSectionSourceStatus(
+            usedSyntheticFallback ? .syntheticFallback : .referenceTextures
+        )
 
         return root
     }

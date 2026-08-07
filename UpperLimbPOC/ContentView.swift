@@ -10,6 +10,7 @@ struct ContentView: View {
     @State private var selectedRegion: BodyRegion = .rightUpperLimb
     @State private var isOpening = false
     @State private var launchError: String?
+    @State private var didRunAutomatedDemo = false
 
     private let columns = [
         GridItem(.adaptive(minimum: 190, maximum: 240), spacing: 18)
@@ -20,6 +21,16 @@ struct ContentView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     introduction
+
+                    Button {
+                        Task { await openBoneOverlay() }
+                    } label: {
+                        Label("Open \(selectedRegion.name) overlay", systemImage: "vision.pro")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .disabled(isOpening || !selectedRegion.isAvailable)
 
                     LazyVGrid(columns: columns, spacing: 18) {
                         ForEach(BodyRegion.allCases) { region in
@@ -50,8 +61,15 @@ struct ContentView: View {
             }
         }
         .onAppear(perform: peer.start)
+        .task {
+            await runAutomatedDemoIfRequested()
+        }
         .onReceive(peer.$lastSnapshot.compactMap { $0 }) { snapshot in
             overlay.applyCalibration(snapshot)
+        }
+        .onChange(of: peer.isConnected) { _, isConnected in
+            guard isConnected else { return }
+            peer.send(overlay.snapshot)
         }
     }
 
@@ -76,9 +94,8 @@ struct ContentView: View {
     private var selectionPanel: some View {
         VStack(alignment: .leading, spacing: 18) {
             HStack(spacing: 20) {
-                Image(systemName: selectedRegion.systemImage)
-                    .font(.system(size: 34, weight: .medium))
-                    .foregroundStyle(.cyan)
+                AnatomyBoneIcon(region: selectedRegion, color: .cyan)
+                    .frame(width: 48, height: 48)
                     .frame(width: 66, height: 66)
                     .background(.cyan.opacity(0.14), in: RoundedRectangle(cornerRadius: 16))
 
@@ -115,6 +132,7 @@ struct ContentView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
+                .keyboardShortcut(.defaultAction)
                 .disabled(isOpening || !selectedRegion.isAvailable)
             }
 
@@ -123,7 +141,7 @@ struct ContentView: View {
 
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
-                        Toggle(
+            Toggle(
                             "Reference sectional-imaging plane",
                             isOn: $overlay.sectionVisible
                         )
@@ -178,7 +196,7 @@ struct ContentView: View {
         launchError = nil
 
         overlay.selectedRegion = selectedRegion
-        overlay.makeVisible()
+        overlay.resetPlacement()
         peer.send(overlay.snapshot)
 
         let result = await openImmersiveSpace(id: "BoneOverlay")
@@ -191,11 +209,36 @@ struct ContentView: View {
             launchError = "The immersive space could not open. Please try again."
         }
     }
+
+    @MainActor
+    private func runAutomatedDemoIfRequested() async {
+#if DEBUG
+        guard !didRunAutomatedDemo,
+              ProcessInfo.processInfo.arguments.contains("--automated-demo")
+        else { return }
+
+        didRunAutomatedDemo = true
+        selectedRegion = .rightUpperLimb
+        overlay.trackingEnabled = true
+        overlay.opacity = 0.65
+        overlay.tint = .amber
+        overlay.sectionVisible = true
+        overlay.setSectionPosition(0.75)
+        overlay.sectionOpacity = 0.55
+
+        try? await Task.sleep(nanoseconds: 1_000_000_000)
+        await openBoneOverlay()
+#endif
+    }
 }
 
 struct TrackingStatusView: View {
     @EnvironmentObject private var overlay: OverlayState
+    @EnvironmentObject private var peer: PeerSession
     @EnvironmentObject private var tracking: LandmarkTrackingService
+    @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
+    @Environment(\.openWindow) private var openWindow
+    @Environment(\.dismissWindow) private var dismissWindow
 
     private var message: String {
         overlay.trackingEnabled
@@ -229,6 +272,55 @@ struct TrackingStatusView: View {
             Text("Reference CT orientation/laterality is illustrative only — not patient-specific or for clinical use.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+
+            Label(
+                overlay.sectionSourceStatus.message,
+                systemImage: overlay.sectionSourceStatus == .syntheticFallback
+                    ? "exclamationmark.triangle.fill"
+                    : "checkmark.circle"
+            )
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(
+                overlay.sectionSourceStatus == .syntheticFallback
+                    ? .orange
+                    : .secondary
+            )
+
+            Divider()
+
+                Toggle(
+                    "Follow ELBOW + WRIST markers",
+                    isOn: Binding(
+                        get: { overlay.trackingEnabled },
+                        set: { value in
+                            overlay.trackingEnabled = value
+                        }
+                    )
+            )
+            .toggleStyle(.switch)
+
+            Label(overlay.imagingModeName, systemImage: "square.3.layers.3d")
+                .font(.headline)
+
+            Label(overlay.focusedBoneName, systemImage: "sparkles")
+                .font(.headline)
+
+            Text(overlay.focusedBoneDescription)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+
+            Text("Manual, unlocked mode: pinch and drag to move; use two hands to resize. Single-pinch a bone for its guide. Double-pinch the overlay to switch between 3D bone and 3D + axial.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Button("Return to anatomy library", systemImage: "rectangle.portrait.and.arrow.forward") {
+                Task {
+                    await dismissImmersiveSpace()
+                    openWindow(id: "AnatomyLibrary")
+                    dismissWindow(id: "TrackingStatus")
+                }
+            }
+            .buttonStyle(.borderedProminent)
         }
         .padding(20)
     }
@@ -249,10 +341,8 @@ private struct RegionCard: View {
                         endPoint: .bottomTrailing
                     )
 
-                    Image(systemName: region.systemImage)
-                        .font(.system(size: 62, weight: .thin))
-                        .symbolRenderingMode(.hierarchical)
-                        .foregroundStyle(.white)
+                    AnatomyBoneIcon(region: region, color: .white)
+                        .frame(width: 72, height: 82)
 
                     if region.isAvailable {
                         Text("MODEL READY")
@@ -287,5 +377,200 @@ private struct RegionCard: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(region.name), \(region.isAvailable ? "model ready" : "model being prepared")")
+    }
+}
+
+private struct AnatomyBoneIcon: View {
+    let region: BodyRegion
+    let color: Color
+
+    var body: some View {
+        Canvas { context, size in
+            let style = StrokeStyle(
+                lineWidth: max(2, size.width * 0.045),
+                lineCap: .round,
+                lineJoin: .round
+            )
+            for path in paths(in: size) {
+                context.stroke(path, with: .color(color), style: style)
+            }
+        }
+        .accessibilityHidden(true)
+    }
+
+    private func paths(in size: CGSize) -> [Path] {
+        func point(_ x: Double, _ y: Double) -> CGPoint {
+            CGPoint(x: size.width * x, y: size.height * y)
+        }
+
+        func ellipse(_ x: Double, _ y: Double, _ width: Double, _ height: Double) -> Path {
+            Path(ellipseIn: CGRect(
+                x: size.width * x,
+                y: size.height * y,
+                width: size.width * width,
+                height: size.height * height
+            ))
+        }
+
+        func line(_ points: [CGPoint]) -> Path {
+            var path = Path()
+            guard let first = points.first else { return path }
+            path.move(to: first)
+            for point in points.dropFirst() { path.addLine(to: point) }
+            return path
+        }
+
+        func spine(from start: Double, to end: Double, count: Int) -> [Path] {
+            (0..<count).map { index in
+                let fraction = count == 1 ? 0 : Double(index) / Double(count - 1)
+                let y = start + ((end - start) * fraction)
+                return ellipse(0.43, y, 0.14, 0.065)
+            }
+        }
+
+        func pelvis() -> [Path] {
+            var left = Path()
+            left.move(to: point(0.47, 0.38))
+            left.addCurve(
+                to: point(0.16, 0.58),
+                control1: point(0.34, 0.30),
+                control2: point(0.15, 0.35)
+            )
+            left.addCurve(
+                to: point(0.42, 0.78),
+                control1: point(0.18, 0.74),
+                control2: point(0.30, 0.80)
+            )
+
+            var right = Path()
+            right.move(to: point(0.53, 0.38))
+            right.addCurve(
+                to: point(0.84, 0.58),
+                control1: point(0.66, 0.30),
+                control2: point(0.85, 0.35)
+            )
+            right.addCurve(
+                to: point(0.58, 0.78),
+                control1: point(0.82, 0.74),
+                control2: point(0.70, 0.80)
+            )
+
+            return [
+                left,
+                right,
+                line([point(0.50, 0.38), point(0.50, 0.72)]),
+                ellipse(0.22, 0.55, 0.16, 0.16),
+                ellipse(0.62, 0.55, 0.16, 0.16)
+            ]
+        }
+
+        func upperLimb(isLeft: Bool) -> [Path] {
+            let mirror: (Double) -> Double = { isLeft ? 1 - $0 : $0 }
+            var result = [
+                line([point(mirror(0.42), 0.10), point(mirror(0.38), 0.62)]),
+                line([point(mirror(0.58), 0.10), point(mirror(0.62), 0.62)]),
+                line([point(mirror(0.36), 0.64), point(mirror(0.64), 0.64)]),
+                ellipse(mirror(0.43), 0.02, 0.14, 0.12)
+            ]
+            for index in 0..<5 {
+                let x = 0.34 + (Double(index) * 0.08)
+                result.append(line([
+                    point(mirror(0.50), 0.67),
+                    point(mirror(x), 0.91 - Double(abs(index - 2)) * 0.035)
+                ]))
+            }
+            return result
+        }
+
+        func lowerLimb(isLeft: Bool) -> [Path] {
+            let mirror: (Double) -> Double = { isLeft ? 1 - $0 : $0 }
+            return [
+                ellipse(mirror(0.40), 0.05, 0.20, 0.16),
+                line([point(mirror(0.50), 0.18), point(mirror(0.46), 0.48)]),
+                ellipse(mirror(0.41), 0.45, 0.12, 0.10),
+                line([point(mirror(0.44), 0.54), point(mirror(0.39), 0.84)]),
+                line([point(mirror(0.55), 0.54), point(mirror(0.51), 0.84)]),
+                line([point(mirror(0.38), 0.86), point(mirror(0.66), 0.92)])
+            ]
+        }
+
+        switch region {
+        case .skull:
+            var jaw = Path()
+            jaw.move(to: point(0.30, 0.48))
+            jaw.addCurve(
+                to: point(0.70, 0.48),
+                control1: point(0.32, 0.82),
+                control2: point(0.68, 0.82)
+            )
+            return [
+                ellipse(0.22, 0.08, 0.56, 0.56),
+                ellipse(0.34, 0.30, 0.09, 0.09),
+                ellipse(0.57, 0.30, 0.09, 0.09),
+                jaw
+            ]
+
+        case .cervicalSpine:
+            return spine(from: 0.14, to: 0.72, count: 7)
+
+        case .chest:
+            var paths = [line([point(0.50, 0.16), point(0.50, 0.86)])]
+            for index in 0..<5 {
+                let y = 0.24 + (Double(index) * 0.12)
+                var ribs = Path()
+                ribs.move(to: point(0.49, y))
+                ribs.addCurve(
+                    to: point(0.18, y + 0.08),
+                    control1: point(0.37, y - 0.05),
+                    control2: point(0.20, y - 0.02)
+                )
+                ribs.move(to: point(0.51, y))
+                ribs.addCurve(
+                    to: point(0.82, y + 0.08),
+                    control1: point(0.63, y - 0.05),
+                    control2: point(0.80, y - 0.02)
+                )
+                paths.append(ribs)
+            }
+            return paths
+
+        case .lumbarSpine:
+            return spine(from: 0.18, to: 0.62, count: 6) + pelvis()
+
+        case .wholeSpine:
+            var curve = Path()
+            curve.move(to: point(0.50, 0.08))
+            curve.addCurve(
+                to: point(0.50, 0.92),
+                control1: point(0.38, 0.34),
+                control2: point(0.62, 0.64)
+            )
+            return [curve] + spine(from: 0.10, to: 0.84, count: 9)
+
+        case .pelvis:
+            return pelvis()
+
+        case .leftHip:
+            return pelvis() + [
+                line([point(0.30, 0.67), point(0.22, 0.95)])
+            ]
+
+        case .rightHip:
+            return pelvis() + [
+                line([point(0.70, 0.67), point(0.78, 0.95)])
+            ]
+
+        case .leftUpperLimb:
+            return upperLimb(isLeft: true)
+
+        case .rightUpperLimb:
+            return upperLimb(isLeft: false)
+
+        case .leftLowerLimb:
+            return lowerLimb(isLeft: true)
+
+        case .rightLowerLimb:
+            return lowerLimb(isLeft: false)
+        }
     }
 }

@@ -1,5 +1,6 @@
 import SwiftUI
 import SceneKit
+import UIKit
 
 struct CompanionContentView: View {
     @EnvironmentObject private var overlay: OverlayState
@@ -8,7 +9,7 @@ struct CompanionContentView: View {
     var body: some View {
         NavigationStack {
             HStack(spacing: 24) {
-                USDZPreview(opacity: overlay.opacity)
+                USDZPreview(opacity: overlay.opacity, tint: overlay.tint)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(.black.opacity(0.05), in: RoundedRectangle(cornerRadius: 20))
 
@@ -34,14 +35,14 @@ struct CompanionContentView: View {
                         }
                         .disabled(overlay.locked)
 
-                        control("Opacity", value: $overlay.opacity, range: 0.25...1.00, unit: "")
+                        appearanceControls
 
                         Divider()
 
                         Group {
                             Toggle(
                                 "Show reference axial section",
-                                isOn: $overlay.sectionVisible
+                                isOn: syncing($overlay.sectionVisible)
                             )
                             .font(.headline)
 
@@ -60,7 +61,10 @@ struct CompanionContentView: View {
                                 Stepper(
                                     value: Binding(
                                         get: { overlay.selectedSliceIndex },
-                                        set: overlay.selectSlice
+                                        set: { index in
+                                            overlay.selectSlice(index)
+                                            sendCurrentState()
+                                        }
                                     ),
                                     in: 0...(overlay.sliceCount - 1)
                                 ) {
@@ -86,13 +90,20 @@ struct CompanionContentView: View {
                         HStack {
                             Button(overlay.locked ? "Unlock" : "Lock") {
                                 overlay.locked.toggle()
+                                sendCurrentState()
                             }
                             .buttonStyle(.borderedProminent)
                             .tint(overlay.locked ? .green : .blue)
 
-                            Button("Reset", action: overlay.reset)
+                            Button("Reset") {
+                                overlay.reset()
+                                sendCurrentState()
+                            }
 
-                            Button("Find model", action: overlay.makeVisible)
+                            Button("Find model") {
+                                overlay.makeVisible()
+                                sendCurrentState()
+                            }
                         }
 
                         Text("NLM reference CT is cross-subject and approximate. Do not transmit patient images or identifiers.")
@@ -110,13 +121,70 @@ struct CompanionContentView: View {
             .navigationTitle("Radiographic Companion")
         }
         .onAppear(perform: peer.start)
-        .onChange(of: overlay.snapshot) { _, snapshot in
-            peer.send(snapshot)
+        .onReceive(peer.$lastSnapshot.compactMap { $0 }) { snapshot in
+            overlay.applyCalibration(snapshot)
         }
-        .onChange(of: peer.isConnected) { _, connected in
-            if connected {
-                peer.send(overlay.snapshot)
+    }
+
+    @ViewBuilder
+    private var appearanceControls: some View {
+        VStack(spacing: 10) {
+            HStack {
+                Text("Bone opacity")
+                    .frame(width: 110, alignment: .leading)
+                Slider(value: syncing($overlay.opacity), in: 0.25...1.00)
+                HStack(spacing: 5) {
+                    Button {
+                        adjustOpacity(by: -0.05)
+                    } label: {
+                        Image(systemName: "minus")
+                    }
+                    .accessibilityLabel("Decrease bone opacity")
+                    .disabled(overlay.opacity <= 0.25)
+
+                    Text("\(Int((overlay.opacity * 100).rounded()))%")
+                        .monospacedDigit()
+                        .frame(width: 42)
+
+                    Button {
+                        adjustOpacity(by: 0.05)
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityLabel("Increase bone opacity")
+                    .disabled(overlay.opacity >= 1.00)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .fixedSize()
             }
+
+            HStack {
+                Text("Bone colour")
+                    .frame(width: 110, alignment: .leading)
+
+                Picker("Bone colour", selection: syncing($overlay.tint)) {
+                    ForEach(OverlayTint.allCases) { tint in
+                        Text(tint.name).tag(tint)
+                    }
+                }
+                .pickerStyle(.menu)
+
+                Spacer()
+
+                Circle()
+                    .fill(swiftUIColor(for: overlay.tint))
+                    .frame(width: 24, height: 24)
+                    .overlay(Circle().stroke(.secondary, lineWidth: 1))
+
+                Text(overlay.tint.name)
+                    .frame(width: 58, alignment: .trailing)
+            }
+
+            Text("Lower opacity makes the bone overlay more translucent.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -129,16 +197,42 @@ struct CompanionContentView: View {
     ) -> some View {
         HStack {
             Text(title).frame(width: 110, alignment: .leading)
-            Slider(value: value, in: range)
+            Slider(value: syncing(value), in: range)
             Text("\(value.wrappedValue, specifier: "%.2f")\(unit)")
                 .monospacedDigit()
                 .frame(width: 88, alignment: .trailing)
         }
     }
+
+    private func syncing<Value>(_ binding: Binding<Value>) -> Binding<Value> {
+        Binding(
+            get: { binding.wrappedValue },
+            set: { newValue in
+                binding.wrappedValue = newValue
+                sendCurrentState()
+            }
+        )
+    }
+
+    private func sendCurrentState() {
+        peer.send(overlay.snapshot)
+    }
+
+    private func adjustOpacity(by delta: Double) {
+        let stepped = ((overlay.opacity + delta) * 20).rounded() / 20
+        overlay.opacity = min(1.00, max(0.25, stepped))
+        sendCurrentState()
+    }
+
+    private func swiftUIColor(for tint: OverlayTint) -> Color {
+        let rgb = tint.rgb
+        return Color(red: rgb.red, green: rgb.green, blue: rgb.blue)
+    }
 }
 
 private struct USDZPreview: UIViewRepresentable {
     let opacity: Double
+    let tint: OverlayTint
 
     func makeUIView(context: Context) -> SCNView {
         let view = SCNView()
@@ -165,19 +259,29 @@ private struct USDZPreview: UIViewRepresentable {
         view.scene = scene
         view.pointOfView = cameraNode
         view.defaultCameraController.interactionMode = .orbitTurntable
-        applyOpacity(to: scene.rootNode)
+        applyAppearance(to: scene.rootNode)
         return view
     }
 
     func updateUIView(_ uiView: SCNView, context: Context) {
         guard let rootNode = uiView.scene?.rootNode else { return }
-        applyOpacity(to: rootNode)
+        applyAppearance(to: rootNode)
     }
 
-    private func applyOpacity(to rootNode: SCNNode) {
+    private func applyAppearance(to rootNode: SCNNode) {
+        let rgb = tint.rgb
+        let color = UIColor(
+            red: rgb.red,
+            green: rgb.green,
+            blue: rgb.blue,
+            alpha: 1.0
+        )
         rootNode.enumerateChildNodes { node, _ in
-            guard node.geometry != nil else { return }
+            guard let geometry = node.geometry else { return }
             node.opacity = CGFloat(opacity)
+            geometry.materials.forEach { material in
+                material.diffuse.contents = color
+            }
         }
     }
 }

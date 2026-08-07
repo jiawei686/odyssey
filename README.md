@@ -11,10 +11,22 @@ Version 3 adds a five-level axial forearm CT reference plane to the mixed-realit
 - The Vision Pro library and iPad/iPhone companion can show or hide the plane, select its elbow-to-wrist position, and change its opacity.
 - The plane is parented to the same tracked anatomy root, so it follows the forearm model during marker tracking and manual fallback placement.
 - A separate status panel remains open in mixed reality and reports searching, partial tracking, tracking lock, permission failure, and tracking loss.
+- The status panel reports whether bundled NLM textures or a synthetic fallback loaded and provides a return-to-library action.
 - The bundled images are cropped reference slices from the **National Library of Medicine Visible Human Male `normalCT` series**. The NLM describes the Visible Human image library as public domain; full provenance and processing notes are in `UpperLimbPOC/ReferenceSlices/README.md`.
 - If a bundled texture cannot load, the app substitutes a clearly synthetic procedural section so the demonstration remains usable.
 
 The CT slices, AnatomyTOOL 3D mesh, and live participant come from different anatomical sources. Alignment is therefore an approximate, landmark-based educational composite. Axial orientation and laterality are illustrative only; A/P and R/L are not registered. It is **not patient-specific, diagnostically accurate, or intended for clinical decision-making**.
+
+## Version 3.1: appearance and interaction controls
+
+- The companion shows bone opacity as a percentage with slider and 5% minus/plus adjustment, and offers cyan, blue, green, amber, magenta, and white bone colours.
+- Colour and opacity are part of the synchronized snapshot; older snapshots safely default to cyan.
+- Catalogue cards use skeletal drawings for skull, spine, ribs, pelvis/hips, forearms/hands, and lower limbs.
+- On visionOS 26 or later, turn marker following and transform lock off to pinch-drag and uniformly resize the overlay. Released placement is clamped to the companion ranges and sent back to it.
+- Single-pinch a bone to identify its semantic anatomy entity. Double-pinch the overlay to switch between the available 3D-bone and 3D-plus-axial modes.
+- The status window provides curated anatomy guidance from model metadata. It is not yet a generative LLM or markerless bone detector.
+
+The markerless ML and LLM design, data boundaries, and verification gates are in `ML_ASSISTANT_ARCHITECTURE.md`.
 
 ## Version 2: elbow–wrist tracking
 
@@ -36,7 +48,7 @@ This Xcode project contains two apps:
 - `UpperLimbCompanion` runs on iPad or iPhone. It advertises a Bonjour service and sends overlay calibration changes.
 - `UpperLimbPOC` runs on Apple Vision Pro. It opens with a scrollable radiographic-region library, then enters a mixed immersive space after the user selects a ready model.
 
-The companion sends newline-framed JSON containing position, rotation, scale, opacity, lock state, and reference-slice controls. It does not send image pixels, patient images, names, identifiers, or other clinical data; the same public-domain reference images are bundled locally in the Vision Pro app.
+The companion and Vision app exchange newline-framed JSON containing position, rotation, scale, bone colour, opacity, lock state, and reference-slice controls. Vision owns session initialization; the companion applies that state and transmits only after an operator changes a control. This prevents default or stale companion values from resetting a Vision-side choice. It does not send image pixels, patient images, names, identifiers, or other clinical data; the same public-domain reference images are bundled locally in the Vision Pro app.
 
 ## Run on simulators
 
@@ -47,7 +59,15 @@ The companion sends newline-framed JSON containing position, rotation, scale, op
 5. In the Vision Pro region library, select **Left Forearm & Hand** or **Right Forearm & Hand**, then choose **Open overlay**. The library window closes so only the bone remains in mixed reality.
    A compact tracking-status window remains visible alongside the overlay.
 6. Enable **Reference sectional-imaging plane** before opening the overlay, or control it later from the companion. Move the slice from elbow to wrist and adjust its opacity.
-7. Use the companion sliders to align the centred 0.42 m hand-to-elbow model and adjust its translucency, then press **Lock**. If the model is out of view or too faint, press **Find model** on the companion.
+7. Use the companion sliders to align the centred 0.42 m hand-to-elbow model, select a bone colour, and set opacity with the slider or 5% minus/plus controls, then press **Lock**. If the model is out of view or too faint, press **Find model** on the companion.
+
+For a repeatable debug smoke test, first run `Tools/validate.sh`, then run:
+
+```bash
+Tools/simulator_smoke.sh <vision-simulator-udid> <ipad-simulator-udid> <output-directory>
+```
+
+The smoke route exists only in Debug builds. It prepares the right forearm in amber at 65% bone opacity with reference slice 4/5 at 0.55 opacity, launches both apps, and captures both simulator screens so startup and Vision-to-companion state synchronization can be reviewed. visionOS still requires a user activation to enter an immersive space: select the large **Open Right Forearm overlay** button in the Vision simulator, then capture the mixed-reality scene and status panel for visual review.
 
 ## Run on physical devices
 
@@ -73,6 +93,9 @@ If discovery fails, confirm that Local Network access is enabled for both apps, 
 - Reference elbow–wrist model length: `0.2625 m`
 - Sectional reference: five bundled NLM Visible Human CT crops, loaded as local RealityKit textures
 - Section registration: approximate normalized elbow-to-wrist position on the same anatomy root
+- Recovery: client reconnect retry, status-panel return to library, and explicit texture-fallback status
+- Manual interaction: RealityKit `ManipulationComponent` on visionOS 26+, limited to translation and uniform scaling
+- Anatomy guidance: curated descriptions keyed to semantic USDZ entity names such as `Radius_r` and `Ulna_r`
 
 The demo deliberately uses a small TCP implementation to keep the August proof-of-concept build understandable. Before any production, research, or clinical deployment, replace it with authenticated encrypted transport, add robust reconnect and multi-peer handling, and establish a validated registration/tracking method. Apple's current sample demonstrates a QUIC/TLS approach.
 

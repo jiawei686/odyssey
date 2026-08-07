@@ -28,6 +28,7 @@ enum SnapshotCompatibilityCheck {
         precondition(decodedLegacy.sectionOpacity == 0.68)
         precondition(decodedLegacy.selectedSliceIndex == 2)
         precondition(decodedLegacy.sliceCount == 5)
+        precondition(decodedLegacy.tintID == "cyan")
 
         let current = OverlaySnapshot(
             regionID: "leftUpperLimb",
@@ -39,6 +40,7 @@ enum SnapshotCompatibilityCheck {
             rollDegrees: 0,
             scale: 1,
             opacity: 0.7,
+            tintID: "amber",
             locked: false,
             sectionVisible: true,
             normalizedSlicePosition: 0.75,

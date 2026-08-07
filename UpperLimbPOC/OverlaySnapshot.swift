@@ -10,6 +10,7 @@ struct OverlaySnapshot: Codable, Equatable {
     var rollDegrees: Double
     var scale: Double
     var opacity: Double
+    var tintID: String
     var locked: Bool
     var sectionVisible: Bool
     var normalizedSlicePosition: Double
@@ -27,6 +28,7 @@ struct OverlaySnapshot: Codable, Equatable {
         rollDegrees: Double,
         scale: Double,
         opacity: Double,
+        tintID: String,
         locked: Bool,
         sectionVisible: Bool,
         normalizedSlicePosition: Double,
@@ -43,6 +45,7 @@ struct OverlaySnapshot: Codable, Equatable {
         self.rollDegrees = rollDegrees
         self.scale = scale
         self.opacity = opacity
+        self.tintID = tintID
         self.locked = locked
         self.sectionVisible = sectionVisible
         self.normalizedSlicePosition = normalizedSlicePosition
@@ -55,7 +58,7 @@ struct OverlaySnapshot: Codable, Equatable {
         case regionID
         case x, y, z
         case pitchDegrees, yawDegrees, rollDegrees
-        case scale, opacity, locked
+        case scale, opacity, tintID, locked
         case sectionVisible, normalizedSlicePosition, sectionOpacity
         case selectedSliceIndex, sliceCount
     }
@@ -71,6 +74,7 @@ struct OverlaySnapshot: Codable, Equatable {
         rollDegrees = try values.decode(Double.self, forKey: .rollDegrees)
         scale = try values.decode(Double.self, forKey: .scale)
         opacity = try values.decode(Double.self, forKey: .opacity)
+        tintID = try values.decodeIfPresent(String.self, forKey: .tintID) ?? "cyan"
         locked = try values.decode(Bool.self, forKey: .locked)
 
         // Defaults keep v3 peers compatible with snapshots from the v2 prototype.

@@ -15,6 +15,7 @@ if rg -q '\.full' "$PROJECT_DIR/UpperLimbPOC/UpperLimbPOCApp.swift"; then
 fi
 rg -q 'sectionVisible' "$PROJECT_DIR/UpperLimbPOC/OverlaySnapshot.swift"
 rg -q 'normalizedSlicePosition' "$PROJECT_DIR/UpperLimbPOC/OverlaySnapshot.swift"
+rg -q 'tintID' "$PROJECT_DIR/UpperLimbPOC/OverlaySnapshot.swift" "$PROJECT_DIR/Tools/SnapshotCompatibilityCheck.swift"
 rg -q 'ReferenceSectionRoot' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
 
 echo "[2/9] Checking reference CT assets and disclosure"
@@ -24,7 +25,27 @@ rg -q 'reference-forearm-01.png' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/
 rg -q 'not patient-specific' "$PROJECT_DIR/README.md" "$PROJECT_DIR/UpperLimbPOC/ReferenceSlices/README.md"
 rg -q 'orientation and laterality are illustrative' "$PROJECT_DIR/UpperLimbPOC/ContentView.swift"
 rg -q 'TrackingStatus' "$PROJECT_DIR/UpperLimbPOC/ContentView.swift" "$PROJECT_DIR/UpperLimbPOC/UpperLimbPOCApp.swift"
+rg -q 'Return to anatomy library' "$PROJECT_DIR/UpperLimbPOC/ContentView.swift"
+rg -q 'sectionSourceStatus' "$PROJECT_DIR/UpperLimbPOC/ContentView.swift" "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
+rg -q 'AnatomyBoneIcon' "$PROJECT_DIR/UpperLimbPOC/ContentView.swift"
+rg -q 'ManipulationComponent' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
+rg -q 'configureBoneHitTargets' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
+rg -q '!overlay.locked' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
+rg -q 'focusBone' "$PROJECT_DIR/UpperLimbPOC/OverlayState.swift" "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
+rg -q 'Bone opacity' "$PROJECT_DIR/UpperLimbPOC/CompanionContentView.swift"
+rg -q 'Decrease bone opacity' "$PROJECT_DIR/UpperLimbPOC/CompanionContentView.swift"
+rg -q 'overlay.resetPlacement()' "$PROJECT_DIR/UpperLimbPOC/ContentView.swift"
+rg -Fq 'onReceive(peer.$lastSnapshot' "$PROJECT_DIR/UpperLimbPOC/CompanionContentView.swift"
+if rg -q 'onChange\(of: peer\.isConnected\)' "$PROJECT_DIR/UpperLimbPOC/CompanionContentView.swift"; then
+    echo "Companion must not overwrite Vision state on initial connection." >&2
+    exit 1
+fi
+rg -q 'onChange\(of: peer\.isConnected\)' "$PROJECT_DIR/UpperLimbPOC/ContentView.swift"
+rg -q 'onChange\(of: peer\.isConnected\)' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
+rg -q 'scheduleReconnect' "$PROJECT_DIR/UpperLimbPOC/PeerSession.swift"
 test -f "$PROJECT_DIR/PRODUCT_DEVELOPMENT_DOCUMENT.md"
+test -f "$PROJECT_DIR/ML_ASSISTANT_ARCHITECTURE.md"
+test -x "$PROJECT_DIR/Tools/simulator_smoke.sh"
 
 echo "[3/9] Checking snapshot compatibility"
 xcrun swiftc \
@@ -40,7 +61,7 @@ xcodebuild \
     -project "$PROJECT" \
     -scheme UpperLimbPOC \
     -configuration Debug \
-    -destination 'generic/platform=visionOS Simulator' \
+    -sdk xrsimulator \
     -derivedDataPath "$BUILD_ROOT/vision" \
     CODE_SIGNING_ALLOWED=NO \
     build
@@ -51,7 +72,7 @@ xcodebuild \
     -project "$PROJECT" \
     -scheme UpperLimbPOC \
     -configuration Debug \
-    -destination 'generic/platform=visionOS' \
+    -sdk xros \
     -derivedDataPath "$BUILD_ROOT/vision-device" \
     CODE_SIGNING_ALLOWED=NO \
     build
@@ -62,7 +83,7 @@ xcodebuild \
     -project "$PROJECT" \
     -scheme UpperLimbCompanion \
     -configuration Debug \
-    -destination 'generic/platform=iOS Simulator' \
+    -sdk iphonesimulator \
     -derivedDataPath "$BUILD_ROOT/companion" \
     CODE_SIGNING_ALLOWED=NO \
     build
@@ -73,7 +94,7 @@ xcodebuild \
     -project "$PROJECT" \
     -scheme UpperLimbCompanion \
     -configuration Debug \
-    -destination 'generic/platform=iOS' \
+    -sdk iphoneos \
     -derivedDataPath "$BUILD_ROOT/companion-device" \
     CODE_SIGNING_ALLOWED=NO \
     build
@@ -84,7 +105,7 @@ xcodebuild \
     -project "$PROJECT" \
     -scheme UpperLimbPOC \
     -configuration Debug \
-    -destination 'generic/platform=visionOS Simulator' \
+    -sdk xrsimulator \
     -derivedDataPath "$BUILD_ROOT/vision" \
     CODE_SIGNING_ALLOWED=NO \
     analyze
@@ -95,7 +116,7 @@ xcodebuild \
     -project "$PROJECT" \
     -scheme UpperLimbCompanion \
     -configuration Debug \
-    -destination 'generic/platform=iOS Simulator' \
+    -sdk iphonesimulator \
     -derivedDataPath "$BUILD_ROOT/companion" \
     CODE_SIGNING_ALLOWED=NO \
     analyze

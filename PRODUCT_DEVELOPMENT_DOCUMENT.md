@@ -56,6 +56,10 @@ If a mixed-reality overlay can remain stable enough to teach the relationship be
 - Last valid pose retained with visible fade when tracking is lost.
 - Five bundled axial reference CT levels selectable from elbow to wrist.
 - Slice visibility and opacity controls on Vision Pro and companion.
+- User-selected bone colour and numeric bone opacity synchronized from the companion.
+- Bone-specific catalogue icons rather than generic activity symbols.
+- Manual hand placement and resizing on visionOS 26+ when marker following is off.
+- A deterministic anatomy guide sourced from semantic mesh names.
 - Shared tracking status visible after the anatomy library closes.
 - Explicit cross-subject, illustrative-orientation, educational-only disclosure.
 - Local-only companion messages containing calibration values, not images or identifiers.
@@ -76,6 +80,8 @@ If a mixed-reality overlay can remain stable enough to teach the relationship be
 - Multiple Vision Pro viewers sharing a common spatial anchor.
 - Authentication, encryption, clinical-system integration, or data persistence.
 - Market sizing or commercial validation.
+- Markerless body-region recognition, generative anatomy answers, or camera-frame inference in the three-day build.
+- Coronal, sagittal, or volume-rendered views until a geometrically coherent source volume is available.
 
 ## 5. Functional requirements
 
@@ -91,6 +97,14 @@ If a mixed-reality overlay can remain stable enough to teach the relationship be
 | FR-08 | Companion sectional controls remain usable when transform calibration is locked. | UI inspection and interaction test. |
 | FR-09 | Current snapshots round-trip and older v2 snapshots decode with safe defaults. | Codable test. |
 | FR-10 | The interface identifies the CT as cross-subject, orientation-illustrative, and non-clinical. | Static disclosure checks and visual review. |
+| FR-11 | Vision initializes session state; the companion applies it and sends only after operator edits. | Simulator synchronization test. |
+| FR-12 | A dropped client connection retries while the Bonjour endpoint remains available. | Simulator disconnect/reconnect test. |
+| FR-13 | The status panel identifies synthetic fallback imagery and lets the user return to the library. | Simulator visual test. |
+| FR-14 | Companion users can set bone opacity from 25–100% and select one of six accessible colours; both values update the companion preview, snapshot, and Vision material. | Snapshot round-trip, paired simulator interaction, and screenshot comparison. |
+| FR-15 | Each catalogue card depicts the corresponding skeletal structure, including ribs for chest and pelvic bones for pelvis/hips. | Visual review at card and selected-region sizes. |
+| FR-16 | On visionOS 26+, manual unlocked mode supports pinch-drag translation and two-hand uniform resizing; release clamps and writes the transform back to shared state, while Lock disables manipulation. | Physical Vision Pro gesture test plus source/build checks. |
+| FR-17 | Double-pinch on the overlay cycles the imaging modes currently backed by valid data: 3D bone and 3D bone plus axial section. | Physical gesture test; visible mode label and companion state confirm the change. |
+| FR-18 | Single-pinch on a bone resolves its semantic USDZ entity name and supplies curated educational text. | Mesh-name audit and targeted-gesture test. |
 
 ## 6. Non-functional requirements
 
@@ -99,6 +113,8 @@ If a mixed-reality overlay can remain stable enough to teach the relationship be
 - Source and built resources preserve the 112:160 image aspect ratio on a 0.105 m × 0.150 m plane.
 - Transform changes should appear continuous; tracking updates use smoothing.
 - A failed texture load uses a clearly synthetic fallback instead of silently showing a wrong clinical-looking image.
+- Appearance controls clamp opacity to a safe visible range and use a fixed palette so state is deterministic across platforms.
+- An LLM must never generate transforms, registration confidence, or bone identity; it may explain a deterministic structured selection only.
 - The development pipeline must build the Vision simulator target, compile the physical Vision target, build the companion simulator target, and confirm resources in the app bundle.
 
 ## 7. Motion and joint model
@@ -150,9 +166,14 @@ The current prototype supports one Vision Pro viewer and one companion controlle
 | MR constraint | No full-immersion configuration. | Automated invariant passes. |
 | Section integration | Five real reference textures ship and remain registered to the anatomy root. | Bundle and source checks pass; physical motion test pending. |
 | State synchronization | Slice visibility, level, position, opacity, and count cross the companion snapshot. | Code and compatibility checks pass. |
+| Appearance control | Six bone colours and 25–100% opacity propagate to preview and Vision material; legacy snapshots default to cyan. | Companion interaction and reconnect pass for Magenta/60%; immersive material confirmation remains in the physical/manual gate. |
+| Catalogue comprehension | Chest visibly uses ribs; pelvis/hip cards visibly use pelvic geometry; limb cards show long bones. | Vision simulator visual review passes. |
+| Direct manipulation | With tracking off, users can move and uniformly resize the model, and released values appear on the companion. | visionOS 26 physical-device test required. |
+| Anatomy guide | Radius, ulna, carpals, metacarpals, and phalanges resolve from semantic mesh names without inference. | USDZ/source audit passes; physical targeted-input test pending. |
 | Tracking transparency | Phase is visible; loss retains pose and fades the overlay. | UI/source checks pass; physical occlusion test pending. |
 | Safety communication | Cross-subject, illustrative orientation, not patient-specific/clinical visible before and during use. | Static/UI review passes. |
-| Registration | Elbow and wrist overlay error is recorded in three poses; no pass threshold is claimed until baseline data exists. | Physical Vision Pro required. |
+| Registration | Provisional POC target: median endpoint error ≤15 mm and 95th-percentile error ≤25 mm across neutral, pronated, supinated, and flexed poses. These are engineering targets, not clinical tolerances. | Physical Vision Pro required. |
+| Stability | Provisional POC target: ≤5 mm RMS endpoint jitter over 10 seconds and ≤2 seconds recovery after a two-second occlusion. | Physical Vision Pro required. |
 | Recovery | Operator can recover after marker occlusion without restarting the apps. | Physical Vision Pro required. |
 | Privacy | No patient pixels or identifiers sent over the POC connection. | Payload/source review passes. |
 | Demo completion | A facilitator completes launch → connect → track/manual place → show/move slice → lose/recover tracking in under five minutes. | End-to-end physical rehearsal pending. |
@@ -185,9 +206,10 @@ For each change:
 1. Frame the requirement and acceptance evidence in this document.
 2. Implement the smallest end-to-end slice across model, state, UI, rendering, and resources.
 3. Run `git diff --check` and `Tools/validate.sh`.
-4. Have an independent reviewer inspect geometry, disclosure, compatibility, and failure behavior.
-5. Run the physical acceptance script for tracking-affecting changes.
-6. Commit only when the automated pipeline passes; record physical gaps in the handoff.
+4. Run `Tools/simulator_smoke.sh`, inspect both captured screens, then activate the visible Vision launch button and inspect the mixed-reality scene.
+5. Have an independent reviewer inspect geometry, disclosure, compatibility, and failure behavior.
+6. Run the physical acceptance script for tracking-affecting changes.
+7. Commit only when the automated pipeline passes; record physical gaps in the handoff.
 
 ## 13. Physical acceptance script
 
@@ -200,7 +222,11 @@ For each change:
 7. Lock transform calibration; confirm slice controls still work.
 8. Occlude one and then both markers; confirm last pose, fade, and status message.
 9. Restore the markers; confirm recovery without app restart.
-10. Confirm all safety disclosures are visible and no patient data is used.
+10. Return to the anatomy library from the status panel and reopen the overlay.
+11. Turn marker following off; pinch-drag and resize the model, then confirm companion position/scale update after release.
+12. Set all six bone colours and opacity to 25%, 50%, 75%, and 100%; confirm preview and Vision agree numerically and visually.
+13. Single-pinch radius, ulna, and one carpal; confirm the guide label. Double-pinch the overlay twice; confirm the visible mode and companion axial state cycle and return to their starting state.
+14. Confirm all safety disclosures are visible and no patient data is used.
 
 ## 14. Go/no-go rule
 

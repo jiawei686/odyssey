@@ -18,6 +18,8 @@ final class PeerSession: ObservableObject {
     private var listener: NWListener?
     private var browser: NWBrowser?
     private var connection: NWConnection?
+    private var discoveredEndpoint: NWEndpoint?
+    private var reconnectWorkItem: DispatchWorkItem?
     private var receiveBuffer = Data()
     private var hasStarted = false
 
@@ -38,13 +40,16 @@ final class PeerSession: ObservableObject {
     }
 
     func stop() {
+        hasStarted = false
+        reconnectWorkItem?.cancel()
         browser?.cancel()
         listener?.cancel()
         connection?.cancel()
         browser = nil
         listener = nil
         connection = nil
-        hasStarted = false
+        discoveredEndpoint = nil
+        reconnectWorkItem = nil
         publish(status: "Stopped", connected: false)
     }
 
@@ -54,10 +59,12 @@ final class PeerSession: ObservableObject {
         do {
             var data = try JSONEncoder().encode(snapshot)
             data.append(0x0A)
-            connection.send(content: data, completion: .contentProcessed { [weak self] error in
-                if let error {
-                    self?.publish(status: "Send failed: \(error.localizedDescription)", connected: false)
-                }
+            connection.send(content: data, completion: .contentProcessed { [weak self, weak connection] error in
+                guard let error, let connection else { return }
+                self?.handleConnectionEnded(
+                    connection,
+                    status: "Send failed: \(error.localizedDescription)"
+                )
             })
         } catch {
             publish(status: "Encode failed", connected: isConnected)
@@ -114,9 +121,10 @@ final class PeerSession: ObservableObject {
             }
         }
         browser.browseResultsChangedHandler = { [weak self] results, _ in
-            guard let self,
-                  self.connection == nil,
-                  let endpoint = results.first?.endpoint else { return }
+            guard let self else { return }
+            let endpoint = results.first?.endpoint
+            self.discoveredEndpoint = endpoint
+            guard self.connection == nil, let endpoint else { return }
             self.start(NWConnection(to: endpoint, using: .tcp))
         }
         self.browser = browser
@@ -125,6 +133,8 @@ final class PeerSession: ObservableObject {
     }
 
     private func start(_ connection: NWConnection) {
+        reconnectWorkItem?.cancel()
+        reconnectWorkItem = nil
         self.connection?.cancel()
         self.connection = connection
         receiveBuffer.removeAll(keepingCapacity: true)
@@ -140,11 +150,14 @@ final class PeerSession: ObservableObject {
             case .waiting(let error):
                 self.publish(status: "Waiting: \(error.localizedDescription)", connected: false)
             case .failed(let error):
-                self.publish(status: "Connection failed: \(error.localizedDescription)", connected: false)
-                self.connection = nil
+                guard let connection else { return }
+                self.handleConnectionEnded(
+                    connection,
+                    status: "Connection failed: \(error.localizedDescription)"
+                )
             case .cancelled:
-                self.publish(status: "Disconnected", connected: false)
-                self.connection = nil
+                guard let connection else { return }
+                self.handleConnectionEnded(connection, status: "Disconnected")
             default:
                 break
             }
@@ -158,26 +171,62 @@ final class PeerSession: ObservableObject {
             minimumIncompleteLength: 1,
             maximumLength: 65_536
         ) { [weak self, weak connection] data, _, isComplete, error in
-            guard let self else { return }
+            guard let self, let connection else { return }
 
             if let data, !data.isEmpty {
                 self.consume(data)
             }
 
             if let error {
-                self.publish(status: "Receive failed: \(error.localizedDescription)", connected: false)
+                self.handleConnectionEnded(
+                    connection,
+                    status: "Receive failed: \(error.localizedDescription)"
+                )
                 return
             }
 
             if isComplete {
-                self.publish(status: "Peer disconnected", connected: false)
+                self.handleConnectionEnded(connection, status: "Peer disconnected")
                 return
             }
 
-            if let connection {
-                self.receiveNext(on: connection)
-            }
+            self.receiveNext(on: connection)
         }
+    }
+
+    private func handleConnectionEnded(
+        _ endedConnection: NWConnection,
+        status: String
+    ) {
+        guard let activeConnection = connection,
+              activeConnection === endedConnection else { return }
+
+        connection = nil
+        endedConnection.cancel()
+        receiveBuffer.removeAll(keepingCapacity: true)
+        publish(status: status, connected: false)
+
+        guard hasStarted else { return }
+        switch role {
+        case .host:
+            break
+        case .client:
+            scheduleReconnect()
+        }
+    }
+
+    private func scheduleReconnect() {
+        guard reconnectWorkItem == nil,
+              let endpoint = discoveredEndpoint else { return }
+
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.reconnectWorkItem = nil
+            guard self.hasStarted, self.connection == nil else { return }
+            self.start(NWConnection(to: endpoint, using: .tcp))
+        }
+        reconnectWorkItem = workItem
+        queue.asyncAfter(deadline: .now() + 1.0, execute: workItem)
     }
 
     private func consume(_ data: Data) {
@@ -205,4 +254,3 @@ final class PeerSession: ObservableObject {
         }
     }
 }
-
