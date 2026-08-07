@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#ffffff"/>
+  <rect x="32" y="32" width="960" height="960" rx="40" fill="none" stroke="#000000" stroke-width="48"/>
+  <path d="M118 150h300v150H268v118H118zM906 146v272H756V296H606V146z" fill="#000000"/>
+  <path d="M120 858V590h150v118h148v150zM906 858H608V708h148V586h150z" fill="#000000"/>
+  <path d="M512 254l74 150 166 24-120 117 28 165-148-78-148 78 28-165-120-117 166-24z" fill="#000000"/>
+  <circle cx="512" cy="484" r="68" fill="#ffffff"/>
+  <path d="M182 454l86 52-86 52-48-52zM842 418l58 88-58 88-58-88z" fill="#000000"/>
+  <rect x="430" y="735" width="164" height="70" rx="18" fill="#000000"/>
+  <text x="512" y="930" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="82" font-weight="700" fill="#000000">WRIST</text>
+</svg>

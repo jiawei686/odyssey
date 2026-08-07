@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#ffffff"/>
+  <rect x="32" y="32" width="960" height="960" rx="40" fill="none" stroke="#000000" stroke-width="48"/>
+  <path d="M128 170h250v120H248v138H128zM896 164v300H744V328H612V164z" fill="#000000"/>
+  <path d="M126 850V568h146v132h132v150zM898 852H616V706h132V574h150z" fill="#000000"/>
+  <circle cx="512" cy="490" r="190" fill="#000000"/>
+  <circle cx="512" cy="490" r="112" fill="#ffffff"/>
+  <path d="M512 292l52 120 130 12-98 86 29 128-113-66-113 66 29-128-98-86 130-12z" fill="#000000"/>
+  <circle cx="226" cy="490" r="58" fill="#000000"/>
+  <rect x="746" y="430" width="112" height="112" fill="#000000" transform="rotate(22 802 486)"/>
+  <text x="512" y="930" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="82" font-weight="700" fill="#000000">ELBOW</text>
+</svg>
