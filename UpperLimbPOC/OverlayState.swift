@@ -161,7 +161,9 @@ final class OverlayState: ObservableObject {
     @Published private(set) var selectedSliceIndex = 2
     @Published private(set) var sectionSourceStatus: SectionSourceStatus = .notLoaded
     @Published private(set) var focusedBoneName = "Forearm anatomy"
-    @Published private(set) var focusedBoneDescription = "Single-pinch a bone to identify it. Double-pinch the overlay to change imaging mode."
+    @Published private(set) var focusedBoneDescription = "Look at a highlighted bone and single-pinch to identify it. Double-pinch the overlay to change imaging mode."
+    @Published private(set) var overlayLoadError: String?
+    @Published private(set) var overlayLoadRevision = 0
 
     let sliceCount = referenceSliceCount
 
@@ -223,13 +225,13 @@ final class OverlayState: ObservableObject {
     }
 
     func applyCalibration(_ snapshot: OverlaySnapshot) {
-        x = snapshot.x
-        y = snapshot.y
-        z = snapshot.z
-        pitchDegrees = snapshot.pitchDegrees
-        yawDegrees = snapshot.yawDegrees
-        rollDegrees = snapshot.rollDegrees
-        scale = snapshot.scale
+        x = min(max(snapshot.x, -0.50), 0.50)
+        y = min(max(snapshot.y, -0.50), 0.50)
+        z = min(max(snapshot.z, -1.50), -0.20)
+        pitchDegrees = min(max(snapshot.pitchDegrees, -180), 180)
+        yawDegrees = min(max(snapshot.yawDegrees, -180), 180)
+        rollDegrees = min(max(snapshot.rollDegrees, -180), 180)
+        scale = min(max(snapshot.scale, 0.50), 1.50)
         opacity = min(max(snapshot.opacity, 0.25), 1.00)
         tint = OverlayTint(rawValue: snapshot.tintID) ?? .cyan
         locked = snapshot.locked
@@ -258,6 +260,15 @@ final class OverlayState: ObservableObject {
 
     func setSectionSourceStatus(_ status: SectionSourceStatus) {
         sectionSourceStatus = status
+    }
+
+    func setOverlayLoadError(_ message: String?) {
+        overlayLoadError = message
+    }
+
+    func requestOverlayReload() {
+        overlayLoadError = nil
+        overlayLoadRevision += 1
     }
 
     func captureManualPlacement(

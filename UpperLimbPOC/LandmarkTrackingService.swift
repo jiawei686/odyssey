@@ -33,7 +33,7 @@ final class LandmarkTrackingService: ObservableObject {
             case .authorizationDenied: "World-sensing permission was denied"
             case .searching: "Show both ELBOW and WRIST markers"
             case .partial: "One marker found — show both markers"
-            case .tracking: "Elbow and wrist locked"
+            case .tracking: "Both markers detected — live alignment"
             case .invalidDistance: "Markers are outside the expected forearm distance"
             case .failed(let reason): "Tracking failed: \(reason)"
             }
@@ -61,8 +61,7 @@ final class LandmarkTrackingService: ObservableObject {
         phase = .simulatorUnavailable
         isAvailableOnDevice = false
         return
-#endif
-
+#else
         guard ImageTrackingProvider.isSupported else {
             phase = .unsupported
             isAvailableOnDevice = false
@@ -92,11 +91,14 @@ final class LandmarkTrackingService: ObservableObject {
                     guard !Task.isCancelled else { break }
                     self?.consume(update.anchor)
                 }
+                guard !Task.isCancelled else { return }
+                self?.handleProviderStreamEnded()
             }
         } catch {
             phase = .failed(error.localizedDescription)
             isAvailableOnDevice = false
         }
+#endif
     }
 
     func stop() {
@@ -110,6 +112,19 @@ final class LandmarkTrackingService: ObservableObject {
         isTracking = false
         isAvailableOnDevice = false
         phase = .idle
+    }
+
+    func retry() async {
+        stop()
+        await start()
+    }
+
+    private func handleProviderStreamEnded() {
+        updateTask = nil
+        provider = nil
+        isTracking = false
+        isAvailableOnDevice = false
+        phase = .failed("tracking session ended — retry tracking")
     }
 
     private func consume(_ anchor: ImageAnchor) {

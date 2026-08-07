@@ -5,125 +5,185 @@ import UIKit
 struct CompanionContentView: View {
     @EnvironmentObject private var overlay: OverlayState
     @EnvironmentObject private var peer: PeerSession
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     var body: some View {
         NavigationStack {
-            HStack(spacing: 24) {
-                USDZPreview(opacity: overlay.opacity, tint: overlay.tint)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(.black.opacity(0.05), in: RoundedRectangle(cornerRadius: 20))
-
-                ScrollView {
-                    VStack(spacing: 14) {
-                        Label(
-                            peer.status,
-                            systemImage: peer.isConnected ? "vision.pro" : "network"
-                        )
-                        .foregroundStyle(peer.isConnected ? .green : .secondary)
-
-                        Text("Remote calibration")
-                            .font(.title2.bold())
-
-                        Group {
-                            control("Left / right", value: $overlay.x, range: -0.50...0.50, unit: "m")
-                            control("Up / down", value: $overlay.y, range: -0.50...0.50, unit: "m")
-                            control("Near / far", value: $overlay.z, range: -1.50 ... -0.20, unit: "m")
-                            control("Pitch", value: $overlay.pitchDegrees, range: -180...180, unit: "°")
-                            control("Yaw", value: $overlay.yawDegrees, range: -180...180, unit: "°")
-                            control("Roll", value: $overlay.rollDegrees, range: -180...180, unit: "°")
-                            control("Scale", value: $overlay.scale, range: 0.50...1.50, unit: "×")
-                        }
-                        .disabled(overlay.locked)
-
-                        appearanceControls
-
-                        Divider()
-
-                        Group {
-                            Toggle(
-                                "Show reference axial section",
-                                isOn: syncing($overlay.sectionVisible)
-                            )
-                            .font(.headline)
-
-                            control(
-                                "Slice position",
-                                value: Binding(
-                                    get: { overlay.normalizedSlicePosition },
-                                    set: overlay.setSectionPosition
-                                ),
-                                range: 0...1,
-                                unit: ""
-                            )
-                            .disabled(!overlay.sectionVisible)
-
-                            HStack {
-                                Stepper(
-                                    value: Binding(
-                                        get: { overlay.selectedSliceIndex },
-                                        set: { index in
-                                            overlay.selectSlice(index)
-                                            sendCurrentState()
-                                        }
-                                    ),
-                                    in: 0...(overlay.sliceCount - 1)
-                                ) {
-                                    Text("Reference slice")
-                                }
-
-                                Spacer()
-
-                                Text("\(overlay.selectedSliceIndex + 1) / \(overlay.sliceCount)")
-                                    .monospacedDigit()
-                            }
-                            .disabled(!overlay.sectionVisible)
-
-                            control(
-                                "Slice opacity",
-                                value: $overlay.sectionOpacity,
-                                range: 0.15...1.0,
-                                unit: ""
-                            )
-                            .disabled(!overlay.sectionVisible)
-                        }
-
-                        HStack {
-                            Button(overlay.locked ? "Unlock" : "Lock") {
-                                overlay.locked.toggle()
-                                sendCurrentState()
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .tint(overlay.locked ? .green : .blue)
-
-                            Button("Reset") {
-                                overlay.reset()
-                                sendCurrentState()
-                            }
-
-                            Button("Find model") {
-                                overlay.makeVisible()
-                                sendCurrentState()
-                            }
-                        }
-
-                        Text("NLM reference CT is cross-subject and approximate. Do not transmit patient images or identifiers.")
-                            .font(.footnote)
-                            .foregroundStyle(.orange)
-
-                        Text("Axial orientation and laterality are illustrative only; A/P and R/L are not registered in this prototype.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
+            Group {
+                if horizontalSizeClass == .compact {
+                    VStack(spacing: 16) {
+                        preview
+                            .frame(height: 220)
+                        controlPanel
+                    }
+                } else {
+                    HStack(spacing: 24) {
+                        preview
+                        controlPanel
+                            .frame(maxWidth: 480)
                     }
                 }
-                .frame(maxWidth: 480)
             }
             .padding(24)
-            .navigationTitle("Radiographic Companion")
+            .navigationTitle(
+                horizontalSizeClass == .compact
+                    ? "Companion"
+                    : "Radiographic Companion"
+            )
         }
         .onAppear(perform: peer.start)
         .onReceive(peer.$lastSnapshot.compactMap { $0 }) { snapshot in
             overlay.applyCalibration(snapshot)
+            recordSmokeSnapshot(snapshot)
         }
+    }
+
+    private var preview: some View {
+        USDZPreview(opacity: overlay.opacity, tint: overlay.tint)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(.black.opacity(0.05), in: RoundedRectangle(cornerRadius: 20))
+    }
+
+    private var controlPanel: some View {
+        ScrollView {
+            VStack(spacing: 14) {
+                Label(
+                    peer.status,
+                    systemImage: peer.isConnected ? "vision.pro" : "network"
+                )
+                .foregroundStyle(peer.isConnected ? .green : .secondary)
+
+                Text("Placement")
+                    .font(.title2.bold())
+
+                Group {
+                    control("Left / right", value: $overlay.x, range: -0.50...0.50, unit: "m")
+                    control("Up / down", value: $overlay.y, range: -0.50...0.50, unit: "m")
+                    control("Near / far", value: $overlay.z, range: -1.50 ... -0.20, unit: "m")
+                    control("Pitch", value: $overlay.pitchDegrees, range: -180...180, unit: "°")
+                    control("Yaw", value: $overlay.yawDegrees, range: -180...180, unit: "°")
+                    control("Roll", value: $overlay.rollDegrees, range: -180...180, unit: "°")
+                    control("Scale", value: $overlay.scale, range: 0.50...1.50, unit: "×")
+                }
+                .disabled(overlay.locked)
+
+                Divider()
+
+                Text("Appearance")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                appearanceControls
+
+                Divider()
+
+                Text("Sectional imaging")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                Group {
+                    Toggle(
+                        "Show reference axial section",
+                        isOn: syncing($overlay.sectionVisible)
+                    )
+
+                    control(
+                        "Slice position",
+                        value: Binding(
+                            get: { overlay.normalizedSlicePosition },
+                            set: { overlay.setSectionPosition($0) }
+                        ),
+                        range: 0...1,
+                        unit: ""
+                    )
+                    .disabled(!overlay.sectionVisible)
+
+                    HStack {
+                        Stepper(
+                            value: Binding(
+                                get: { overlay.selectedSliceIndex },
+                                set: { index in
+                                    overlay.selectSlice(index)
+                                    sendCurrentState()
+                                }
+                            ),
+                            in: 0...(overlay.sliceCount - 1)
+                        ) {
+                            Text("Reference slice")
+                        }
+
+                        Spacer()
+
+                        Text("\(overlay.selectedSliceIndex + 1) / \(overlay.sliceCount)")
+                            .monospacedDigit()
+                    }
+                    .disabled(!overlay.sectionVisible)
+
+                    control(
+                        "Slice opacity",
+                        value: $overlay.sectionOpacity,
+                        range: 0.15...1.0,
+                        unit: ""
+                    )
+                    .disabled(!overlay.sectionVisible)
+                }
+
+                Divider()
+
+                if horizontalSizeClass == .compact {
+                    VStack(spacing: 10) {
+                        placementActionButtons
+                    }
+                } else {
+                    HStack {
+                        placementActionButtons
+                    }
+                }
+
+                Text("Reset placement preserves colour, opacity, and sectional settings. Centre & brighten also raises bone opacity to at least 85%.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Text("NLM reference CT is cross-subject and approximate. Do not transmit patient images or identifiers.")
+                    .font(.footnote)
+                    .foregroundStyle(.orange)
+
+                Text("Axial orientation and laterality are illustrative only; A/P and R/L are not registered in this prototype.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var placementActionButtons: some View {
+        Button {
+            overlay.locked.toggle()
+            sendCurrentState()
+        } label: {
+            Text(overlay.locked ? "Unlock placement" : "Lock placement")
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(overlay.locked ? .green : .blue)
+
+        Button {
+            overlay.resetPlacement()
+            sendCurrentState()
+        } label: {
+            Text("Reset placement")
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.bordered)
+
+        Button {
+            overlay.makeVisible()
+            sendCurrentState()
+        } label: {
+            Text("Centre & brighten")
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.bordered)
     }
 
     @ViewBuilder
@@ -176,9 +236,7 @@ struct CompanionContentView: View {
                     .fill(swiftUIColor(for: overlay.tint))
                     .frame(width: 24, height: 24)
                     .overlay(Circle().stroke(.secondary, lineWidth: 1))
-
-                Text(overlay.tint.name)
-                    .frame(width: 58, alignment: .trailing)
+                    .accessibilityLabel("Selected colour: \(overlay.tint.name)")
             }
 
             Text("Lower opacity makes the bone overlay more translucent.")
@@ -222,6 +280,18 @@ struct CompanionContentView: View {
         let stepped = ((overlay.opacity + delta) * 20).rounded() / 20
         overlay.opacity = min(1.00, max(0.25, stepped))
         sendCurrentState()
+    }
+
+    private func recordSmokeSnapshot(_ snapshot: OverlaySnapshot) {
+#if DEBUG
+        let defaults = UserDefaults.standard
+        defaults.set(snapshot.tintID, forKey: "SmokeLastTintID")
+        defaults.set(snapshot.opacity, forKey: "SmokeLastOpacity")
+        defaults.set(snapshot.sectionVisible, forKey: "SmokeLastSectionVisible")
+        defaults.set(snapshot.normalizedSlicePosition, forKey: "SmokeLastSectionPosition")
+        defaults.set(snapshot.sectionOpacity, forKey: "SmokeLastSectionOpacity")
+        defaults.set(snapshot.selectedSliceIndex, forKey: "SmokeLastSliceIndex")
+#endif
     }
 
     private func swiftUIColor(for tint: OverlayTint) -> Color {

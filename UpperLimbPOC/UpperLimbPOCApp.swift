@@ -21,7 +21,7 @@ struct UpperLimbPOCApp: App {
                 .environmentObject(peer)
                 .environmentObject(tracking)
         }
-        .defaultSize(width: 720, height: 500)
+        .defaultSize(width: 820, height: 620)
         .windowStyle(.plain)
 
         ImmersiveSpace(id: "BoneOverlay") {
@@ -29,7 +29,6 @@ struct UpperLimbPOCApp: App {
                 .environmentObject(overlay)
                 .environmentObject(peer)
                 .environmentObject(tracking)
-                .persistentSystemOverlays(.hidden)
         }
         .immersionStyle(selection: $immersionStyle, in: .mixed)
     }

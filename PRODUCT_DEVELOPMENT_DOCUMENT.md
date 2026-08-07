@@ -6,6 +6,8 @@ Build a three-day, non-clinical proof of concept that places a translucent forea
 
 The prototype tests whether the interaction is understandable and technically stable enough to justify a patient-specific research phase. It does not test diagnostic accuracy.
 
+**Current gate (7 August 2026): code-ready for supervised physical validation.** Automated builds, analyzers, state logic, strict-concurrency checks, and simulator synchronization pass. The prototype is not yet demonstration-complete because no physical Apple Vision Pro registration, gaze/gesture, occlusion, or measured five-minute rehearsal has been recorded.
+
 ## 2. Problem framing
 
 ### User problem
@@ -25,6 +27,14 @@ The current CT slices, AnatomyTOOL mesh, and live participant are different anat
 ### Opportunity statement
 
 If a mixed-reality overlay can remain stable enough to teach the relationship between external landmarks, a 3D skeletal segment, and an axial section, the same interaction architecture could later accept segmented patient CT/MRI volumes after research-grade registration, governance, and validation are added.
+
+### Three-day design question
+
+Can a supervised user place or track one educational forearm model, understand whether its alignment is live, stale, or illustrative, identify a named bone with system gaze targeting plus pinch, and relate that model to an elbow-to-wrist axial reference plane in under five minutes?
+
+### Prototype hypothesis
+
+Two visible landmarks, a rigid forearm model, a persistent status/control window, and privacy-preserving gaze targeting are sufficient to test the spatial-learning interaction. They are not sufficient to infer hidden patient anatomy, model natural joint kinematics, or support clinical guidance.
 
 ## 3. Prototype users and jobs
 
@@ -106,6 +116,9 @@ If a mixed-reality overlay can remain stable enough to teach the relationship be
 | FR-17 | Double-pinch on the overlay cycles the imaging modes currently backed by valid data: 3D bone and 3D bone plus axial section. | Physical gesture test; visible mode label and companion state confirm the change. |
 | FR-18 | Single-pinch on a bone resolves its semantic USDZ entity name and supplies curated educational text. | Mesh-name audit and targeted-gesture test. |
 | FR-19 | Entering axial mode reveals a vertical elbow-to-wrist level bar in the side status panel; dragging it moves the plane, selects the nearest reference level, and synchronizes the companion. | Source/build check plus physical drag and companion-state test. |
+| FR-20 | System gaze highlights a control or anatomical entity and pinch confirms it; looking alone never activates an app action, raw gaze is neither available nor recorded, and explicit imaging-mode and bone-list alternatives remain available. | Source/accessibility invariant plus physical first-attempt/false-activation test. |
+| FR-21 | The companion presents usable single-column controls at compact iPhone width and two columns at regular iPad width; placement reset preserves appearance and section state. | Compact/regular simulator screenshots plus overlay-state logic test. |
+| FR-22 | A failed model load produces a visible error with Retry and Return-to-library recovery actions. | Forced-load-failure interaction test. |
 
 ## 6. Non-functional requirements
 
@@ -116,6 +129,7 @@ If a mixed-reality overlay can remain stable enough to teach the relationship be
 - A failed texture load uses a clearly synthetic fallback instead of silently showing a wrong clinical-looking image.
 - Appearance controls clamp opacity to a safe visible range and use a fixed palette so state is deterministic across platforms.
 - An LLM must never generate transforms, registration confidence, or bone identity; it may explain a deterministic structured selection only.
+- Gaze input must use system focus/hover and pinch confirmation. The app must not claim access to raw eye position or gaze coordinates.
 - The development pipeline must build the Vision simulator target, compile the physical Vision target, build the companion simulator target, and confirm resources in the app bundle.
 
 ## 7. Motion and joint model
@@ -166,12 +180,14 @@ The current prototype supports one Vision Pro viewer and one companion controlle
 | Build viability | Vision simulator, Vision device SDK, and iOS simulator builds pass. | Automated pipeline passes. |
 | MR constraint | No full-immersion configuration. | Automated invariant passes. |
 | Section integration | Five real reference textures ship and remain registered to the anatomy root. | Bundle and source checks pass; physical motion test pending. |
-| State synchronization | Slice visibility, level, position, opacity, and count cross the companion snapshot. | Code and compatibility checks pass. |
+| State synchronization | Slice visibility, level, position, opacity, and count cross the companion snapshot. | Code/compatibility checks and state-asserting paired-simulator smoke pass. |
 | Appearance control | Six bone colours and 25–100% opacity propagate to preview and Vision material; legacy snapshots default to cyan. | Companion interaction and reconnect pass for Magenta/60%; immersive material confirmation remains in the physical/manual gate. |
 | Catalogue comprehension | Chest visibly uses ribs; pelvis/hip cards visibly use pelvic geometry; limb cards show long bones. | Vision simulator visual review passes. |
 | Direct manipulation | With tracking off, users can move and uniformly resize the model, and released values appear on the companion. | visionOS 26 physical-device test required. |
 | Anatomy guide | Radius, ulna, carpals, metacarpals, and phalanges resolve from semantic mesh names without inference. | USDZ/source audit passes; physical targeted-input test pending. |
 | Section-level interaction | Axial mode reveals a vertical WRIST-to-ELBOW bar with current level and normalized position; changes use the shared snapshot. | Source/build checks pass; immersive physical/manual drag test pending. |
+| Gaze-targeted interaction | First-attempt selection succeeds in at least 90% of trials; looking alone causes zero activation; no more than one unintended mode change occurs per 20 single-pinches. | Hover/input/accessibility source checks pass; physical Vision Pro test pending. |
+| Responsive companion | Placement, appearance, and section controls remain readable and operable in compact iPhone and regular iPad layouts. | Responsive source/build checks, iPad visual review, and compact-iPhone upper/AX review pass; scroll-to-bottom visual check remains. |
 | Tracking transparency | Phase is visible; loss retains pose and fades the overlay. | UI/source checks pass; physical occlusion test pending. |
 | Safety communication | Cross-subject, illustrative orientation, not patient-specific/clinical visible before and during use. | Static/UI review passes. |
 | Registration | Provisional POC target: median endpoint error ≤15 mm and 95th-percentile error ≤25 mm across neutral, pronated, supinated, and flexed poses. These are engineering targets, not clinical tolerances. | Physical Vision Pro required. |
@@ -207,8 +223,8 @@ For each change:
 
 1. Frame the requirement and acceptance evidence in this document.
 2. Implement the smallest end-to-end slice across model, state, UI, rendering, and resources.
-3. Run `git diff --check` and `Tools/validate.sh`.
-4. Run `Tools/simulator_smoke.sh`, inspect both captured screens, then activate the visible Vision launch button and inspect the mixed-reality scene.
+3. Run `git diff --check` and `Tools/validate.sh`. The validator executes snapshot compatibility, overlay-state behavior, physical-metric evaluator self-test, four platform builds, two analyzers, resource checks, and interaction invariants.
+4. Run `Tools/simulator_smoke.sh`. It must assert receipt of the Vision-owned amber/slice-4 snapshot before capturing both screens. Then activate the visible Vision launch button and inspect the mixed-reality scene.
 5. Have an independent reviewer inspect geometry, disclosure, compatibility, and failure behavior.
 6. Run the physical acceptance script for tracking-affecting changes.
 7. Commit only when the automated pipeline passes; record physical gaps in the handoff.
@@ -229,7 +245,10 @@ For each change:
 12. Set all six bone colours and opacity to 25%, 50%, 75%, and 100%; confirm preview and Vision agree numerically and visually.
 13. Single-pinch radius, ulna, and one carpal; confirm the guide label. Double-pinch into axial mode; confirm the side level bar appears.
 14. Drag the bar from ELBOW to WRIST; confirm the registered plane moves continuously, levels 1–5 change, and the companion matches. Double-pinch again; confirm the bar disappears in 3D-only mode.
-15. Confirm all safety disclosures are visible and no patient data is used.
+15. Run at least three measured trials in each required pose: `neutral`, `pronated`, `supinated`, and `flexed`. Enter endpoint error, RMS jitter, and recovery time in a copy of `Tools/physical_acceptance_template.csv`, then run `.build/physical-acceptance-metrics <results.csv>`.
+16. Gaze-target the radius, ulna, and a carpal across 20 single-pinches. Confirm at least 90% first-attempt selection, zero gaze-only activation, and at most one unintended imaging-mode change.
+17. Verify VoiceOver activation and the status-window bone list, then repeat with Dwell or Pointer Control if available.
+18. Confirm all safety disclosures are visible and no patient data is used.
 
 ## 14. Go/no-go rule
 

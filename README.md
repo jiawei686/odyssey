@@ -29,6 +29,16 @@ The CT slices, AnatomyTOOL 3D mesh, and live participant come from different ana
 
 The markerless ML and LLM design, data boundaries, and verification gates are in `ML_ASSISTANT_ARCHITECTURE.md`.
 
+## Version 3.2: gaze, recovery, and verification hardening
+
+- Apple Vision Pro uses system gaze targeting and pinch confirmation: look at a highlighted bone, then single-pinch to identify it. The app does not receive or record raw gaze coordinates.
+- The status window provides explicit `3D bone / 3D + axial` controls and a bone list, so double-pinch and small-entity targeting are optional shortcuts rather than the only path.
+- Bone entities expose RealityKit accessibility labels and activation, and the sectional level bar has a larger gaze target.
+- Live, stale, and unregistered alignment states are explicit. Tracking-stream failure can be retried and a model-load failure shows Retry and Return-to-library recovery.
+- Lock state can be changed in the headset. The companion uses a responsive single-column iPhone layout or two-column iPad layout.
+- `Reset placement` preserves appearance and section settings; `Centre & brighten` names its opacity side effect.
+- The validation pipeline now executes overlay-state logic tests and a physical-metrics evaluator self-test. Simulator smoke fails unless the companion receives the expected Vision-owned state.
+
 ## Version 2: elbow–wrist tracking
 
 Version 2 adds a controlled, physical-device registration workflow for the current forearm-and-hand asset:
@@ -60,7 +70,7 @@ The companion and Vision app exchange newline-framed JSON containing position, r
 5. In the Vision Pro region library, select **Left Forearm & Hand** or **Right Forearm & Hand**, then choose **Open overlay**. The library window closes so only the bone remains in mixed reality.
    A compact tracking-status window remains visible alongside the overlay.
 6. Enable **Reference sectional-imaging plane** before opening the overlay, or control it later from the companion. Move the slice from elbow to wrist and adjust its opacity.
-7. Use the companion sliders to align the centred 0.42 m hand-to-elbow model, select a bone colour, and set opacity with the slider or 5% minus/plus controls, then press **Lock**. If the model is out of view or too faint, press **Find model** on the companion.
+7. Use the companion sliders to align the centred 0.42 m hand-to-elbow model, select a bone colour, and set opacity with the slider or 5% minus/plus controls, then press **Lock placement**. If the model is out of view or too faint, press **Centre & brighten** on the companion.
 
 For a repeatable debug smoke test, first run `Tools/validate.sh`, then run:
 
@@ -68,7 +78,13 @@ For a repeatable debug smoke test, first run `Tools/validate.sh`, then run:
 Tools/simulator_smoke.sh <vision-simulator-udid> <ipad-simulator-udid> <output-directory>
 ```
 
-The smoke route exists only in Debug builds. It prepares the right forearm in amber at 65% bone opacity with reference slice 4/5 at 0.55 opacity, launches both apps, and captures both simulator screens so startup and Vision-to-companion state synchronization can be reviewed. visionOS still requires a user activation to enter an immersive space: select the large **Open Right Forearm overlay** button in the Vision simulator, then capture the mixed-reality scene and status panel for visual review.
+The smoke route exists only in Debug builds. It prepares the right forearm in amber at 65% bone opacity with reference slice 4/5 at 0.55 opacity, launches both apps, asserts that the companion received that Vision-owned state, and captures both simulator screens. visionOS still requires a user activation to enter an immersive space: select the large **Open Right Forearm overlay** button in the Vision simulator, then capture the mixed-reality scene and status panel for visual review.
+
+For physical measurements, copy `Tools/physical_acceptance_template.csv`, enter at least three `neutral`, `pronated`, `supinated`, and `flexed` trials, then run:
+
+```bash
+.build/physical-acceptance-metrics <completed-results.csv>
+```
 
 ## Run on physical devices
 
@@ -103,6 +119,9 @@ The demo deliberately uses a small TCP implementation to keep the August proof-o
 ## Source references
 
 - Apple: <https://developer.apple.com/documentation/visionos/connecting-ipados-and-visionos-apps-over-the-local-network>
+- Apple gaze privacy: <https://developer.apple.com/documentation/visionos/adopting-best-practices-for-privacy>
+- Apple hover effects: <https://developer.apple.com/documentation/realitykit/hovereffectcomponent/>
+- Apple spatial accessibility: <https://developer.apple.com/documentation/visionos/improving-accessibility-support-in-your-app/>
 - Charles Cai: <https://charlescai.com/academic%20blog/2026/01/20/crossplatformAVPiPad/>
 - AnatomyTOOL Open3DModel upper-limb mesh (CC BY-SA): <https://anatomytool.org/open3dmodel>
 - NLM Visible Human Project: <https://www.nlm.nih.gov/research/visible/visible_human.html>

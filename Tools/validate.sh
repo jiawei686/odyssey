@@ -7,7 +7,7 @@ PROJECT="$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj"
 BUILD_ROOT="$PROJECT_DIR/.build"
 mkdir -p "$BUILD_ROOT"
 
-echo "[1/9] Checking mixed-reality and sectional-imaging invariants"
+echo "[1/11] Checking mixed-reality, gaze, and sectional-imaging invariants"
 rg -q 'ImmersionStyle = \.mixed' "$PROJECT_DIR/UpperLimbPOC/UpperLimbPOCApp.swift"
 if rg -q '\.full' "$PROJECT_DIR/UpperLimbPOC/UpperLimbPOCApp.swift"; then
     echo "Full-immersion configuration detected; mixed reality is required." >&2
@@ -19,7 +19,7 @@ rg -q 'tintID' "$PROJECT_DIR/UpperLimbPOC/OverlaySnapshot.swift" "$PROJECT_DIR/T
 rg -q 'ReferenceSectionRoot' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
 rg -Fq 'referenceForearmLength * Float(overlay.normalizedSlicePosition)' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
 
-echo "[2/9] Checking reference CT assets and disclosure"
+echo "[2/11] Checking reference CT assets and disclosure"
 SLICE_COUNT="$(find "$PROJECT_DIR/UpperLimbPOC/ReferenceSlices" -type f -name 'reference-forearm-*.png' | wc -l | tr -d ' ')"
 test "$SLICE_COUNT" = "5"
 rg -q 'reference-forearm-01.png' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
@@ -35,6 +35,11 @@ rg -q '!overlay.locked' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
 rg -q 'focusBone' "$PROJECT_DIR/UpperLimbPOC/OverlayState.swift" "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
 rg -q 'sectionLevelBar' "$PROJECT_DIR/UpperLimbPOC/ContentView.swift"
 rg -q 'Elbow to wrist section level' "$PROJECT_DIR/UpperLimbPOC/ContentView.swift"
+rg -q 'Gaze-targeted interaction' "$PROJECT_DIR/UpperLimbPOC/ContentView.swift"
+rg -q 'AccessibilityComponent' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
+rg -q 'AccessibilityEvents.Activate' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
+rg -q 'horizontalSizeClass' "$PROJECT_DIR/UpperLimbPOC/CompanionContentView.swift"
+rg -q 'Reset placement' "$PROJECT_DIR/UpperLimbPOC/CompanionContentView.swift"
 rg -q 'Bone opacity' "$PROJECT_DIR/UpperLimbPOC/CompanionContentView.swift"
 rg -q 'Decrease bone opacity' "$PROJECT_DIR/UpperLimbPOC/CompanionContentView.swift"
 rg -q 'overlay.resetPlacement()' "$PROJECT_DIR/UpperLimbPOC/ContentView.swift"
@@ -50,7 +55,7 @@ test -f "$PROJECT_DIR/PRODUCT_DEVELOPMENT_DOCUMENT.md"
 test -f "$PROJECT_DIR/ML_ASSISTANT_ARCHITECTURE.md"
 test -x "$PROJECT_DIR/Tools/simulator_smoke.sh"
 
-echo "[3/9] Checking snapshot compatibility"
+echo "[3/11] Checking snapshot compatibility"
 xcrun swiftc \
     -module-cache-path "$BUILD_ROOT/swift-module-cache" \
     "$PROJECT_DIR/UpperLimbPOC/OverlaySnapshot.swift" \
@@ -58,7 +63,24 @@ xcrun swiftc \
     -o "$BUILD_ROOT/snapshot-compatibility-check"
 "$BUILD_ROOT/snapshot-compatibility-check"
 
-echo "[4/9] Building Vision Pro simulator target"
+echo "[4/11] Checking overlay state behavior"
+xcrun swiftc \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/OverlaySnapshot.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/OverlayState.swift" \
+    "$PROJECT_DIR/Tools/OverlayStateLogicCheck.swift" \
+    -o "$BUILD_ROOT/overlay-state-logic-check"
+"$BUILD_ROOT/overlay-state-logic-check"
+
+echo "[5/11] Checking the physical-metrics evaluator"
+xcrun swiftc \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/Tools/PhysicalAcceptanceMetrics.swift" \
+    -o "$BUILD_ROOT/physical-acceptance-metrics"
+"$BUILD_ROOT/physical-acceptance-metrics" --self-test
+
+echo "[6/11] Building Vision Pro simulator target"
 xcodebuild \
     -quiet \
     -project "$PROJECT" \
@@ -69,7 +91,7 @@ xcodebuild \
     CODE_SIGNING_ALLOWED=NO \
     build
 
-echo "[5/9] Compiling Vision Pro physical-device target"
+echo "[7/11] Compiling Vision Pro physical-device target"
 xcodebuild \
     -quiet \
     -project "$PROJECT" \
@@ -80,7 +102,7 @@ xcodebuild \
     CODE_SIGNING_ALLOWED=NO \
     build
 
-echo "[6/9] Building iPad/iPhone companion simulator target"
+echo "[8/11] Building iPad/iPhone companion simulator target"
 xcodebuild \
     -quiet \
     -project "$PROJECT" \
@@ -91,7 +113,7 @@ xcodebuild \
     CODE_SIGNING_ALLOWED=NO \
     build
 
-echo "[7/9] Compiling iPad/iPhone physical-device target"
+echo "[9/11] Compiling iPad/iPhone physical-device target"
 xcodebuild \
     -quiet \
     -project "$PROJECT" \
@@ -102,7 +124,7 @@ xcodebuild \
     CODE_SIGNING_ALLOWED=NO \
     build
 
-echo "[8/9] Analyzing Vision Pro target"
+echo "[10/11] Analyzing Vision Pro target"
 xcodebuild \
     -quiet \
     -project "$PROJECT" \
@@ -113,7 +135,7 @@ xcodebuild \
     CODE_SIGNING_ALLOWED=NO \
     analyze
 
-echo "[9/9] Analyzing iPad/iPhone companion target"
+echo "[11/11] Analyzing iPad/iPhone companion target"
 xcodebuild \
     -quiet \
     -project "$PROJECT" \
@@ -128,4 +150,4 @@ VISION_APP="$BUILD_ROOT/vision/Build/Products/Debug-xrsimulator/UpperLimbPOC.app
 test -f "$VISION_APP/reference-forearm-01.png"
 test -f "$VISION_APP/reference-forearm-05.png"
 
-echo "Validation passed: mixed reality, snapshot compatibility, five reference slices, all builds, and static analysis."
+echo "Validation passed: mixed reality, gaze/accessibility invariants, state logic, metric evaluator, five reference slices, all builds, and static analysis."

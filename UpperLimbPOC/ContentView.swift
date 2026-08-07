@@ -11,6 +11,7 @@ struct ContentView: View {
     @State private var isOpening = false
     @State private var launchError: String?
     @State private var didRunAutomatedDemo = false
+    @State private var showPlannedRegions = false
 
     private let columns = [
         GridItem(.adaptive(minimum: 190, maximum: 240), spacing: 18)
@@ -33,7 +34,7 @@ struct ContentView: View {
                     .disabled(isOpening || !selectedRegion.isAvailable)
 
                     LazyVGrid(columns: columns, spacing: 18) {
-                        ForEach(BodyRegion.allCases) { region in
+                        ForEach(BodyRegion.allCases.filter(\.isAvailable)) { region in
                             RegionCard(
                                 region: region,
                                 isSelected: selectedRegion == region
@@ -44,6 +45,26 @@ struct ContentView: View {
                             }
                         }
                     }
+
+                    DisclosureGroup(
+                        "Planned anatomy regions (\(BodyRegion.allCases.filter { !$0.isAvailable }.count))",
+                        isExpanded: $showPlannedRegions
+                    ) {
+                        LazyVGrid(columns: columns, spacing: 18) {
+                            ForEach(BodyRegion.allCases.filter { !$0.isAvailable }) { region in
+                                RegionCard(
+                                    region: region,
+                                    isSelected: selectedRegion == region
+                                ) {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        selectedRegion = region
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.top, 14)
+                    }
+                    .font(.headline)
 
                     selectionPanel
                 }
@@ -77,7 +98,7 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Choose a skeletal region")
                 .font(.largeTitle.bold())
-            Text("Look at a card and pinch to select it. The menu closes after the translucent bone overlay opens.")
+            Text("Look at a card until it highlights, then pinch to select. The menu closes after the translucent bone overlay opens.")
                 .font(.title3)
                 .foregroundStyle(.secondary)
 
@@ -118,22 +139,6 @@ struct ContentView: View {
                 }
 
                 Spacer()
-
-                Button {
-                    Task { await openBoneOverlay() }
-                } label: {
-                    if isOpening {
-                        ProgressView()
-                            .frame(minWidth: 150)
-                    } else {
-                        Label("Open overlay", systemImage: "vision.pro")
-                            .frame(minWidth: 150)
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .keyboardShortcut(.defaultAction)
-                .disabled(isOpening || !selectedRegion.isAvailable)
             }
 
             if selectedRegion.isAvailable {
@@ -159,7 +164,7 @@ struct ContentView: View {
                         Slider(
                             value: Binding(
                                 get: { overlay.normalizedSlicePosition },
-                                set: overlay.setSectionPosition
+                                set: { overlay.setSectionPosition($0) }
                             ),
                             in: 0...1
                         )
@@ -239,6 +244,7 @@ struct TrackingStatusView: View {
     @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
     @Environment(\.openWindow) private var openWindow
     @Environment(\.dismissWindow) private var dismissWindow
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var message: String {
         overlay.trackingEnabled
@@ -262,10 +268,22 @@ struct TrackingStatusView: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 18) {
-            VStack(alignment: .leading, spacing: 10) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
                 Label(message, systemImage: tracking.isTracking ? "scope" : "viewfinder")
                     .font(.headline)
                     .foregroundStyle(color)
+
+                Label(alignmentSafetyText, systemImage: alignmentSafetyIcon)
+                    .font(.callout.weight(.bold))
+                    .foregroundStyle(tracking.isTracking ? .green : .orange)
+
+                Label(
+                    peer.isConnected ? "Companion connected" : "Companion disconnected",
+                    systemImage: peer.isConnected ? "vision.pro.fill" : "network.slash"
+                )
+                .font(.callout.weight(.semibold))
+                .foregroundStyle(peer.isConnected ? .green : .orange)
 
                 Text("When active landmark tracking is lost, the overlay keeps its last valid pose and fades. Unavailable devices use manual placement.")
                     .font(.callout)
@@ -300,19 +318,101 @@ struct TrackingStatusView: View {
                 )
                 .toggleStyle(.switch)
 
+                if case .failed = tracking.phase {
+                    Button("Retry marker tracking", systemImage: "arrow.clockwise") {
+                        Task { await tracking.retry() }
+                    }
+                    .buttonStyle(.bordered)
+                }
+
+                HStack {
+                    Label(
+                        overlay.locked ? "Placement locked" : "Placement unlocked",
+                        systemImage: overlay.locked ? "lock.fill" : "lock.open.fill"
+                    )
+                    .font(.callout.weight(.semibold))
+
+                    Spacer()
+
+                    Button(overlay.locked ? "Unlock placement" : "Lock placement") {
+                        overlay.locked.toggle()
+                        peer.send(overlay.snapshot)
+                    }
+                    .buttonStyle(.bordered)
+                }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Imaging mode")
+                        .font(.callout.weight(.semibold))
+
+                    Picker(
+                        "Imaging mode",
+                        selection: Binding(
+                            get: { overlay.sectionVisible ? 1 : 0 },
+                            set: { value in
+                                overlay.sectionVisible = value == 1
+                                peer.send(overlay.snapshot)
+                            }
+                        )
+                    ) {
+                        Text("3D bone").tag(0)
+                        Text("3D + axial").tag(1)
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                }
+
                 Label(overlay.imagingModeName, systemImage: "square.3.layers.3d")
                     .font(.headline)
 
                 Label(overlay.focusedBoneName, systemImage: "sparkles")
                     .font(.headline)
+                    .accessibilityAddTraits(.isHeader)
 
                 Text(overlay.focusedBoneDescription)
                     .font(.callout)
                     .foregroundStyle(.secondary)
 
-                Text("Manual, unlocked mode: pinch and drag to move; use two hands to resize. Single-pinch a bone for its guide. Double-pinch the overlay to switch between 3D bone and 3D + axial.")
+                Menu("Choose a bone from list", systemImage: "list.bullet") {
+                    ForEach(anatomyChoices.indices, id: \.self) { index in
+                        let choice = anatomyChoices[index]
+                        Button(choice.label) {
+                            overlay.focusBone(entityName: choice.entityName)
+                        }
+                    }
+                }
+
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Label("Gaze-targeted interaction", systemImage: "eye")
+                            .font(.callout.weight(.semibold))
+                        Text("Look at a bone until it highlights; single-pinch to identify it. Double-pinch changes imaging mode, with the segmented control above as the reliable alternative.")
+                        Text("Looking alone never activates an action. The app does not receive or record raw gaze coordinates.")
+                            .foregroundStyle(.secondary)
+                    }
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                if #available(visionOS 26.0, *) {
+                    Text("Manual, unlocked mode: pinch and drag to move; use two hands to resize uniformly.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("On this visionOS version, use the companion placement sliders. Direct pinch-drag and resize require visionOS 26 or later.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                if let overlayLoadError = overlay.overlayLoadError {
+                    Label(overlayLoadError, systemImage: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
+
+                    Button("Retry loading model", systemImage: "arrow.clockwise") {
+                        overlay.requestOverlayReload()
+                    }
+                    .buttonStyle(.bordered)
+                }
 
                 Button("Return to anatomy library", systemImage: "rectangle.portrait.and.arrow.forward") {
                     Task {
@@ -322,15 +422,42 @@ struct TrackingStatusView: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
+                }
             }
+            .frame(maxWidth: .infinity)
 
             if overlay.sectionVisible {
                 sectionLevelBar
                     .transition(.move(edge: .trailing).combined(with: .opacity))
             }
         }
-        .animation(.snappy, value: overlay.sectionVisible)
+        .animation(reduceMotion ? nil : .snappy, value: overlay.sectionVisible)
         .padding(20)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24))
+    }
+
+    private let anatomyChoices = [
+        (label: "Radius", entityName: "Radius_r"),
+        (label: "Ulna", entityName: "Ulna_r"),
+        (label: "Scaphoid", entityName: "Scaphoid_r"),
+        (label: "Lunate", entityName: "Lunate_r"),
+        (label: "Capitate", entityName: "Capitate_r"),
+        (label: "Metacarpals", entityName: "Metacarpal_r"),
+        (label: "Finger phalanges", entityName: "Phalanx_r")
+    ]
+
+    private var alignmentSafetyText: String {
+        if tracking.isTracking {
+            return "LIVE — both markers detected"
+        }
+        if overlay.trackingEnabled, tracking.fit != nil {
+            return "STALE — last pose; do not rely on alignment"
+        }
+        return "NOT REGISTERED — reference placement only"
+    }
+
+    private var alignmentSafetyIcon: String {
+        tracking.isTracking ? "checkmark.shield.fill" : "exclamationmark.triangle.fill"
     }
 
     private var sectionLevelBar: some View {
@@ -353,13 +480,16 @@ struct TrackingStatusView: View {
                     ),
                     in: 0...1
                 )
-                .frame(width: 180)
+                .controlSize(.large)
+                .frame(width: 220)
                 .rotationEffect(.degrees(-90))
-                .frame(width: 38, height: 180)
+                .frame(width: 64, height: 220)
+                .contentShape(Rectangle())
                 .accessibilityLabel("Elbow to wrist section level")
                 .accessibilityValue(
                     "Level \(overlay.selectedSliceIndex + 1) of \(overlay.sliceCount)"
                 )
+                .accessibilityHint("Drag vertically, or use the increment and decrement actions, to move the section plane")
 
                 VStack(spacing: 0) {
                     ForEach((0..<overlay.sliceCount).reversed(), id: \.self) { index in
@@ -386,7 +516,7 @@ struct TrackingStatusView: View {
                         }
                     }
                 }
-                .frame(height: 164)
+                .frame(height: 204)
             }
 
             Text("ELBOW")
@@ -404,7 +534,7 @@ struct TrackingStatusView: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 12)
-        .frame(width: 92)
+        .frame(width: 120)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
     }
 }

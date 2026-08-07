@@ -6,6 +6,8 @@ struct ImmersiveView: View {
     @EnvironmentObject private var overlay: OverlayState
     @EnvironmentObject private var peer: PeerSession
     @EnvironmentObject private var tracking: LandmarkTrackingService
+    @State private var accessibilityActivateSubscription: EventSubscription?
+    @State private var manipulationUpdateSubscription: EventSubscription?
     @State private var manipulationEndSubscription: EventSubscription?
 
     private let localElbow = SIMD3<Float>(0, 0, 0.205)
@@ -14,8 +16,10 @@ struct ImmersiveView: View {
 
     var body: some View {
         RealityView { content in
+            overlay.setOverlayLoadError(nil)
             do {
                 guard let assetName = overlay.selectedRegion.assetName else {
+                    overlay.setOverlayLoadError("No 3D model is available for this region.")
                     return
                 }
                 let model = try await Entity(named: assetName)
@@ -36,6 +40,13 @@ struct ImmersiveView: View {
                 applyAppearance(effectiveOpacity, tint: overlay.tint, to: model)
                 applySectionState(to: sectionRoot)
                 content.add(model)
+                accessibilityActivateSubscription = content.subscribe(
+                    to: AccessibilityEvents.Activate.self
+                ) { event in
+                    overlay.focusBone(
+                        entityName: semanticEntityName(from: event.entity)
+                    )
+                }
                 if #available(visionOS 26.0, *) {
                     manipulationEndSubscription = content.subscribe(
                         to: ManipulationEvents.WillEnd.self,
@@ -51,9 +62,27 @@ struct ImmersiveView: View {
                             peer.send(overlay.snapshot)
                         }
                     }
+                    manipulationUpdateSubscription = content.subscribe(
+                        to: ManipulationEvents.DidUpdateTransform.self,
+                        on: model
+                    ) { event in
+                        guard !overlay.trackingEnabled,
+                              !overlay.locked else { return }
+                        let measuredScale = (
+                            abs(event.entity.scale.x)
+                            + abs(event.entity.scale.y)
+                            + abs(event.entity.scale.z)
+                        ) / 3
+                        let uniformScale = min(max(measuredScale, 0.50), 1.50)
+                        event.entity.scale = overlay.selectedRegion.isLeft
+                            ? SIMD3<Float>(-uniformScale, uniformScale, uniformScale)
+                            : SIMD3<Float>(repeating: uniformScale)
+                    }
                 }
             } catch {
-                print("Could not load \(overlay.selectedRegion.name): \(error)")
+                overlay.setOverlayLoadError(
+                    "Could not load \(overlay.selectedRegion.name). Return to the library or retry."
+                )
             }
         } update: { content in
             guard let model = content.entities.first(where: {
@@ -72,6 +101,7 @@ struct ImmersiveView: View {
                 applySectionState(to: sectionRoot)
             }
         }
+        .id(overlay.overlayLoadRevision)
         .onAppear(perform: peer.start)
         .onReceive(peer.$lastSnapshot.compactMap { $0 }) { snapshot in
             overlay.applyCalibration(snapshot)
@@ -120,8 +150,6 @@ struct ImmersiveView: View {
             model.components.remove(ManipulationComponent.self)
             return
         }
-        guard model.components[ManipulationComponent.self] == nil else { return }
-
         var component = ManipulationComponent()
         var dynamics = component.dynamics
         dynamics.translationBehavior = .unconstrained
@@ -150,11 +178,27 @@ struct ImmersiveView: View {
             entity.generateCollisionShapes(recursive: false)
             entity.components.set(InputTargetComponent())
             entity.components.set(HoverEffectComponent())
+            var accessibility = AccessibilityComponent()
+            accessibility.isAccessibilityElement = true
+            accessibility.label = LocalizedStringResource(
+                stringLiteral: accessibleBoneLabel(
+                    for: semanticEntityName(from: entity) ?? entity.name
+                )
+            )
+            accessibility.systemActions = [.activate]
+            entity.components.set(accessibility)
         }
 
         for child in entity.children {
             configureBoneHitTargets(in: child)
         }
+    }
+
+    private func accessibleBoneLabel(for entityName: String) -> String {
+        entityName
+            .replacingOccurrences(of: "_r", with: "")
+            .replacingOccurrences(of: "_l", with: "")
+            .replacingOccurrences(of: "_", with: " ")
     }
 
     private func applyTransform(to model: Entity) {
@@ -236,7 +280,7 @@ struct ImmersiveView: View {
     private var effectiveOpacity: Float {
         let requested = Float(overlay.opacity)
         guard overlay.trackingEnabled,
-              tracking.isAvailableOnDevice,
+              tracking.fit != nil,
               !tracking.isTracking else {
             return requested
         }
@@ -294,7 +338,7 @@ struct ImmersiveView: View {
     private var effectiveSectionOpacity: Float {
         let requested = Float(overlay.sectionOpacity)
         guard overlay.trackingEnabled,
-              tracking.isAvailableOnDevice,
+              tracking.fit != nil,
               !tracking.isTracking else {
             return requested
         }

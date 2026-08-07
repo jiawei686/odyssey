@@ -8,6 +8,8 @@ Keep the current elbow/wrist markers for the prototype. Add markerless recogniti
 
 Apple documents that ARKit whole-body tracking is not available on visionOS. Standard visionOS apps can use world, hand, image, plane, scene-reconstruction, and object tracking. Processing forward-camera frames requires the business-only Main Camera Access enterprise entitlement. Therefore a general consumer build cannot assume continuous camera-frame access for a custom body-pose model.
 
+Apple Vision Pro gaze is also intentionally system-private. The product can use gaze-targeted hover/focus followed by pinch, but a general app does not receive raw eye coordinates. Gaze identifies the intended interactive entity; it does not identify hidden anatomy or replace landmark registration.
+
 ## Layered pipeline
 
 1. **Registration source**

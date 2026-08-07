@@ -1,7 +1,7 @@
 import Foundation
 import Network
 
-final class PeerSession: ObservableObject {
+final class PeerSession: ObservableObject, @unchecked Sendable {
     enum Role {
         case host
         case client
@@ -28,6 +28,12 @@ final class PeerSession: ObservableObject {
     }
 
     func start() {
+        queue.async { [weak self] in
+            self?.startOnQueue()
+        }
+    }
+
+    private func startOnQueue() {
         guard !hasStarted else { return }
         hasStarted = true
 
@@ -40,6 +46,12 @@ final class PeerSession: ObservableObject {
     }
 
     func stop() {
+        queue.async { [weak self] in
+            self?.stopOnQueue()
+        }
+    }
+
+    private func stopOnQueue() {
         hasStarted = false
         reconnectWorkItem?.cancel()
         browser?.cancel()
@@ -54,20 +66,25 @@ final class PeerSession: ObservableObject {
     }
 
     func send(_ snapshot: OverlaySnapshot) {
-        guard let connection else { return }
-
         do {
             var data = try JSONEncoder().encode(snapshot)
             data.append(0x0A)
-            connection.send(content: data, completion: .contentProcessed { [weak self, weak connection] error in
-                guard let error, let connection else { return }
-                self?.handleConnectionEnded(
-                    connection,
-                    status: "Send failed: \(error.localizedDescription)"
+            let framedData = data
+            queue.async { [weak self] in
+                guard let self, let connection = self.connection else { return }
+                connection.send(
+                    content: framedData,
+                    completion: .contentProcessed { [weak self, weak connection] error in
+                        guard let error, let connection else { return }
+                        self?.handleConnectionEnded(
+                            connection,
+                            status: "Send failed: \(error.localizedDescription)"
+                        )
+                    }
                 )
-            })
+            }
         } catch {
-            publish(status: "Encode failed", connected: isConnected)
+            publish(status: "Encode failed", connected: false)
         }
     }
 
@@ -113,9 +130,7 @@ final class PeerSession: ObservableObject {
             case .failed(let error):
                 self?.publish(status: "Browse failed: \(error.localizedDescription)", connected: false)
             case .cancelled:
-                if self?.isConnected == false {
-                    self?.publish(status: "Search stopped", connected: false)
-                }
+                self?.publish(status: "Search stopped", connected: false)
             default:
                 break
             }
