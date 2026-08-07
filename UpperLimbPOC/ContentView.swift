@@ -261,32 +261,33 @@ struct TrackingStatusView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label(message, systemImage: tracking.isTracking ? "scope" : "viewfinder")
-                .font(.headline)
-                .foregroundStyle(color)
+        HStack(alignment: .top, spacing: 18) {
+            VStack(alignment: .leading, spacing: 10) {
+                Label(message, systemImage: tracking.isTracking ? "scope" : "viewfinder")
+                    .font(.headline)
+                    .foregroundStyle(color)
 
-            Text("When active landmark tracking is lost, the overlay keeps its last valid pose and fades. Unavailable devices use manual placement.")
-                .font(.callout)
+                Text("When active landmark tracking is lost, the overlay keeps its last valid pose and fades. Unavailable devices use manual placement.")
+                    .font(.callout)
 
-            Text("Reference CT orientation/laterality is illustrative only — not patient-specific or for clinical use.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                Text("Reference CT orientation/laterality is illustrative only — not patient-specific or for clinical use.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
 
-            Label(
-                overlay.sectionSourceStatus.message,
-                systemImage: overlay.sectionSourceStatus == .syntheticFallback
-                    ? "exclamationmark.triangle.fill"
-                    : "checkmark.circle"
-            )
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(
-                overlay.sectionSourceStatus == .syntheticFallback
-                    ? .orange
-                    : .secondary
-            )
+                Label(
+                    overlay.sectionSourceStatus.message,
+                    systemImage: overlay.sectionSourceStatus == .syntheticFallback
+                        ? "exclamationmark.triangle.fill"
+                        : "checkmark.circle"
+                )
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(
+                    overlay.sectionSourceStatus == .syntheticFallback
+                        ? .orange
+                        : .secondary
+                )
 
-            Divider()
+                Divider()
 
                 Toggle(
                     "Follow ELBOW + WRIST markers",
@@ -296,33 +297,115 @@ struct TrackingStatusView: View {
                             overlay.trackingEnabled = value
                         }
                     )
-            )
-            .toggleStyle(.switch)
+                )
+                .toggleStyle(.switch)
 
-            Label(overlay.imagingModeName, systemImage: "square.3.layers.3d")
-                .font(.headline)
+                Label(overlay.imagingModeName, systemImage: "square.3.layers.3d")
+                    .font(.headline)
 
-            Label(overlay.focusedBoneName, systemImage: "sparkles")
-                .font(.headline)
+                Label(overlay.focusedBoneName, systemImage: "sparkles")
+                    .font(.headline)
 
-            Text(overlay.focusedBoneDescription)
-                .font(.callout)
-                .foregroundStyle(.secondary)
+                Text(overlay.focusedBoneDescription)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
 
-            Text("Manual, unlocked mode: pinch and drag to move; use two hands to resize. Single-pinch a bone for its guide. Double-pinch the overlay to switch between 3D bone and 3D + axial.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                Text("Manual, unlocked mode: pinch and drag to move; use two hands to resize. Single-pinch a bone for its guide. Double-pinch the overlay to switch between 3D bone and 3D + axial.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
 
-            Button("Return to anatomy library", systemImage: "rectangle.portrait.and.arrow.forward") {
-                Task {
-                    await dismissImmersiveSpace()
-                    openWindow(id: "AnatomyLibrary")
-                    dismissWindow(id: "TrackingStatus")
+                Button("Return to anatomy library", systemImage: "rectangle.portrait.and.arrow.forward") {
+                    Task {
+                        await dismissImmersiveSpace()
+                        openWindow(id: "AnatomyLibrary")
+                        dismissWindow(id: "TrackingStatus")
+                    }
                 }
+                .buttonStyle(.borderedProminent)
             }
-            .buttonStyle(.borderedProminent)
+
+            if overlay.sectionVisible {
+                sectionLevelBar
+                    .transition(.move(edge: .trailing).combined(with: .opacity))
+            }
         }
+        .animation(.snappy, value: overlay.sectionVisible)
         .padding(20)
+    }
+
+    private var sectionLevelBar: some View {
+        VStack(spacing: 8) {
+            Text("Section level")
+                .font(.headline)
+
+            Text("WRIST")
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            HStack(spacing: 4) {
+                Slider(
+                    value: Binding(
+                        get: { overlay.normalizedSlicePosition },
+                        set: { position in
+                            overlay.setSectionPosition(position)
+                            peer.send(overlay.snapshot)
+                        }
+                    ),
+                    in: 0...1
+                )
+                .frame(width: 180)
+                .rotationEffect(.degrees(-90))
+                .frame(width: 38, height: 180)
+                .accessibilityLabel("Elbow to wrist section level")
+                .accessibilityValue(
+                    "Level \(overlay.selectedSliceIndex + 1) of \(overlay.sliceCount)"
+                )
+
+                VStack(spacing: 0) {
+                    ForEach((0..<overlay.sliceCount).reversed(), id: \.self) { index in
+                        HStack(spacing: 3) {
+                            Capsule()
+                                .fill(
+                                    index == overlay.selectedSliceIndex
+                                        ? Color.cyan
+                                        : Color.secondary.opacity(0.35)
+                                )
+                                .frame(width: 9, height: 2)
+                            Text("\(index + 1)")
+                                .font(.caption2)
+                                .monospacedDigit()
+                                .foregroundStyle(
+                                    index == overlay.selectedSliceIndex
+                                        ? Color.primary
+                                        : Color.secondary
+                                )
+                        }
+
+                        if index > 0 {
+                            Spacer(minLength: 0)
+                        }
+                    }
+                }
+                .frame(height: 164)
+            }
+
+            Text("ELBOW")
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            Text("\(overlay.selectedSliceIndex + 1) / \(overlay.sliceCount)")
+                .font(.title3.weight(.semibold))
+                .monospacedDigit()
+
+            Text(overlay.normalizedSlicePosition, format: .number.precision(.fractionLength(2)))
+                .font(.caption)
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 12)
+        .frame(width: 92)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
     }
 }
 

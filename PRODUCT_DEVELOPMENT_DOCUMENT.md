@@ -105,6 +105,7 @@ If a mixed-reality overlay can remain stable enough to teach the relationship be
 | FR-16 | On visionOS 26+, manual unlocked mode supports pinch-drag translation and two-hand uniform resizing; release clamps and writes the transform back to shared state, while Lock disables manipulation. | Physical Vision Pro gesture test plus source/build checks. |
 | FR-17 | Double-pinch on the overlay cycles the imaging modes currently backed by valid data: 3D bone and 3D bone plus axial section. | Physical gesture test; visible mode label and companion state confirm the change. |
 | FR-18 | Single-pinch on a bone resolves its semantic USDZ entity name and supplies curated educational text. | Mesh-name audit and targeted-gesture test. |
+| FR-19 | Entering axial mode reveals a vertical elbow-to-wrist level bar in the side status panel; dragging it moves the plane, selects the nearest reference level, and synchronizes the companion. | Source/build check plus physical drag and companion-state test. |
 
 ## 6. Non-functional requirements
 
@@ -170,6 +171,7 @@ The current prototype supports one Vision Pro viewer and one companion controlle
 | Catalogue comprehension | Chest visibly uses ribs; pelvis/hip cards visibly use pelvic geometry; limb cards show long bones. | Vision simulator visual review passes. |
 | Direct manipulation | With tracking off, users can move and uniformly resize the model, and released values appear on the companion. | visionOS 26 physical-device test required. |
 | Anatomy guide | Radius, ulna, carpals, metacarpals, and phalanges resolve from semantic mesh names without inference. | USDZ/source audit passes; physical targeted-input test pending. |
+| Section-level interaction | Axial mode reveals a vertical WRIST-to-ELBOW bar with current level and normalized position; changes use the shared snapshot. | Source/build checks pass; immersive physical/manual drag test pending. |
 | Tracking transparency | Phase is visible; loss retains pose and fades the overlay. | UI/source checks pass; physical occlusion test pending. |
 | Safety communication | Cross-subject, illustrative orientation, not patient-specific/clinical visible before and during use. | Static/UI review passes. |
 | Registration | Provisional POC target: median endpoint error ≤15 mm and 95th-percentile error ≤25 mm across neutral, pronated, supinated, and flexed poses. These are engineering targets, not clinical tolerances. | Physical Vision Pro required. |
@@ -225,8 +227,9 @@ For each change:
 10. Return to the anatomy library from the status panel and reopen the overlay.
 11. Turn marker following off; pinch-drag and resize the model, then confirm companion position/scale update after release.
 12. Set all six bone colours and opacity to 25%, 50%, 75%, and 100%; confirm preview and Vision agree numerically and visually.
-13. Single-pinch radius, ulna, and one carpal; confirm the guide label. Double-pinch the overlay twice; confirm the visible mode and companion axial state cycle and return to their starting state.
-14. Confirm all safety disclosures are visible and no patient data is used.
+13. Single-pinch radius, ulna, and one carpal; confirm the guide label. Double-pinch into axial mode; confirm the side level bar appears.
+14. Drag the bar from ELBOW to WRIST; confirm the registered plane moves continuously, levels 1–5 change, and the companion matches. Double-pinch again; confirm the bar disappears in 3D-only mode.
+15. Confirm all safety disclosures are visible and no patient data is used.
 
 ## 14. Go/no-go rule
 

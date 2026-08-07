@@ -21,7 +21,7 @@ struct UpperLimbPOCApp: App {
                 .environmentObject(peer)
                 .environmentObject(tracking)
         }
-        .defaultSize(width: 620, height: 470)
+        .defaultSize(width: 720, height: 500)
         .windowStyle(.plain)
 
         ImmersiveSpace(id: "BoneOverlay") {

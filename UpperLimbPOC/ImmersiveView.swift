@@ -306,9 +306,16 @@ struct ImmersiveView: View {
         guard overlay.sectionVisible else { return }
 
         let selectedName = "ReferenceSectionSlice-\(overlay.selectedSliceIndex)"
+        let sectionZ = localElbow.z - (
+            referenceForearmLength * Float(overlay.normalizedSlicePosition)
+        )
         for child in root.children {
             let isSelected = child.name == selectedName
             child.isEnabled = isSelected
+
+            if isSelected {
+                child.position = SIMD3<Float>(0, 0, sectionZ)
+            }
 
             guard isSelected,
                   var component = child.components[ModelComponent.self]

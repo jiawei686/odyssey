@@ -24,6 +24,7 @@ The CT slices, AnatomyTOOL 3D mesh, and live participant come from different ana
 - Catalogue cards use skeletal drawings for skull, spine, ribs, pelvis/hips, forearms/hands, and lower limbs.
 - On visionOS 26 or later, turn marker following and transform lock off to pinch-drag and uniformly resize the overlay. Released placement is clamped to the companion ranges and sent back to it.
 - Single-pinch a bone to identify its semantic anatomy entity. Double-pinch the overlay to switch between the available 3D-bone and 3D-plus-axial modes.
+- In axial mode, a vertical WRIST-to-ELBOW level bar appears in the side status panel; dragging it moves the plane continuously, selects the nearest of five slices, and synchronizes the companion.
 - The status window provides curated anatomy guidance from model metadata. It is not yet a generative LLM or markerless bone detector.
 
 The markerless ML and LLM design, data boundaries, and verification gates are in `ML_ASSISTANT_ARCHITECTURE.md`.
