@@ -4,6 +4,7 @@ struct ContentView: View {
     @EnvironmentObject private var overlay: OverlayState
     @EnvironmentObject private var peer: PeerSession
     @Environment(\.openImmersiveSpace) private var openImmersiveSpace
+    @Environment(\.openWindow) private var openWindow
     @Environment(\.dismissWindow) private var dismissWindow
 
     @State private var selectedRegion: BodyRegion = .rightUpperLimb
@@ -73,47 +74,98 @@ struct ContentView: View {
     }
 
     private var selectionPanel: some View {
-        HStack(spacing: 20) {
-            Image(systemName: selectedRegion.systemImage)
-                .font(.system(size: 34, weight: .medium))
-                .foregroundStyle(.cyan)
-                .frame(width: 66, height: 66)
-                .background(.cyan.opacity(0.14), in: RoundedRectangle(cornerRadius: 16))
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(spacing: 20) {
+                Image(systemName: selectedRegion.systemImage)
+                    .font(.system(size: 34, weight: .medium))
+                    .foregroundStyle(.cyan)
+                    .frame(width: 66, height: 66)
+                    .background(.cyan.opacity(0.14), in: RoundedRectangle(cornerRadius: 16))
 
-            VStack(alignment: .leading, spacing: 5) {
-                Text(selectedRegion.name)
-                    .font(.title2.bold())
-                Text(selectedRegion.isAvailable
-                     ? "CT-derived forearm-and-hand model ready for two-joint tracking."
-                     : "This regional model is listed in the library and is being prepared.")
-                    .foregroundStyle(.secondary)
-                if selectedRegion.isAvailable {
-                    Toggle("Follow ELBOW + WRIST markers", isOn: $overlay.trackingEnabled)
-                        .toggleStyle(.switch)
-                        .font(.callout.weight(.semibold))
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(selectedRegion.name)
+                        .font(.title2.bold())
+                    Text(selectedRegion.isAvailable
+                         ? "Reference forearm-and-hand model ready for two-landmark tracking."
+                         : "This regional model is listed in the library and is being prepared.")
+                        .foregroundStyle(.secondary)
+                    if selectedRegion.isAvailable {
+                        Toggle("Follow ELBOW + WRIST markers", isOn: $overlay.trackingEnabled)
+                            .toggleStyle(.switch)
+                            .font(.callout.weight(.semibold))
+                    }
+                    if let launchError {
+                        Text(launchError)
+                            .foregroundStyle(.red)
+                    }
                 }
-                if let launchError {
-                    Text(launchError)
-                        .foregroundStyle(.red)
+
+                Spacer()
+
+                Button {
+                    Task { await openBoneOverlay() }
+                } label: {
+                    if isOpening {
+                        ProgressView()
+                            .frame(minWidth: 150)
+                    } else {
+                        Label("Open overlay", systemImage: "vision.pro")
+                            .frame(minWidth: 150)
+                    }
                 }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(isOpening || !selectedRegion.isAvailable)
             }
 
-            Spacer()
+            if selectedRegion.isAvailable {
+                Divider()
 
-            Button {
-                Task { await openBoneOverlay() }
-            } label: {
-                if isOpening {
-                    ProgressView()
-                        .frame(minWidth: 150)
-                } else {
-                    Label("Open overlay", systemImage: "vision.pro")
-                        .frame(minWidth: 150)
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        Toggle(
+                            "Reference sectional-imaging plane",
+                            isOn: $overlay.sectionVisible
+                        )
+                        .font(.headline)
+
+                        Spacer()
+
+                        Text("Slice \(overlay.selectedSliceIndex + 1) of \(overlay.sliceCount)")
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                    }
+
+                    HStack {
+                        Text("Elbow")
+                        Slider(
+                            value: Binding(
+                                get: { overlay.normalizedSlicePosition },
+                                set: overlay.setSectionPosition
+                            ),
+                            in: 0...1
+                        )
+                        Text("Wrist")
+
+                        Text("Opacity")
+                            .padding(.leading, 14)
+                        Slider(value: $overlay.sectionOpacity, in: 0.15...1.0)
+                            .frame(maxWidth: 180)
+                    }
+                    .disabled(!overlay.sectionVisible)
+
+                    Label(
+                        "NLM public-domain reference CT — cross-subject approximation, not patient-specific or clinical",
+                        systemImage: "square.stack.3d.up"
+                    )
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.orange)
+
+                    Text("Axial orientation and laterality are illustrative only; the prototype does not register A/P or R/L orientation.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .disabled(isOpening || !selectedRegion.isAvailable)
         }
         .padding(20)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22))
@@ -133,10 +185,52 @@ struct ContentView: View {
         isOpening = false
 
         if result == .opened {
+            openWindow(id: "TrackingStatus")
             dismissWindow(id: "AnatomyLibrary")
         } else {
             launchError = "The immersive space could not open. Please try again."
         }
+    }
+}
+
+struct TrackingStatusView: View {
+    @EnvironmentObject private var overlay: OverlayState
+    @EnvironmentObject private var tracking: LandmarkTrackingService
+
+    private var message: String {
+        overlay.trackingEnabled
+            ? tracking.phase.message
+            : "Manual placement — landmark tracking is off"
+    }
+
+    private var color: Color {
+        if !overlay.trackingEnabled { return .blue }
+        if tracking.isTracking { return .green }
+
+        switch tracking.phase {
+        case .authorizationDenied, .unsupported, .invalidDistance, .failed:
+            return .red
+        case .simulatorUnavailable:
+            return .blue
+        default:
+            return .orange
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(message, systemImage: tracking.isTracking ? "scope" : "viewfinder")
+                .font(.headline)
+                .foregroundStyle(color)
+
+            Text("When active landmark tracking is lost, the overlay keeps its last valid pose and fades. Unavailable devices use manual placement.")
+                .font(.callout)
+
+            Text("Reference CT orientation/laterality is illustrative only — not patient-specific or for clinical use.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(20)
     }
 }
 

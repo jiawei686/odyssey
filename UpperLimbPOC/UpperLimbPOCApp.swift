@@ -15,6 +15,14 @@ struct UpperLimbPOCApp: App {
         }
         .defaultSize(width: 960, height: 720)
 
+        WindowGroup(id: "TrackingStatus") {
+            TrackingStatusView()
+                .environmentObject(overlay)
+                .environmentObject(tracking)
+        }
+        .defaultSize(width: 560, height: 190)
+        .windowStyle(.plain)
+
         ImmersiveSpace(id: "BoneOverlay") {
             ImmersiveView()
                 .environmentObject(overlay)

@@ -12,43 +12,97 @@ struct CompanionContentView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(.black.opacity(0.05), in: RoundedRectangle(cornerRadius: 20))
 
-                VStack(spacing: 14) {
-                    Label(
-                        peer.status,
-                        systemImage: peer.isConnected ? "vision.pro" : "network"
-                    )
-                    .foregroundStyle(peer.isConnected ? .green : .secondary)
+                ScrollView {
+                    VStack(spacing: 14) {
+                        Label(
+                            peer.status,
+                            systemImage: peer.isConnected ? "vision.pro" : "network"
+                        )
+                        .foregroundStyle(peer.isConnected ? .green : .secondary)
 
-                    Text("Remote calibration")
-                        .font(.title2.bold())
+                        Text("Remote calibration")
+                            .font(.title2.bold())
 
-                    Group {
-                        control("Left / right", value: $overlay.x, range: -0.50...0.50, unit: "m")
-                        control("Up / down", value: $overlay.y, range: -0.50...0.50, unit: "m")
-                        control("Near / far", value: $overlay.z, range: -1.50 ... -0.20, unit: "m")
-                        control("Pitch", value: $overlay.pitchDegrees, range: -180...180, unit: "°")
-                        control("Yaw", value: $overlay.yawDegrees, range: -180...180, unit: "°")
-                        control("Roll", value: $overlay.rollDegrees, range: -180...180, unit: "°")
-                        control("Scale", value: $overlay.scale, range: 0.50...1.50, unit: "×")
-                        control("Opacity", value: $overlay.opacity, range: 0.25...1.00, unit: "")
-                    }
-                    .disabled(overlay.locked)
-
-                    HStack {
-                        Button(overlay.locked ? "Unlock" : "Lock") {
-                            overlay.locked.toggle()
+                        Group {
+                            control("Left / right", value: $overlay.x, range: -0.50...0.50, unit: "m")
+                            control("Up / down", value: $overlay.y, range: -0.50...0.50, unit: "m")
+                            control("Near / far", value: $overlay.z, range: -1.50 ... -0.20, unit: "m")
+                            control("Pitch", value: $overlay.pitchDegrees, range: -180...180, unit: "°")
+                            control("Yaw", value: $overlay.yawDegrees, range: -180...180, unit: "°")
+                            control("Roll", value: $overlay.rollDegrees, range: -180...180, unit: "°")
+                            control("Scale", value: $overlay.scale, range: 0.50...1.50, unit: "×")
                         }
-                        .buttonStyle(.borderedProminent)
-                        .tint(overlay.locked ? .green : .blue)
+                        .disabled(overlay.locked)
 
-                        Button("Reset", action: overlay.reset)
+                        control("Opacity", value: $overlay.opacity, range: 0.25...1.00, unit: "")
 
-                        Button("Find model", action: overlay.makeVisible)
+                        Divider()
+
+                        Group {
+                            Toggle(
+                                "Show reference axial section",
+                                isOn: $overlay.sectionVisible
+                            )
+                            .font(.headline)
+
+                            control(
+                                "Slice position",
+                                value: Binding(
+                                    get: { overlay.normalizedSlicePosition },
+                                    set: overlay.setSectionPosition
+                                ),
+                                range: 0...1,
+                                unit: ""
+                            )
+                            .disabled(!overlay.sectionVisible)
+
+                            HStack {
+                                Stepper(
+                                    value: Binding(
+                                        get: { overlay.selectedSliceIndex },
+                                        set: overlay.selectSlice
+                                    ),
+                                    in: 0...(overlay.sliceCount - 1)
+                                ) {
+                                    Text("Reference slice")
+                                }
+
+                                Spacer()
+
+                                Text("\(overlay.selectedSliceIndex + 1) / \(overlay.sliceCount)")
+                                    .monospacedDigit()
+                            }
+                            .disabled(!overlay.sectionVisible)
+
+                            control(
+                                "Slice opacity",
+                                value: $overlay.sectionOpacity,
+                                range: 0.15...1.0,
+                                unit: ""
+                            )
+                            .disabled(!overlay.sectionVisible)
+                        }
+
+                        HStack {
+                            Button(overlay.locked ? "Unlock" : "Lock") {
+                                overlay.locked.toggle()
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(overlay.locked ? .green : .blue)
+
+                            Button("Reset", action: overlay.reset)
+
+                            Button("Find model", action: overlay.makeVisible)
+                        }
+
+                        Text("NLM reference CT is cross-subject and approximate. Do not transmit patient images or identifiers.")
+                            .font(.footnote)
+                            .foregroundStyle(.orange)
+
+                        Text("Axial orientation and laterality are illustrative only; A/P and R/L are not registered in this prototype.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     }
-
-                    Text("Transforms only. Do not transmit patient images or identifiers.")
-                        .font(.footnote)
-                        .foregroundStyle(.orange)
                 }
                 .frame(maxWidth: 480)
             }

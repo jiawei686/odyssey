@@ -2,6 +2,20 @@
 
 The Vision Pro app is displayed as **Radiographic Anatomy POC**. The Xcode target retains its original name so existing signing and run configurations continue to work.
 
+The scoped problem statement, requirements, success matrix, joint-motion approach, three-day plan, and acceptance script are in `PRODUCT_DEVELOPMENT_DOCUMENT.md`.
+
+## Version 3: reference sectional imaging
+
+Version 3 adds a five-level axial forearm CT reference plane to the mixed-reality overlay:
+
+- The Vision Pro library and iPad/iPhone companion can show or hide the plane, select its elbow-to-wrist position, and change its opacity.
+- The plane is parented to the same tracked anatomy root, so it follows the forearm model during marker tracking and manual fallback placement.
+- A separate status panel remains open in mixed reality and reports searching, partial tracking, tracking lock, permission failure, and tracking loss.
+- The bundled images are cropped reference slices from the **National Library of Medicine Visible Human Male `normalCT` series**. The NLM describes the Visible Human image library as public domain; full provenance and processing notes are in `UpperLimbPOC/ReferenceSlices/README.md`.
+- If a bundled texture cannot load, the app substitutes a clearly synthetic procedural section so the demonstration remains usable.
+
+The CT slices, AnatomyTOOL 3D mesh, and live participant come from different anatomical sources. Alignment is therefore an approximate, landmark-based educational composite. Axial orientation and laterality are illustrative only; A/P and R/L are not registered. It is **not patient-specific, diagnostically accurate, or intended for clinical decision-making**.
+
 ## Version 2: elbow–wrist tracking
 
 Version 2 adds a controlled, physical-device registration workflow for the current forearm-and-hand asset:
@@ -15,14 +29,14 @@ Version 2 adds a controlled, physical-device registration workflow for the curre
 
 Printable source markers and instructions are in `UpperLimbPOC/Markers`. Print both SVG files at **80 mm × 80 mm**, using **Actual Size / 100%**.
 
-Image tracking does not run in the Vision Pro simulator. The simulator automatically retains the manual placement workflow; marker recognition must be validated on a physical Apple Vision Pro.
+Image tracking does not run in the Vision Pro simulator. The simulator uses the manual placement workflow; marker recognition must be validated on a physical Apple Vision Pro.
 
 This Xcode project contains two apps:
 
 - `UpperLimbCompanion` runs on iPad or iPhone. It advertises a Bonjour service and sends overlay calibration changes.
 - `UpperLimbPOC` runs on Apple Vision Pro. It opens with a scrollable radiographic-region library, then enters a mixed immersive space after the user selects a ready model.
 
-The companion sends newline-framed JSON containing only position, rotation, scale, opacity, and lock state. It does not send the CT source, patient images, names, identifiers, or other clinical data.
+The companion sends newline-framed JSON containing position, rotation, scale, opacity, lock state, and reference-slice controls. It does not send image pixels, patient images, names, identifiers, or other clinical data; the same public-domain reference images are bundled locally in the Vision Pro app.
 
 ## Run on simulators
 
@@ -31,7 +45,9 @@ The companion sends newline-framed JSON containing only position, rotation, scal
 3. Select the `UpperLimbPOC` scheme and an Apple Vision Pro simulator, then press Run.
 4. Wait for both apps to show **Connected**.
 5. In the Vision Pro region library, select **Left Forearm & Hand** or **Right Forearm & Hand**, then choose **Open overlay**. The library window closes so only the bone remains in mixed reality.
-6. Use the companion sliders to align the centred 0.42 m hand-to-elbow model and adjust its translucency, then press **Lock**. If the model is out of view or too faint, press **Find model** on the companion.
+   A compact tracking-status window remains visible alongside the overlay.
+6. Enable **Reference sectional-imaging plane** before opening the overlay, or control it later from the companion. Move the slice from elbow to wrist and adjust its opacity.
+7. Use the companion sliders to align the centred 0.42 m hand-to-elbow model and adjust its translucency, then press **Lock**. If the model is out of view or too faint, press **Find model** on the companion.
 
 ## Run on physical devices
 
@@ -55,6 +71,8 @@ If discovery fails, confirm that Local Network access is enabled for both apps, 
 - Physical landmark tracking: ARKit `ImageTrackingProvider`
 - Fit anchors: local elbow Z `+0.205 m`, local wrist Z approximately `-0.058 m`
 - Reference elbow–wrist model length: `0.2625 m`
+- Sectional reference: five bundled NLM Visible Human CT crops, loaded as local RealityKit textures
+- Section registration: approximate normalized elbow-to-wrist position on the same anatomy root
 
 The demo deliberately uses a small TCP implementation to keep the August proof-of-concept build understandable. Before any production, research, or clinical deployment, replace it with authenticated encrypted transport, add robust reconnect and multi-peer handling, and establish a validated registration/tracking method. Apple's current sample demonstrates a QUIC/TLS approach.
 
@@ -62,9 +80,12 @@ The demo deliberately uses a small TCP implementation to keep the August proof-o
 
 - Apple: <https://developer.apple.com/documentation/visionos/connecting-ipados-and-visionos-apps-over-the-local-network>
 - Charles Cai: <https://charlescai.com/academic%20blog/2026/01/20/crossplatformAVPiPad/>
+- AnatomyTOOL Open3DModel upper-limb mesh (CC BY-SA): <https://anatomytool.org/open3dmodel>
+- NLM Visible Human Project: <https://www.nlm.nih.gov/research/visible/visible_human.html>
+- NLM Visible Human `normalCT` images: <https://data.lhncbc.nlm.nih.gov/public/Visible-Human/Male-Images/PNG_format/radiological/normalCT/>
 
 ## Status and limitation
 
-Both targets have been built, launched, and connected across the iPad and Vision Pro simulators. Physical-device tracking and overlay accuracy have not yet been validated.
+The automated pipeline builds the Vision Pro simulator target, compiles the physical Vision Pro target, builds the iPad/iPhone simulator target, and confirms the five CT textures in the Vision app bundle. The v2 baseline was previously launched and connected across simulators; the v3 sectional interaction, physical tracking, and overlay accuracy still require device-level validation.
 
 Educational prototype only. Do not use it for diagnosis, navigation, or procedural guidance.

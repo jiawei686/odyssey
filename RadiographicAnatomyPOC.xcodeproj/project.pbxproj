@@ -23,6 +23,12 @@
 		00000000000000000000002D /* LandmarkTrackingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000019 /* LandmarkTrackingService.swift */; };
 		00000000000000000000002E /* elbow-marker.png in Resources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000001A /* elbow-marker.png */; };
 		00000000000000000000002F /* wrist-marker.png in Resources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000001B /* wrist-marker.png */; };
+		000000000000000000000060 /* reference-forearm-01.png in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000070 /* reference-forearm-01.png */; };
+		000000000000000000000061 /* reference-forearm-02.png in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000071 /* reference-forearm-02.png */; };
+		000000000000000000000062 /* reference-forearm-03.png in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000072 /* reference-forearm-03.png */; };
+		000000000000000000000063 /* reference-forearm-04.png in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000073 /* reference-forearm-04.png */; };
+		000000000000000000000064 /* reference-forearm-05.png in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000074 /* reference-forearm-05.png */; };
+		000000000000000000000065 /* ReferenceSlices README.md in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000075 /* README.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +46,12 @@
 		000000000000000000000019 /* LandmarkTrackingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkTrackingService.swift; sourceTree = "<group>"; };
 		00000000000000000000001A /* elbow-marker.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Markers/elbow-marker.png"; sourceTree = "<group>"; };
 		00000000000000000000001B /* wrist-marker.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Markers/wrist-marker.png"; sourceTree = "<group>"; };
+		000000000000000000000070 /* reference-forearm-01.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reference-forearm-01.png"; sourceTree = "<group>"; };
+		000000000000000000000071 /* reference-forearm-02.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reference-forearm-02.png"; sourceTree = "<group>"; };
+		000000000000000000000072 /* reference-forearm-03.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reference-forearm-03.png"; sourceTree = "<group>"; };
+		000000000000000000000073 /* reference-forearm-04.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reference-forearm-04.png"; sourceTree = "<group>"; };
+		000000000000000000000074 /* reference-forearm-05.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reference-forearm-05.png"; sourceTree = "<group>"; };
+		000000000000000000000075 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,8 +104,22 @@
 				000000000000000000000019 /* LandmarkTrackingService.swift */,
 				00000000000000000000001A /* elbow-marker.png */,
 				00000000000000000000001B /* wrist-marker.png */,
+				000000000000000000000076 /* ReferenceSlices */,
 			);
 			path = UpperLimbPOC;
+			sourceTree = "<group>";
+		};
+		000000000000000000000076 /* ReferenceSlices */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000070 /* reference-forearm-01.png */,
+				000000000000000000000071 /* reference-forearm-02.png */,
+				000000000000000000000072 /* reference-forearm-03.png */,
+				000000000000000000000073 /* reference-forearm-04.png */,
+				000000000000000000000074 /* reference-forearm-05.png */,
+				000000000000000000000075 /* README.md */,
+			);
+			path = ReferenceSlices;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -178,6 +204,12 @@
 				000000000000000000000024 /* hand-to-elbow-overlay.usdz in Resources */,
 				00000000000000000000002E /* elbow-marker.png in Resources */,
 				00000000000000000000002F /* wrist-marker.png in Resources */,
+				000000000000000000000060 /* reference-forearm-01.png in Resources */,
+				000000000000000000000061 /* reference-forearm-02.png in Resources */,
+				000000000000000000000062 /* reference-forearm-03.png in Resources */,
+				000000000000000000000063 /* reference-forearm-04.png in Resources */,
+				000000000000000000000064 /* reference-forearm-05.png in Resources */,
+				000000000000000000000065 /* ReferenceSlices README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -257,7 +289,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -273,7 +305,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.marcel.UpperLimbPOC;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = xros;
@@ -289,7 +321,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -305,7 +337,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.marcel.UpperLimbPOC;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = xros;
@@ -321,7 +353,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -338,7 +370,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.marcel.UpperLimbPOC.Companion;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -353,7 +385,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -370,7 +402,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.marcel.UpperLimbPOC.Companion;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;

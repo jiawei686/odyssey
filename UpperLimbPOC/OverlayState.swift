@@ -89,6 +89,8 @@ enum BodyRegion: String, CaseIterable, Codable, Identifiable {
 
 @MainActor
 final class OverlayState: ObservableObject {
+    static let referenceSliceCount = 5
+
     @Published var selectedRegion: BodyRegion = .rightUpperLimb
     @Published var x: Double = 0.0
     @Published var y: Double = -0.15
@@ -101,6 +103,12 @@ final class OverlayState: ObservableObject {
     @Published var opacity: Double = 0.70
     @Published var locked = false
     @Published var trackingEnabled = true
+    @Published var sectionVisible = false
+    @Published var normalizedSlicePosition: Double = 0.5
+    @Published var sectionOpacity: Double = 0.68
+    @Published private(set) var selectedSliceIndex = 2
+
+    let sliceCount = referenceSliceCount
 
     func reset() {
         x = 0.0
@@ -112,6 +120,9 @@ final class OverlayState: ObservableObject {
         scale = 1.0
         opacity = 0.70
         locked = false
+        sectionVisible = false
+        setSectionPosition(0.5)
+        sectionOpacity = 0.68
     }
 
     func makeVisible() {
@@ -137,7 +148,12 @@ final class OverlayState: ObservableObject {
             rollDegrees: rollDegrees,
             scale: scale,
             opacity: opacity,
-            locked: locked
+            locked: locked,
+            sectionVisible: sectionVisible,
+            normalizedSlicePosition: normalizedSlicePosition,
+            sectionOpacity: sectionOpacity,
+            selectedSliceIndex: selectedSliceIndex,
+            sliceCount: sliceCount
         )
     }
 
@@ -151,5 +167,22 @@ final class OverlayState: ObservableObject {
         scale = snapshot.scale
         opacity = snapshot.opacity
         locked = snapshot.locked
+        sectionVisible = snapshot.sectionVisible
+        sectionOpacity = min(max(snapshot.sectionOpacity, 0.15), 1.0)
+        setSectionPosition(snapshot.normalizedSlicePosition)
+    }
+
+    func setSectionPosition(_ position: Double) {
+        let clamped = min(max(position, 0.0), 1.0)
+        normalizedSlicePosition = clamped
+        selectedSliceIndex = Int(
+            (clamped * Double(sliceCount - 1)).rounded()
+        )
+    }
+
+    func selectSlice(_ index: Int) {
+        let clamped = min(max(index, 0), sliceCount - 1)
+        selectedSliceIndex = clamped
+        normalizedSlicePosition = Double(clamped) / Double(sliceCount - 1)
     }
 }
