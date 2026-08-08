@@ -12,9 +12,11 @@ The current integrated prototype combines:
 - synchronized Vision and iPad/iPhone placement, appearance, and section state;
 - deterministic semantic bone guidance and gaze-targeted/pinch-confirmed input;
 - a clinician-guided, three-phalanx index-finger kinematic experiment using
-  reviewed MCP, PIP, and DIP model landmarks.
+  reviewed MCP, PIP, and DIP model landmarks;
+- a provider-labelled hybrid landmark contract with a deterministic
+  three-point forearm similarity solver and explicit LiDAR/body-joint limits.
 
-GitHub baseline: `main` at `69e8d55`.
+GitHub baseline: `main` at `4de2f2d`.
 
 ## Environment
 
@@ -27,15 +29,18 @@ GitHub baseline: `main` at `69e8d55`.
 
 ## Evidence
 
-- `[AUTO]` `Tools/validate.sh` passed all 12 stages on Xcode 27 beta: invariants,
-  snapshot compatibility, overlay-state behavior, index-finger calibration and
+- `[AUTO]` `Tools/validate.sh` passed all 13 stages on Xcode 27 beta: invariants,
+  snapshot compatibility, overlay-state behavior, hybrid landmark readiness,
+  known-transform/degenerate-frame checks, index-finger calibration and
   reacquisition, physical-metric evaluator self-test, resource checks, and two
   analyzers.
 - `[BUILD]` Vision simulator, Vision device SDK, companion simulator, and
   companion device SDK targets clean-built successfully.
+- `[BUILD]` Fresh strict-concurrency/warnings-as-errors builds pass for the
+  Vision and companion simulator targets with Xcode 27 beta.
 - `[SIM]` Paired simulator smoke passed the Vision-owned amber, 65%, axial
-  slice-4 synchronization assertion. The library and connected companion were
-  visibly inspected.
+  slice-4 synchronization assertion on the current branch. The library and
+  connected companion were visibly inspected.
 - `[SIM]` The immersive bone/section composition has not yet been captured in
   the latest Xcode 27 run because visionOS requires a visible user activation
   and the attempted remote pointer mapping did not activate the launch button.
@@ -47,28 +52,27 @@ GitHub baseline: `main` at `69e8d55`.
 
 ## Active next slice
 
-`SIM-ENTRY-001` — **RESEARCH SPIKE**
+`HYBRID-LM-001` — **FEATURE**
 
-Question: What is the smallest reliable Xcode 27 simulator workflow that opens
-the mixed immersive overlay after the required user activation and leaves the
-3D model, reference plane, and status panel visible for review?
+Pair human-reviewed model points with provider-labelled live landmarks. The
+first vertical slice adds a deterministic three-point forearm similarity
+solver, reports two-point input as axis-only, rejects a scene-reconstruction
+surface as anatomical identity, and explains the current marker/hand providers
+inside the status window.
 
 Acceptance evidence:
 
-1. Reproducible steps from a clean paired-simulator launch.
-2. Visible forearm-and-hand model in mixed reality.
-3. Visible reference axial plane at slice 4/5.
-4. Visible status panel reporting simulator/manual mode and data source.
-5. Companion controls visibly change opacity, colour, and section level.
-6. A captured screenshot or recording of the composition.
+1. A synthetic known transform is recovered with negligible residual.
+2. Collinear points are rejected.
+3. ELBOW + wrist observations report axis-only readiness.
+4. Elbow + distal-radius + distal-ulna report full-frame readiness.
+5. A LiDAR-derived scene surface is rejected as a named joint source.
+6. Vision and companion targets clean-build with Xcode 27 beta.
 
-Non-goals: image-marker accuracy, hand tracking, raw gaze, physical comfort,
-patient registration, or new anatomy regions.
-
-Stop condition: if Xcode 27 beta cannot provide reliable activation through the
-supported simulator controls, record the platform limitation and specify a
-clearly labelled in-window simulator preview fallback rather than weakening the
-physical mixed-reality architecture.
+Physical integration remains pending: standard visionOS does not provide an
+elbow or whole-body skeleton. The next device implementation must choose either
+three visible markers/manual points or an approved enterprise-camera research
+provider; ARKit hand tracking remains valid for wrist/finger joints only.
 
 ## Human gate
 

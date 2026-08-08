@@ -20,7 +20,7 @@ run_xcode_stage() {
     fi
 }
 
-echo "[1/12] Checking mixed-reality, gaze, and sectional-imaging invariants"
+echo "[1/13] Checking mixed-reality, gaze, and sectional-imaging invariants"
 rg -q 'ImmersionStyle = \.mixed' "$PROJECT_DIR/UpperLimbPOC/UpperLimbPOCApp.swift"
 if rg -q '\.full' "$PROJECT_DIR/UpperLimbPOC/UpperLimbPOCApp.swift"; then
     echo "Full-immersion configuration detected; mixed reality is required." >&2
@@ -32,7 +32,7 @@ rg -q 'tintID' "$PROJECT_DIR/UpperLimbPOC/OverlaySnapshot.swift" "$PROJECT_DIR/T
 rg -q 'ReferenceSectionRoot' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
 rg -Fq 'referenceForearmLength * Float(overlay.normalizedSlicePosition)' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
 
-echo "[2/12] Checking reference CT assets and disclosure"
+echo "[2/13] Checking reference CT assets and disclosure"
 SLICE_COUNT="$(find "$PROJECT_DIR/UpperLimbPOC/ReferenceSlices" -type f -name 'reference-forearm-*.png' | wc -l | tr -d ' ')"
 test "$SLICE_COUNT" = "5"
 rg -q 'reference-forearm-01.png' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
@@ -60,6 +60,10 @@ rg -q 'indexFingerIntermediateTip' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swif
 rg -q 'handTrackingGeneration' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift" "$PROJECT_DIR/UpperLimbPOC/LandmarkTrackingService.swift"
 rg -q 'INDEX FINGER STALE' "$PROJECT_DIR/UpperLimbPOC/ContentView.swift" "$PROJECT_DIR/PRODUCT_DEVELOPMENT_DOCUMENT.md"
 rg -q 'FR-23' "$PROJECT_DIR/PRODUCT_DEVELOPMENT_DOCUMENT.md"
+rg -q 'FR-24' "$PROJECT_DIR/PRODUCT_DEVELOPMENT_DOCUMENT.md"
+rg -q 'HybridLandmarkRegistration.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -q 'sceneReconstructionSurface' "$PROJECT_DIR/UpperLimbPOC/HybridLandmarkRegistration.swift"
+rg -Fq 'Scene reconstruction (LiDAR-derived surface mesh) does not identify named body joints' "$PROJECT_DIR/UpperLimbPOC/OverlayState.swift"
 rg -q 'horizontalSizeClass' "$PROJECT_DIR/UpperLimbPOC/CompanionContentView.swift"
 rg -q 'Reset placement' "$PROJECT_DIR/UpperLimbPOC/CompanionContentView.swift"
 rg -q 'Bone opacity' "$PROJECT_DIR/UpperLimbPOC/CompanionContentView.swift"
@@ -77,7 +81,7 @@ test -f "$PROJECT_DIR/PRODUCT_DEVELOPMENT_DOCUMENT.md"
 test -f "$PROJECT_DIR/ML_ASSISTANT_ARCHITECTURE.md"
 test -x "$PROJECT_DIR/Tools/simulator_smoke.sh"
 
-echo "[3/12] Checking snapshot compatibility"
+echo "[3/13] Checking snapshot compatibility"
 xcrun swiftc \
     -module-cache-path "$BUILD_ROOT/swift-module-cache" \
     "$PROJECT_DIR/UpperLimbPOC/OverlaySnapshot.swift" \
@@ -85,7 +89,7 @@ xcrun swiftc \
     -o "$BUILD_ROOT/snapshot-compatibility-check"
 "$BUILD_ROOT/snapshot-compatibility-check"
 
-echo "[4/12] Checking overlay state behavior"
+echo "[4/13] Checking overlay state behavior"
 xcrun swiftc \
     -module-cache-path "$BUILD_ROOT/swift-module-cache" \
     "$PROJECT_DIR/UpperLimbPOC/OverlaySnapshot.swift" \
@@ -94,7 +98,16 @@ xcrun swiftc \
     -o "$BUILD_ROOT/overlay-state-logic-check"
 "$BUILD_ROOT/overlay-state-logic-check"
 
-echo "[5/12] Checking index-finger calibration and reacquisition"
+echo "[5/13] Checking hybrid landmark registration"
+xcrun swiftc \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/HybridLandmarkRegistration.swift" \
+    "$PROJECT_DIR/Tools/HybridLandmarkRegistrationCheck.swift" \
+    -o "$BUILD_ROOT/hybrid-landmark-registration-check"
+"$BUILD_ROOT/hybrid-landmark-registration-check"
+
+echo "[6/13] Checking index-finger calibration and reacquisition"
 xcrun swiftc \
     -parse-as-library \
     -module-cache-path "$BUILD_ROOT/swift-module-cache" \
@@ -103,7 +116,7 @@ xcrun swiftc \
     -o "$BUILD_ROOT/index-finger-kinematics-check"
 "$BUILD_ROOT/index-finger-kinematics-check"
 
-echo "[6/12] Checking the physical-metrics evaluator"
+echo "[7/13] Checking the physical-metrics evaluator"
 xcrun swiftc \
     -parse-as-library \
     -module-cache-path "$BUILD_ROOT/swift-module-cache" \
@@ -111,7 +124,7 @@ xcrun swiftc \
     -o "$BUILD_ROOT/physical-acceptance-metrics"
 "$BUILD_ROOT/physical-acceptance-metrics" --self-test
 
-echo "[7/12] Clean-building Vision Pro simulator target"
+echo "[8/13] Clean-building Vision Pro simulator target"
 run_xcode_stage "$BUILD_ROOT/vision-build.log" \
     -quiet \
     -project "$PROJECT" \
@@ -122,7 +135,7 @@ run_xcode_stage "$BUILD_ROOT/vision-build.log" \
     CODE_SIGNING_ALLOWED=NO \
     clean build
 
-echo "[8/12] Clean-compiling Vision Pro physical-device target"
+echo "[9/13] Clean-compiling Vision Pro physical-device target"
 run_xcode_stage "$BUILD_ROOT/vision-device-build.log" \
     -quiet \
     -project "$PROJECT" \
@@ -133,7 +146,7 @@ run_xcode_stage "$BUILD_ROOT/vision-device-build.log" \
     CODE_SIGNING_ALLOWED=NO \
     clean build
 
-echo "[9/12] Clean-building iPad/iPhone companion simulator target"
+echo "[10/13] Clean-building iPad/iPhone companion simulator target"
 run_xcode_stage "$BUILD_ROOT/companion-build.log" \
     -quiet \
     -project "$PROJECT" \
@@ -144,7 +157,7 @@ run_xcode_stage "$BUILD_ROOT/companion-build.log" \
     CODE_SIGNING_ALLOWED=NO \
     clean build
 
-echo "[10/12] Clean-compiling iPad/iPhone physical-device target"
+echo "[11/13] Clean-compiling iPad/iPhone physical-device target"
 run_xcode_stage "$BUILD_ROOT/companion-device-build.log" \
     -quiet \
     -project "$PROJECT" \
@@ -155,7 +168,7 @@ run_xcode_stage "$BUILD_ROOT/companion-device-build.log" \
     CODE_SIGNING_ALLOWED=NO \
     clean build
 
-echo "[11/12] Clean-analyzing Vision Pro target"
+echo "[12/13] Clean-analyzing Vision Pro target"
 run_xcode_stage "$BUILD_ROOT/vision-analyze.log" \
     -quiet \
     -project "$PROJECT" \
@@ -166,7 +179,7 @@ run_xcode_stage "$BUILD_ROOT/vision-analyze.log" \
     CODE_SIGNING_ALLOWED=NO \
     clean analyze
 
-echo "[12/12] Clean-analyzing iPad/iPhone companion target"
+echo "[13/13] Clean-analyzing iPad/iPhone companion target"
 run_xcode_stage "$BUILD_ROOT/companion-analyze.log" \
     -quiet \
     -project "$PROJECT" \
@@ -181,4 +194,4 @@ VISION_APP="$BUILD_ROOT/vision/Build/Products/Debug-xrsimulator/UpperLimbPOC.app
 test -f "$VISION_APP/reference-forearm-01.png"
 test -f "$VISION_APP/reference-forearm-05.png"
 
-echo "Validation passed: mixed reality, gaze/accessibility invariants, state and index-finger kinematics logic, metric evaluator, five reference slices, clean builds, and static analysis."
+echo "Validation passed: mixed reality, gaze/accessibility invariants, state, hybrid landmark registration and index-finger kinematics logic, metric evaluator, five reference slices, clean builds, and static analysis."

@@ -278,6 +278,23 @@ struct TrackingStatusView: View {
                     .font(.callout.weight(.bold))
                     .foregroundStyle(tracking.isTracking ? .green : .orange)
 
+                DisclosureGroup("How landmark alignment works") {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label(
+                            overlay.landmarkRegistrationModeName,
+                            systemImage: "point.3.connected.trianglepath.dotted"
+                        )
+                        .font(.caption.weight(.bold))
+
+                        Text(overlay.landmarkRegistrationSourceSummary)
+                        Text(overlay.sceneSensingLimitation)
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 4)
+                }
+                .font(.callout.weight(.semibold))
+
                 Label(
                     selectedHandStatusText,
                     systemImage: selectedHandStatusIcon

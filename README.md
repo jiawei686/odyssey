@@ -64,6 +64,20 @@ review changes do not affect registration until explicitly approved.
   permission. The simulator validates code and resources but cannot validate
   finger-pose accuracy, joint continuity, latency, occlusion, or comfort.
 
+## Version 3.4: hybrid landmark registration contract
+
+- Human-reviewed model points and live observations now use matching semantic
+  landmark identifiers and explicit provider types.
+- The deterministic registration core reports two-point forearm input as
+  axis-only and accepts a full 3D similarity fit only from reviewed,
+  non-collinear elbow, distal-radius, and distal-ulna correspondences.
+- Image markers and ARKit hand joints are valid named providers for their
+  supported points. A scene-reconstruction/LiDAR mesh is surface geometry, not
+  a body-joint detector.
+- Main-camera body-joint proposals remain a separate enterprise-entitlement
+  research provider. They cannot silently replace markers or human review.
+- The status window explains the active providers and this sensing limitation.
+
 ## Version 3.2: gaze, recovery, and verification hardening
 
 - Apple Vision Pro uses system gaze targeting and pinch confirmation: look at a highlighted bone, then single-pinch to identify it. The app does not receive or record raw gaze coordinates.
