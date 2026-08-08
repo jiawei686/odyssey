@@ -1,8 +1,8 @@
-# iPhone OpenCV Body Scanner — Phase 1 Design
+# iPhone OpenCV Upper-Limb Scanner — Component Design
 
 **Date:** 2026-08-08
 
-**Status:** Approved in conversation; awaiting review of this written specification
+**Status:** Approved in conversation; corrected by `UL-INTEGRATION-001` to preserve the pinned hand model's true confidence scope and the working spatial baseline
 
 **Target:** `UpperLimbCompanion` on iPhone 17 Pro Max
 
@@ -10,7 +10,7 @@
 
 ## 1. Objective
 
-Build an iPhone prototype that uses the rear main camera and OpenCV DNN inference to estimate one consenting adult participant's full-body pose, both arms, and detailed finger joints. The first prototype proves that the iPhone can produce a stable, structured set of joint observations before any Apple Vision Pro (AVP) alignment or anatomical-image registration is attempted.
+Build an iPhone prototype that uses the rear main camera and OpenCV DNN inference to estimate one consenting adult participant's shoulders, both elbows, both wrists, palms, and detailed finger joints. The first vertical slice proves that the iPhone can produce stable elbow-and-wrist observations for the existing iPhone-to-AVP spatial pipeline; fingers follow after that slice is verified.
 
 The inference pipeline will use OpenCV directly. Apple frameworks remain responsible for capabilities OpenCV does not replace on iOS: camera capture, device orientation, optional LiDAR depth delivery, and SwiftUI presentation. Apple Vision body- or hand-pose APIs will not be used.
 
@@ -20,22 +20,22 @@ The inference pipeline will use OpenCV directly. Apple frameworks remain respons
 
 - Run on the existing `UpperLimbCompanion` iOS target on an iPhone 17 Pro Max.
 - Use the rear 1x main camera in landscape orientation.
-- Scan one adult participant at approximately 2 metres, with the full body visible, both arms separated from the torso, and both open hands visible.
+- Scan one adult participant at approximately 2 metres, with the upper body, both arms, and both open hands visible. Full-body visibility is helpful to the person detector but is not the product acceptance target.
 - Detect the participant, estimate 33 body pose landmarks, locate both palms, and estimate 21 landmarks for each visible hand.
 - Show a live camera preview with body and hand skeletons, confidence state, left/right labels, and framing guidance.
 - Allow the operator to freeze one qualified observation and reset the scanner.
-- Produce an in-memory structured joint record containing coordinates, confidence, timestamps, and optional depth.
+- Produce an in-memory structured joint record containing coordinates, model-supplied confidence at its true scope, timestamps, and optional depth.
 - Process camera imagery on the iPhone without transmitting it or saving it by default.
 
 ### Out of scope
 
-- AVP camera access, AVP passthrough processing, QR calibration, iPhone-to-AVP transforms, and AVP world overlays.
+- AVP camera access and AVP passthrough processing. The scanner component emits typed observations; the existing spatial-coordinate layer and AVP overlay consume them under the separate `UL-INTEGRATION-001` plan.
 - Registration to a 3D anatomical model, CT, MRI, sectional imaging, or patient-specific anatomy.
 - Persistent participant photos, video, face identification, participant identity, or cloud inference.
 - Multiple-person tracking, motion capture, gait analysis, clinical accuracy claims, or automated medical decisions.
 - Training or fine-tuning a custom model. Phase 1 uses pinned pretrained OpenCV Zoo models.
 
-AVP calibration is a separate Phase 2 gate. It starts only after Phase 1 demonstrates reliable joint extraction on the physical iPhone.
+The already working iPhone-to-AVP spatial-coordinate function remains the calibration baseline and is audited rather than replaced. This scanner design neither redefines that calibration nor permits uncalibrated image/model coordinates to be labelled as AVP-world metres.
 
 ## 3. Truth and safety model
 
@@ -43,8 +43,8 @@ Every displayed point is labelled and treated as a **model-estimated visual land
 
 The prototype must distinguish these states:
 
-- **Observed:** the model returned a landmark above its configured confidence threshold.
-- **Estimated/partial:** the model returned a low-confidence or incompletely visible landmark.
+- **Observed:** the model returned a valid in-frame landmark and the applicable pose- or hand-level confidence gate passed.
+- **Estimated/partial:** the model returned a low-confidence, unstable, out-of-frame, or incompletely visible result.
 - **Unavailable:** the model or depth source did not return trustworthy data.
 - **Ambiguous:** left/right identity or body-to-hand association cannot be resolved safely.
 
@@ -54,7 +54,7 @@ The app must not invent coordinates for unavailable joints, convert model-relati
 
 1. The operator opens **OpenCV Body Scanner** from the iPhone companion interface.
 2. The app explains that processing is on-device, no image is saved, and the participant must consent.
-3. After camera permission, the operator places the iPhone in landscape orientation with the participant's full body in frame at roughly 2 metres.
+3. After camera permission, the operator places the iPhone in landscape orientation with the participant's upper body, both arms, and hands in frame at roughly 2 metres.
 4. On-screen guidance asks for one person, separated arms, visible wrists, and open hands facing the camera where practical.
 5. The live overlay shows detected body segments, finger skeletons, left/right labels, and a readiness summary.
 6. **Freeze Scan** becomes available only after the qualification rules remain satisfied for a short stability window.
@@ -159,9 +159,15 @@ JointScan
   participantCount: 1
   coordinateConvention: sensorNormalizedTopLeft
   bodyLandmarks: [JointObservation]
-  leftHandLandmarks: [JointObservation]
-  rightHandLandmarks: [JointObservation]
+  leftHand: HandObservation
+  rightHand: HandObservation
   qualification: ScanQualification
+
+HandObservation
+  side: left | right
+  handConfidence: [0, 1]
+  handednessScore: [0, 1]
+  landmarks: [JointObservation]
 
 JointObservation
   name: stable joint identifier
@@ -171,12 +177,13 @@ JointObservation
   modelRelativeZ: optional, non-metric
   depthMeters: optional
   cameraPointMeters: optional x, y, z
-  confidence: [0, 1]
+  confidence: optional [0, 1]
+  confidenceScope: landmark | hand | unavailable
   visibility: observed | estimated | unavailable | ambiguous
   frameTimestamp: timestamp
 ```
 
-The body identifiers follow the 33-landmark model vocabulary. Each hand includes wrist; thumb CMC/MCP/IP/tip; index, middle, ring, and little-finger MCP/PIP/DIP/tip points. The schema is versioned before any Phase 2 transport contract is added.
+The body identifiers follow the 33-landmark model vocabulary. Each hand includes wrist; thumb CMC/MCP/IP/tip; index, middle, ring, and little-finger MCP/PIP/DIP/tip points. MP-Pose supplies per-landmark visibility/presence, while the pinned MP-HandPose model supplies one confidence for the complete hand rather than 21 per-point confidences. The app stores that hand confidence once and must not copy it onto every finger point. The schema is versioned before any Phase 2 transport contract is added.
 
 ## 7. User interface
 
@@ -201,7 +208,7 @@ A scan becomes qualified only when all conditions hold continuously for at least
 - the full participant bounding box is within the usable image region;
 - left and right shoulders, elbows, and wrists each have confidence at or above `0.50`;
 - both hands are associated to unambiguous body sides;
-- at least 17 of 21 landmarks on each hand have confidence at or above `0.50`;
+- each hand has global hand confidence at or above `0.50`, with at least 17 of 21 finite, in-frame points that remain within the static-stability tolerance;
 - no left/right side switch occurs during the window; and
 - coordinates stay within a configurable static-stability tolerance.
 
@@ -243,15 +250,15 @@ These thresholds qualify technical output; they do not certify anatomical accura
 
 ### 11.2 Physical iPhone feasibility gate
 
-Using the iPhone 17 Pro Max rear main camera in consistent indoor lighting, run five controlled scans of one consenting adult at approximately 2 metres. At least four of five attempts must:
+Using the iPhone 17 Pro Max rear main camera in consistent indoor lighting, run five controlled upper-limb scans of one consenting adult at approximately 2 metres. At least four of five attempts must:
 
-- keep the entire body and both hands in frame;
-- meet the six arm-joint and both 17-of-21 hand-landmark confidence rules;
+- keep both shoulders, arms, and hands in frame;
+- meet the six arm-joint confidence rules and, for each hand, the global-confidence plus 17-of-21 in-frame/stability rule;
 - maintain left/right identity for the complete qualification window;
 - enable and complete **Freeze Scan** within 3 seconds after the participant holds the required pose; and
 - report unavailable depth explicitly instead of substituting fabricated metric data.
 
-Failures are recorded by reason and model/timing metadata only. If two controlled test rounds fail the same gate, the team revisits camera framing, inference resolution, model selection, or thresholds before starting Phase 2.
+Failures are recorded by reason and model/timing metadata only. If two controlled test rounds fail the same gate, the team revisits camera framing, inference resolution, model selection, or thresholds before extending the integration beyond the elbow/wrist slice.
 
 ### 11.3 Accuracy boundary
 
@@ -264,15 +271,15 @@ Phase 1 validates detection completeness and stability, not anatomical or metric
 3. **Inference integration:** run the full detector/pose/hand pipeline off the main thread and render the live overlay.
 4. **Qualification and freeze:** implement association, stability, failure states, structured observation, and the no-persistence freeze summary.
 5. **Physical feasibility test:** execute the five-scan protocol and record non-identifying results.
-6. **Phase decision:** only a passed feasibility gate permits design work for iPhone-screen QR calibration and AVP world alignment.
+6. **Integration decision:** publish only qualified elbow/wrist samples into the existing calibrated spatial channel; extend to distal radius/ulna, palm, fingers, and sectional display only after the vertical slice passes.
 
 The dependency spike is deliberately first: failure to compile OpenCV for the iOS target or decode any required model blocks UI implementation and triggers a model/runtime decision rather than a hidden workaround to Apple Vision.
 
-## 13. Phase 2 seam, not Phase 2 implementation
+## 13. Active integration seam
 
-The frozen `JointScan` schema is the future handoff point. A later design may timestamp and transmit observations to the AVP, then use a QR reference image shown on the iPhone screen to estimate a transform between iPhone camera space and AVP world space. That transform, its uncertainty, drift handling, and recalibration rules are not defined or implemented here.
+The frozen scanner schema maps into the versioned `UpperLimbJointFrame` transport contract. The working calibration layer is responsible for producing AVP-world metre observations with a matching session ID, calibration ID, sender clock ID, sequence, and timestamp. The scanner never performs that relabelling itself.
 
-No Phase 1 coordinate may be overlaid in AVP space without that separately tested transform.
+No image-pixel, normalized-image, model-relative, or iPhone-camera coordinate may be overlaid in AVP space unless the calibrated spatial layer has produced and identified the AVP-world transform. Wrong calibration, clock, sequence, unit, or stale state is rejected before anatomy can move.
 
 ## 14. Dependencies and provenance
 
