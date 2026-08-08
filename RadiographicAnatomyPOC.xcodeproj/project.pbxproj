@@ -36,6 +36,7 @@
 		00000000000000000000006A /* JointProbeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000007A /* JointProbeView.swift */; };
 		00000000000000000000006B /* JointProbeImmersiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000007B /* JointProbeImmersiveView.swift */; };
 		00000000000000000000006C /* JointProbeRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000007C /* JointProbeRoute.swift */; };
+		000000000000000000000096 /* AVPForearmOverlayPose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000B6 /* AVPForearmOverlayPose.swift */; };
 		000000000000000000000080 /* UpperLimbJointFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A0 /* UpperLimbJointFrame.swift */; };
 		000000000000000000000081 /* UpperLimbJointFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A0 /* UpperLimbJointFrame.swift */; };
 		000000000000000000000082 /* UpperLimbPeerEnvelope.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A1 /* UpperLimbPeerEnvelope.swift */; };
@@ -87,6 +88,7 @@
 		00000000000000000000007A /* JointProbeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JointProbeView.swift; sourceTree = "<group>"; };
 		00000000000000000000007B /* JointProbeImmersiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JointProbeImmersiveView.swift; sourceTree = "<group>"; };
 		00000000000000000000007C /* JointProbeRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JointProbeRoute.swift; sourceTree = "<group>"; };
+		0000000000000000000000B6 /* AVPForearmOverlayPose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVPForearmOverlayPose.swift; sourceTree = "<group>"; };
 		0000000000000000000000A0 /* UpperLimbJointFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpperLimbJointFrame.swift; sourceTree = "<group>"; };
 		0000000000000000000000A1 /* UpperLimbPeerEnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpperLimbPeerEnvelope.swift; sourceTree = "<group>"; };
 		0000000000000000000000A2 /* UpperLimbPeerWireCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpperLimbPeerWireCodec.swift; sourceTree = "<group>"; };
@@ -167,6 +169,7 @@
 				00000000000000000000007A /* JointProbeView.swift */,
 				00000000000000000000007B /* JointProbeImmersiveView.swift */,
 				00000000000000000000007C /* JointProbeRoute.swift */,
+				0000000000000000000000B6 /* AVPForearmOverlayPose.swift */,
 				0000000000000000000000A0 /* UpperLimbJointFrame.swift */,
 				0000000000000000000000A1 /* UpperLimbPeerEnvelope.swift */,
 				0000000000000000000000A2 /* UpperLimbPeerWireCodec.swift */,
@@ -331,6 +334,7 @@
 				00000000000000000000006A /* JointProbeView.swift in Sources */,
 				00000000000000000000006B /* JointProbeImmersiveView.swift in Sources */,
 				00000000000000000000006C /* JointProbeRoute.swift in Sources */,
+				000000000000000000000096 /* AVPForearmOverlayPose.swift in Sources */,
 				000000000000000000000080 /* UpperLimbJointFrame.swift in Sources */,
 				000000000000000000000082 /* UpperLimbPeerEnvelope.swift in Sources */,
 				000000000000000000000084 /* UpperLimbPeerWireCodec.swift in Sources */,

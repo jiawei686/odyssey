@@ -4,21 +4,25 @@ Last verified: 2026-08-08
 
 ## Feature
 
-The current integrated prototype combines:
+The active vertical slice is `UL-SELF-ARM-001`: a wearer-only Apple Vision Pro
+overlay driven directly by ARKit `HandTrackingProvider` data. The primary flow
+is deliberately small:
 
-- mixed-reality forearm-and-hand rendering;
-- two-marker rigid elbow-to-wrist registration with manual fallback;
-- five cross-subject NLM axial reference levels;
-- synchronized Vision and iPad/iPhone placement, appearance, and section state;
-- deterministic semantic bone guidance and gaze-targeted/pinch-confirmed input;
-- a clinician-guided, three-phalanx index-finger kinematic experiment using
-  reviewed MCP, PIP, and DIP model landmarks;
-- a provider-labelled hybrid landmark contract with a deterministic
-  three-point forearm similarity solver and explicit LiDAR/body-joint limits;
-- a physical-device joint capability probe that visualizes all runtime hand
-  joints and records a 30-second critical-joint continuity result.
+1. open the mixed-reality wearer view;
+2. detect one wearer arm with small joint dots;
+3. explicitly show an opaque, joint-driven 3D skeletal overlay.
 
-GitHub baseline: `main` at `4de2f2d`.
+The forearm uses `forearmArm`, `forearmWrist`, and `wrist`. The hand overlay
+uses the named wrist, thumb, and finger joints. The UI automatically selects a
+ready hand, keeps LIVE/STALE/PARTIAL/FAILED behavior explicit, and treats the
+near-elbow provider endpoint as an approximation rather than an anatomical
+elbow centre.
+
+The earlier iPhone/OpenCV scanner and cross-device plans remain preserved for
+future work. They are not part of this AVP-only runtime path.
+
+GitHub feature branch baseline before this checkpoint:
+`codex/avp-joint-capability-probe` at `95d24bb`.
 
 ## Environment
 
@@ -27,58 +31,49 @@ GitHub baseline: `main` at `4de2f2d`.
 - visionOS deployment target 2.0 with guarded newer APIs
 - iOS deployment target 18.0
 - visionOS 27 and iPadOS 27 simulators installed
-- No physical Apple Vision Pro currently connected
+- Physical Apple Vision Pro was connected for the marker and rigid-model
+  trials; CoreDevice was unavailable for the latest articulated-build install
 
 ## Evidence
 
-- `[AUTO]` `Tools/validate.sh` passed all 14 stages on Xcode 27 beta, including
-  the new deterministic joint-probe continuity evaluator and all existing
-  simulator/device build gates.
-- `[BUILD]` The probe branch also passed strict-concurrency, warnings-as-errors
-  builds for both the visionOS simulator and physical visionOS 27 SDK.
-- `[AUTO]` Existing baseline coverage includes invariants,
-  snapshot compatibility, overlay-state behavior, hybrid landmark readiness,
-  known-transform/degenerate-frame checks, index-finger calibration and
-  reacquisition, physical-metric evaluator self-test, resource checks, and two
-  analyzers.
-- `[BUILD]` Vision simulator, Vision device SDK, companion simulator, and
-  companion device SDK targets clean-built successfully.
-- `[BUILD]` Fresh strict-concurrency/warnings-as-errors builds pass for the
-  Vision and companion simulator targets with Xcode 27 beta.
-- `[SIM]` Paired simulator smoke passed the Vision-owned amber, 65%, axial
-  slice-4 synchronization assertion on the current branch. The library and
-  connected companion were visibly inspected.
-- `[SIM]` The immersive bone/section composition has not yet been captured in
-  the latest Xcode 27 run because visionOS requires a visible user activation
-  and the attempted remote pointer mapping did not activate the launch button.
-- `[HUMAN]` Marcel supplied clinician-guided Blender landmark placements. They
-  remain reviewed generic-model landmarks, not patient registration truth.
-- `[BLOCKED]` Marker tracking, index-finger motion, gaze feel, comfort,
-  manipulation, occlusion, registration accuracy, and recovery metrics require
-  a physical Vision Pro.
+- `[DEVICE][HUMAN]` Marcel confirmed that wearer hand, finger, wrist, and
+  forearm markers appeared and followed movement on physical Vision Pro.
+- `[DEVICE][HUMAN]` The first generic USDZ overlay appeared, but the supplied
+  photo showed two blocking defects: its translucent material did not
+  superimpose clearly, and the rigid hand model could not follow individual
+  joint movement.
+- `[AUTO]` The replacement segment resolver maps both ends of every generated
+  bone segment to its two live joint positions and rejects degenerate input.
+- `[AUTO]` `Tools/validate.sh` passed all 14 stages after the simplified UI and
+  articulated renderer were introduced, including state, compatibility,
+  scanner, transform, build, and analyzer gates.
+- `[BUILD]` The final small-dot build passed an Xcode 27 physical-device SDK
+  build with code signing and warnings treated as errors.
+- `[BLOCKED]` The final articulated build has not yet been observed on-device.
+  Installation stopped with CoreDevice error 4016 because the headset exposed
+  no assertable trusted-connectivity/device-service state.
+- `[DEVICE]` The preserved iPhone/OpenCV checkpoint reached an upright landscape
+  view and one 6/6 upper-limb joint observation after orientation remediation.
+  Participant identity, iPhone-to-AVP transport, and metric calibration remain
+  deferred.
 
 ## Active next slice
 
-`JOINT-PROBE-001` — **RESEARCH SPIKE**
+Complete the physical retest of the latest AVP build:
 
-Determine which named joints a standard visionOS app can observe on physical
-Apple Vision Pro and whether the registration-critical wearer-hand subset has
-adequate continuity for the next hybrid overlay experiment.
+1. reinstall when the Vision Pro is awake, unlocked, trusted, and connected;
+2. pinch **Open wearer arm overlay**;
+3. pinch **Open & detect arm** and confirm the small dots follow one arm;
+4. pinch **Show 3D bone overlay**;
+5. flex the wrist and each finger while checking that the opaque segments stay
+   attached to their tracked endpoints;
+6. record any forearm-axis offset, joint lag, flicker, or loss behavior.
 
-Acceptance evidence:
-
-1. Physical AVP displays cyan left-hand and orange right-hand joint spheres.
-2. The 30-second report includes sample count, mean joint count, and critical
-   continuity for each hand.
-3. At least one controlled run reaches 90% critical-joint continuity, or the
-   route is reshaped after two controlled failures.
-4. Another-person whole-body and LiDAR-joint claims remain explicitly absent.
-
-Physical execution remains pending because no Apple Vision Pro is connected.
-The run card is `JOINT_CAPABILITY_PROBE.md`.
+No 30-second continuity run is required for this acceptance slice.
 
 ## Human gate
 
-After the simulator composition is visible, Marcel reviews legibility,
-comprehension, and demonstration value. Physical registration and movement are
-accepted only through the PDD physical acceptance script on Apple Vision Pro.
+The current commit may be published to the draft PR as an implementation
+checkpoint. It must not be merged to `main` until Marcel completes the physical
+articulated-overlay retest and no blocking registration or movement defect is
+observed.

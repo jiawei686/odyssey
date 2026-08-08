@@ -62,6 +62,7 @@ rg -q 'Gaze-targeted interaction' "$PROJECT_DIR/UpperLimbPOC/ContentView.swift"
 rg -q 'AccessibilityComponent' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
 rg -q 'AccessibilityEvents.Activate' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
 rg -q 'NSHandsTrackingUsageDescription' "$PROJECT_DIR/UpperLimbPOC/InfoVision.plist"
+test "$(plutil -extract UIApplicationSceneManifest.UIApplicationSupportsMultipleScenes raw "$PROJECT_DIR/UpperLimbPOC/InfoVision.plist")" = true
 rg -q 'HandTrackingProvider' "$PROJECT_DIR/UpperLimbPOC/LandmarkTrackingService.swift"
 rg -q 'func startHandJointProbe' "$PROJECT_DIR/UpperLimbPOC/LandmarkTrackingService.swift"
 rg -q 'HandSkeleton.JointName.allCases' "$PROJECT_DIR/UpperLimbPOC/LandmarkTrackingService.swift"
@@ -69,15 +70,34 @@ rg -q 'JointProbeAccumulator' "$PROJECT_DIR/UpperLimbPOC/LandmarkTrackingService
 rg -q 'func beginProbeMeasurement' "$PROJECT_DIR/UpperLimbPOC/LandmarkTrackingService.swift"
 test -f "$PROJECT_DIR/UpperLimbPOC/JointProbeView.swift"
 test -f "$PROJECT_DIR/UpperLimbPOC/JointProbeImmersiveView.swift"
+test -f "$PROJECT_DIR/UpperLimbPOC/AVPForearmOverlayPose.swift"
 rg -Fq 'WindowGroup(id: "JointProbe")' "$PROJECT_DIR/UpperLimbPOC/UpperLimbPOCApp.swift"
 rg -Fq 'ImmersiveSpace(id: "JointProbeSpace")' "$PROJECT_DIR/UpperLimbPOC/UpperLimbPOCApp.swift"
-rg -Fq "wearer's hands only" "$PROJECT_DIR/UpperLimbPOC/JointProbeView.swift"
-rg -Fq 'Whole-body ARKit' "$PROJECT_DIR/UpperLimbPOC/JointProbeView.swift"
-rg -Fq 'LiDAR scene mesh has no joint labels' "$PROJECT_DIR/UpperLimbPOC/JointProbeView.swift"
+rg -Fq 'Wearer-only educational overlay' "$PROJECT_DIR/UpperLimbPOC/JointProbeView.swift"
+rg -Fq 'not a validated anatomical registration' "$PROJECT_DIR/UpperLimbPOC/JointProbeView.swift"
 rg -q 'JointProbeView.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
 rg -q 'JointProbeImmersiveView.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
 rg -q 'JointProbeMetrics.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
 rg -q 'JointProbeRoute.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -q 'AVPForearmOverlayPose.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -q '\.forearmArm' "$PROJECT_DIR/UpperLimbPOC/LandmarkTrackingService.swift" "$PROJECT_DIR/UpperLimbPOC/JointProbeImmersiveView.swift"
+rg -q '\.forearmWrist' "$PROJECT_DIR/UpperLimbPOC/LandmarkTrackingService.swift" "$PROJECT_DIR/UpperLimbPOC/JointProbeImmersiveView.swift"
+rg -Fq 'Open & detect arm' "$PROJECT_DIR/UpperLimbPOC/JointProbeView.swift"
+rg -Fq 'Show 3D bone overlay' "$PROJECT_DIR/UpperLimbPOC/JointProbeView.swift"
+rg -Fq 'guard await openProbeSpace() else { return }' "$PROJECT_DIR/UpperLimbPOC/JointProbeView.swift"
+rg -Fq 'Open wearer arm overlay' "$PROJECT_DIR/UpperLimbPOC/ContentView.swift"
+rg -q 'AVPTrackedBoneSegmentTransformResolver' "$PROJECT_DIR/UpperLimbPOC/AVPForearmOverlayPose.swift" "$PROJECT_DIR/UpperLimbPOC/JointProbeImmersiveView.swift"
+rg -Fq 'MeshResource.generateCylinder(height: 1, radius: 1)' "$PROJECT_DIR/UpperLimbPOC/JointProbeImmersiveView.swift"
+rg -q '\.thumbTip|\.indexFingerTip|\.middleFingerTip|\.ringFingerTip|\.littleFingerTip' "$PROJECT_DIR/UpperLimbPOC/JointProbeImmersiveView.swift"
+rg -q 'probeBoneVisible' "$PROJECT_DIR/UpperLimbPOC/LandmarkTrackingService.swift" "$PROJECT_DIR/UpperLimbPOC/JointProbeView.swift" "$PROJECT_DIR/UpperLimbPOC/JointProbeImmersiveView.swift"
+if rg -Fq 'Entity(named: "hand-to-elbow-overlay")' "$PROJECT_DIR/UpperLimbPOC/JointProbeImmersiveView.swift"; then
+    echo "AVP wearer tracking must not use the rigid hand-to-elbow asset." >&2
+    exit 1
+fi
+if rg -q 'GenericForearmBody|GenericForearmSection|makeForearmOverlay' "$PROJECT_DIR/UpperLimbPOC/JointProbeImmersiveView.swift"; then
+    echo "AVP probe must not reintroduce a generated forearm body or section surface." >&2
+    exit 1
+fi
 rg -q 'jointProbeRoute.present' "$PROJECT_DIR/UpperLimbPOC/ContentView.swift"
 rg -q 'navigationDestination' "$PROJECT_DIR/UpperLimbPOC/ContentView.swift"
 rg -q 'IndexFingerRigRoot' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
@@ -227,6 +247,15 @@ xcrun swiftc \
 "$BUILD_ROOT/joint-probe-metrics-check"
 
 xcrun swiftc \
+    -warnings-as-errors \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/AVPForearmOverlayPose.swift" \
+    "$PROJECT_DIR/Tools/AVPForearmOverlayPoseCheck.swift" \
+    -o "$BUILD_ROOT/avp-forearm-overlay-pose-check"
+"$BUILD_ROOT/avp-forearm-overlay-pose-check"
+
+xcrun swiftc \
     -parse-as-library \
     -module-cache-path "$BUILD_ROOT/swift-module-cache" \
     "$PROJECT_DIR/UpperLimbPOC/JointProbeRoute.swift" \
@@ -321,4 +350,4 @@ VISION_APP="$BUILD_ROOT/vision/Build/Products/Debug-xrsimulator/UpperLimbPOC.app
 test -f "$VISION_APP/reference-forearm-01.png"
 test -f "$VISION_APP/reference-forearm-05.png"
 
-echo "Validation passed: mixed reality, gaze/accessibility invariants, state, hybrid landmark registration and index-finger kinematics logic, metric evaluator, five reference slices, clean builds, and static analysis."
+echo "Validation passed: mixed reality, gaze/accessibility invariants, AVP self-forearm axis/stale state, hybrid landmark registration and index-finger kinematics logic, metric evaluator, five reference slices, clean builds, and static analysis."

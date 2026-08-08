@@ -12,10 +12,19 @@ enum JointProbeVerdict: String, Sendable {
     case noSignal
 }
 
+enum JointProbeCriticalSignal: String, Hashable, Sendable {
+    case forearmArm
+    case forearmWrist
+    case wrist
+}
+
 struct JointProbeHandSummary: Equatable, Sendable {
     let sampleCount: Int
     let averageTrackedJointCount: Double
     let criticalContinuity: Double
+    let forearmArmContinuity: Double
+    let forearmWristContinuity: Double
+    let wristContinuity: Double
 }
 
 struct JointProbeReport: Equatable, Sendable {
@@ -31,6 +40,7 @@ struct JointProbeAccumulator: Sendable {
         let hand: JointProbeHand
         let trackedJointCount: Int
         let trackedCriticalJointCount: Int
+        let trackedCriticalSignals: Set<JointProbeCriticalSignal>
     }
 
     let expectedJointCount: Int
@@ -54,7 +64,8 @@ struct JointProbeAccumulator: Sendable {
         timestamp: Double,
         hand: JointProbeHand,
         trackedJointCount: Int,
-        trackedCriticalJointCount: Int
+        trackedCriticalJointCount: Int,
+        trackedCriticalSignals: Set<JointProbeCriticalSignal> = []
     ) {
         guard startedAt != nil else { return }
         samples.append(
@@ -65,7 +76,8 @@ struct JointProbeAccumulator: Sendable {
                 trackedCriticalJointCount: min(
                     max(trackedCriticalJointCount, 0),
                     expectedCriticalJointCount
-                )
+                ),
+                trackedCriticalSignals: trackedCriticalSignals
             )
         )
     }
@@ -103,7 +115,10 @@ struct JointProbeAccumulator: Sendable {
             return JointProbeHandSummary(
                 sampleCount: 0,
                 averageTrackedJointCount: 0,
-                criticalContinuity: 0
+                criticalContinuity: 0,
+                forearmArmContinuity: 0,
+                forearmWristContinuity: 0,
+                wristContinuity: 0
             )
         }
 
@@ -117,7 +132,29 @@ struct JointProbeAccumulator: Sendable {
         return JointProbeHandSummary(
             sampleCount: handSamples.count,
             averageTrackedJointCount: averageTrackedJointCount,
-            criticalContinuity: Double(completeCriticalFrames) / Double(handSamples.count)
+            criticalContinuity: Double(completeCriticalFrames) / Double(handSamples.count),
+            forearmArmContinuity: signalContinuity(
+                .forearmArm,
+                samples: handSamples
+            ),
+            forearmWristContinuity: signalContinuity(
+                .forearmWrist,
+                samples: handSamples
+            ),
+            wristContinuity: signalContinuity(
+                .wrist,
+                samples: handSamples
+            )
         )
+    }
+
+    private func signalContinuity(
+        _ signal: JointProbeCriticalSignal,
+        samples: [Sample]
+    ) -> Double {
+        let trackedCount = samples.filter {
+            $0.trackedCriticalSignals.contains(signal)
+        }.count
+        return Double(trackedCount) / Double(samples.count)
     }
 }

@@ -12,27 +12,65 @@ struct JointProbeView: View {
     @State private var probeOwnsTrackingSession = false
     @State private var launchError: String?
 
-    private var expectedJointCount: Int {
-        HandSkeleton.JointName.allCases.count
+    private var selectedForearmResolution: AVPForearmOverlayResolution {
+        tracking.probeSelectedHand == .left
+            ? tracking.leftForearmResolution
+            : tracking.rightForearmResolution
+    }
+
+    private var selectedTrackedJointCount: Int {
+        tracking.probeSelectedHand == .left
+            ? tracking.leftHandJointTransforms.count
+            : tracking.rightHandJointTransforms.count
+    }
+
+    private var armDetected: Bool {
+        tracking.handPhase == .running
+            && selectedForearmResolution.state == .live
+            && selectedForearmResolution.trackedPointCount == 3
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                header
-                capabilityBoundary
-                liveSignal
-                controls
-                if let report = tracking.probeReport {
-                    reportView(report)
-                }
-                interpretation
+        VStack(alignment: .leading, spacing: 24) {
+            header
+            stageStrip
+            actionPanel
+
+            if let launchError {
+                Label(launchError, systemImage: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.red)
             }
-            .padding(28)
+
+            Spacer(minLength: 12)
+
+            Label(
+                "Wearer-only educational overlay. The bones follow tracked hand joints; the forearm uses wrist and near-elbow endpoints and is not a validated anatomical registration.",
+                systemImage: "info.circle.fill"
+            )
+            .font(.callout.weight(.semibold))
+            .foregroundStyle(.orange)
+
+            HStack {
+                Button("Reset", systemImage: "arrow.counterclockwise") {
+                    tracking.stop()
+                    probeOwnsTrackingSession = false
+                }
+                .buttonStyle(.bordered)
+
+                Spacer()
+
+                Button("Close") {
+                    Task {
+                        tracking.stop()
+                        await dismissImmersiveSpace()
+                        dismiss()
+                        dismissWindow(id: "JointProbe")
+                    }
+                }
+                .buttonStyle(.bordered)
+            }
         }
-        .task {
-            await openProbeSpace()
-        }
+        .padding(32)
         .onDisappear {
             if probeOwnsTrackingSession {
                 tracking.stop()
@@ -42,220 +80,135 @@ struct JointProbeView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("AVP Joint Capability Probe")
-                        .font(.largeTitle.bold())
-                    Text("A physical-device research test for the hand-joint data standard visionOS actually exposes.")
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-                Button("Close") {
-                    Task {
-                        await dismissImmersiveSpace()
-                        dismiss()
-                        dismissWindow(id: "JointProbe")
-                    }
-                }
-                .buttonStyle(.bordered)
-            }
-
-            Label(
-                tracking.handPhase.message,
-                systemImage: tracking.handPhase == .running
-                    ? "waveform.path.ecg"
-                    : "hand.raised"
-            )
-            .font(.headline)
-            .foregroundStyle(tracking.handPhase == .running ? .green : .orange)
-
-            if let launchError {
-                Text(launchError)
-                    .foregroundStyle(.red)
-            }
-        }
-    }
-
-    private var capabilityBoundary: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label(
-                "Native result: wearer's hands only",
-                systemImage: "hand.raised.fingers.spread"
-            )
-            .foregroundStyle(.green)
-
-            Label(
-                "Whole-body ARKit: unavailable in standard visionOS",
-                systemImage: "figure.stand.line.dotted.figure.stand"
-            )
-            .foregroundStyle(.orange)
-
-            Label(
-                "LiDAR scene mesh has no joint labels",
-                systemImage: "square.3.layers.3d"
-            )
-            .foregroundStyle(.orange)
-
-            Text("Detecting the joints of another person would require approved enterprise main-camera access plus a validated Vision/Core ML pose provider, or an external camera source.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-        }
-        .padding(18)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
-    }
-
-    private var liveSignal: some View {
-        HStack(spacing: 16) {
-            handCard(
-                title: "Left hand",
-                color: .cyan,
-                trackedCount: tracking.leftHandJointTransforms.count
-            )
-            handCard(
-                title: "Right hand",
-                color: .orange,
-                trackedCount: tracking.rightHandJointTransforms.count
-            )
-        }
-    }
-
-    private func handCard(
-        title: String,
-        color: Color,
-        trackedCount: Int
-    ) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(title)
-                .font(.headline)
-            Text("\(trackedCount) / \(expectedJointCount)")
-                .font(.system(.title, design: .rounded, weight: .bold))
-                .monospacedDigit()
-            Text("currently tracked joints")
-                .font(.caption)
+            Text("Wearer Arm Overlay")
+                .font(.largeTitle.bold())
+            Text("Open, detect your arm, then show the tracked 3D bones.")
+                .font(.title3)
                 .foregroundStyle(.secondary)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(18)
-        .background(color.opacity(0.14), in: RoundedRectangle(cornerRadius: 18))
     }
 
-    private var controls: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 12) {
-                Button("Start tracking", systemImage: "play.fill") {
-                    Task {
-                        let wasIdle = tracking.handPhase == .idle
-                        await tracking.startHandJointProbe()
-                        probeOwnsTrackingSession = wasIdle && tracking.handPhase == .running
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(tracking.handPhase == .running)
-
-                Button("Run 30-second continuity test", systemImage: "timer") {
-                    tracking.beginProbeMeasurement()
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(tracking.handPhase != .running || tracking.isProbeRecording)
-
-                Button("Stop & summarize", systemImage: "stop.fill") {
-                    tracking.finishProbeMeasurement()
-                }
-                .buttonStyle(.bordered)
-                .disabled(!tracking.isProbeRecording)
-
-                Button("Reset", systemImage: "arrow.counterclockwise") {
-                    tracking.resetProbeMeasurement()
-                }
-                .buttonStyle(.bordered)
-            }
-
-            if tracking.isProbeRecording {
-                ProgressView(
-                    value: Double(30 - tracking.probeSecondsRemaining),
-                    total: 30
-                ) {
-                    Text("Recording continuity")
-                } currentValueLabel: {
-                    Text("\(tracking.probeSecondsRemaining)s remaining")
-                        .monospacedDigit()
-                }
-            }
+    private var stageStrip: some View {
+        HStack(spacing: 12) {
+            stageBadge(number: 1, title: "Open", complete: immersiveSpaceIsOpen)
+            stageBadge(number: 2, title: "Detect", complete: armDetected)
+            stageBadge(
+                number: 3,
+                title: "3D bones",
+                complete: tracking.probeBoneVisible && armDetected
+            )
         }
     }
 
-    private func reportView(_ report: JointProbeReport) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label(verdictTitle(report.verdict), systemImage: verdictIcon(report.verdict))
-                .font(.title2.bold())
-                .foregroundStyle(verdictColor(report.verdict))
-
-            Text("Duration \(report.durationSeconds, format: .number.precision(.fractionLength(1))) seconds")
-                .monospacedDigit()
-
-            HStack(spacing: 16) {
-                summaryCard("Left", report.left)
-                summaryCard("Right", report.right)
+    private var actionPanel: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Button {
+                Task { await openAndDetect() }
+            } label: {
+                Label(
+                    tracking.handPhase == .running
+                        ? (armDetected ? "Arm detected" : "Detecting your arm…")
+                        : "Open & detect arm",
+                    systemImage: armDetected
+                        ? "checkmark.circle.fill"
+                        : "hand.raised.fingers.spread"
+                )
+                .frame(maxWidth: .infinity)
             }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.extraLarge)
+            .disabled(tracking.handPhase == .running)
+
+            if tracking.handPhase == .running {
+                HStack {
+                    Label(
+                        armDetected ? "Detected" : "Move one arm into view",
+                        systemImage: armDetected
+                            ? "checkmark.circle.fill"
+                            : "viewfinder"
+                    )
+                    .foregroundStyle(armDetected ? .green : .orange)
+                    Spacer()
+                    Text(
+                        "\(tracking.probeSelectedHand == .left ? "Left" : "Right") · \(selectedTrackedJointCount) joints"
+                    )
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+                }
+            }
+
+            Button {
+                tracking.setProbeBoneVisible(!tracking.probeBoneVisible)
+            } label: {
+                Label(
+                    tracking.probeBoneVisible
+                        ? "Hide 3D bone overlay"
+                        : "Show 3D bone overlay",
+                    systemImage: tracking.probeBoneVisible
+                        ? "eye.slash.fill"
+                        : "move.3d"
+                )
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(tracking.probeBoneVisible ? .orange : .cyan)
+            .controlSize(.extraLarge)
+            .disabled(!armDetected)
+
+            Text(
+                tracking.probeBoneVisible
+                    ? "Opaque joint-driven bones are following the selected hand and forearm."
+                    : "The cyan dots confirm detection. Show the bones when all three forearm points are live."
+            )
+            .font(.callout)
+            .foregroundStyle(.secondary)
         }
-        .padding(18)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18))
+        .padding(22)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22))
     }
 
-    private func summaryCard(
-        _ title: String,
-        _ summary: JointProbeHandSummary
+    private func stageBadge(
+        number: Int,
+        title: String,
+        complete: Bool
     ) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
+        HStack(spacing: 8) {
+            Image(systemName: complete ? "checkmark.circle.fill" : "\(number).circle")
             Text(title)
-                .font(.headline)
-            Text("\(summary.sampleCount) updates")
-            Text("Mean joints \(summary.averageTrackedJointCount, format: .number.precision(.fractionLength(1)))")
-            Text("Critical continuity \(summary.criticalContinuity, format: .percent.precision(.fractionLength(1)))")
+                .fontWeight(.semibold)
         }
-        .font(.callout)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .foregroundStyle(complete ? .green : .secondary)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(.thinMaterial, in: Capsule())
     }
 
-    private var interpretation: some View {
-        Label(
-            "A continuity pass proves repeated named hand-joint observations. It does not prove anatomical accuracy, elbow detection, hidden-bone position, or full-body tracking.",
-            systemImage: "exclamationmark.triangle.fill"
-        )
-        .font(.callout.weight(.semibold))
-        .foregroundStyle(.orange)
+    @MainActor
+    private func openAndDetect() async {
+        guard await openProbeSpace() else { return }
+        let wasIdle = tracking.handPhase == .idle
+        await tracking.startHandJointProbe()
+        probeOwnsTrackingSession = wasIdle && tracking.handPhase == .running
     }
 
-    private func openProbeSpace() async {
-        guard !immersiveSpaceIsOpen else { return }
+    @MainActor
+    private func openProbeSpace() async -> Bool {
+        guard !immersiveSpaceIsOpen else { return true }
+        launchError = nil
         switch await openImmersiveSpace(id: "JointProbeSpace") {
         case .opened:
             immersiveSpaceIsOpen = true
+            return true
         case .userCancelled:
-            launchError = "The mixed-reality joint view was cancelled."
+            launchError = "The mixed-reality view was cancelled."
+            return false
         case .error:
-            launchError = "Could not open the mixed-reality joint view."
+            launchError = "The mixed-reality view could not open. Try again."
+            return false
         @unknown default:
-            launchError = "The mixed-reality joint view returned an unknown result."
+            launchError = "The mixed-reality view returned an unknown result."
+            return false
         }
-    }
-
-    private func verdictTitle(_ verdict: JointProbeVerdict) -> String {
-        switch verdict {
-        case .continuityPass: "CONTINUITY PASS"
-        case .continuityNeedsWork: "CONTINUITY NEEDS WORK"
-        case .insufficientDuration: "RUN TOO SHORT"
-        case .noSignal: "NO HAND SIGNAL"
-        }
-    }
-
-    private func verdictIcon(_ verdict: JointProbeVerdict) -> String {
-        verdict == .continuityPass ? "checkmark.circle.fill" : "exclamationmark.triangle.fill"
-    }
-
-    private func verdictColor(_ verdict: JointProbeVerdict) -> Color {
-        verdict == .continuityPass ? .green : .orange
     }
 }
