@@ -4,6 +4,17 @@ The Vision Pro app is displayed as **Radiographic Anatomy POC**. The Xcode targe
 
 The scoped problem statement, requirements, success matrix, joint-motion approach, three-day plan, and acceptance script are in `PRODUCT_DEVELOPMENT_DOCUMENT.md`.
 
+## AI development contract
+
+AI contributors must read `AGENTS.md` and `CURRENT_STATUS.md` before changing
+the project. Bounded specialist roles and the required assignment contract are
+in `.agent-prompts/`. The exact Marcel-approved **Immersive AVP Development
+Prompt v2.0** is committed as
+`.agent-prompts/immersive-avp-development-v2.md`; `AGENTS.md` adapts it to
+this repository. Together these files keep product scope, evidence,
+physical-device gates, coordinate contracts, and safety claims consistent
+across development sessions.
+
 ## Version 3: reference sectional imaging
 
 Version 3 adds a five-level axial forearm CT reference plane to the mixed-reality overlay:
