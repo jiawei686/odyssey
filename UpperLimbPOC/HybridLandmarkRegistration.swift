@@ -16,11 +16,12 @@ enum LandmarkObservationSource: String, Codable, Sendable {
     case manualHumanPlacement
     case sceneReconstructionSurface
     case enterpriseCameraModel
+    case externalCalibratedCameraModel
 
     var suppliesNamedAnatomicalLandmarks: Bool {
         switch self {
         case .imageMarker, .handSkeleton, .manualHumanPlacement,
-             .enterpriseCameraModel:
+             .enterpriseCameraModel, .externalCalibratedCameraModel:
             true
         case .sceneReconstructionSurface:
             false

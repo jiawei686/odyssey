@@ -2,15 +2,16 @@
 
 **Status:** Active, additive scope correction approved 2026-08-08
 
-**Goal:** Detect one participant's upper-limb visual landmarks with OpenCV on iPhone, transform qualified observations through the existing iPhone–AVP calibration function, publish typed AVP-world joints over the existing peer channel, and align the current generic forearm anatomy plus its sectional child on Apple Vision Pro.
+**Goal:** Detect one participant's upper-limb visual landmarks with OpenCV on iPhone, add a measured metric-depth and iPhone–AVP calibration authority, publish typed AVP-world joints over the existing peer channel, and align the current generic forearm anatomy plus its sectional child on Apple Vision Pro.
 
-**First vertical slice:** iPhone shoulder/elbow/wrist inference → qualified elbow and wrist → existing calibrated AVP-world transform → existing peer channel → axis-only forearm alignment → visible `AXIS ONLY` registration state. This slice must pass before distal radius/ulna, palm, fingers, or sectional controls are extended.
+**First vertical slice:** iPhone shoulder/elbow/wrist inference → qualified elbow and wrist image observations → measured metric projection and calibrated AVP-world transform → existing peer channel → axis-only forearm alignment → visible `AXIS ONLY` registration state. This slice must pass before distal radius/ulna, palm, fingers, or sectional controls are extended.
 
 ## Development checkpoint — 2026-08-08
 
 - `[AUTO]` The typed joint-frame, peer-wire compatibility, spatial bridge, tracking-state, scanner-presentation, inference-contract, and Objective-C++ wrapper checks pass independently.
 - `[BUILD]` The pinned OpenCV 4.13.0 arm64 iPhone static library now compiles under Xcode 27 after isolating FP16 kernels in the `NEON_FP16` dispatch path. The earlier `vfmaq_f16 requires target feature fullfp16` compiler failure is resolved for that slice.
-- `[IN PROGRESS]` Repeatable bootstrap patching, simulator slice assembly, XCFramework packaging, app-target linking, and signed iPhone/AVP builds remain before the physical vertical-slice run. Therefore the OpenCV milestone below remains unchecked.
+- `[BUILD]` Repeatable OpenCV/model bootstrap, both XCFramework slices, iOS-only linking, checksum verification, simulator/device-SDK builds, and standalone contract checks now pass. The corrected scanner build still needs a physical iPhone run.
+- `[BLOCKED]` Repository audit found no production iPhone-camera-metric-to-AVP-world calibration, no scanner call site that sends a joint frame, and no immersive consumer that applies the axis-only result. Those are required implementation milestones, not an existing baseline.
 - `[NOT YET CLAIMED]` No physical participant scan, finger-joint inference, or anatomical-accuracy result has been established.
 
 ## Non-negotiable truth boundary
@@ -49,7 +50,7 @@ Lead-owned `UpperLimbPOC/UpperLimbJointFrame.swift` defines:
 - hand-global evidence stored separately from finger points; and
 - a receiving gate for schema/session/calibration/clock/sequence/age/payload rejection.
 
-The calibration function supplies the measured sender-to-receiver clock offset used by the stale-frame gate. Device-local monotonic timestamps are not compared without that offset.
+The future calibration exchange must supply the measured sender-to-receiver clock offset used by the stale-frame gate. Device-local monotonic timestamps are not compared without that offset, and the first observation packet cannot authorize its own IDs or clock.
 
 ## Ownership board
 
@@ -68,24 +69,25 @@ Only the lead integrates shared files and commits. Agents do not commit independ
 - [x] Confirm peer snapshot channel, elbow/wrist marker fit, hybrid solver, and common anatomy/section root.
 - [x] Freeze the versioned upper-limb joint-frame contract.
 - [x] Add standalone checks for coordinate/unit truth, hand confidence scope, session/calibration/clock, sequence, and staleness.
-- [ ] Add the contract check to `Tools/validate.sh` and both app targets without changing baseline behavior.
+- [x] Add the contract check to `Tools/validate.sh` and both app targets without changing baseline behavior.
 
 Gate: standalone contract test, existing 14-stage validator, and both target builds pass.
 
 ## Milestone 2 — Pinned OpenCV dependency and elbow/wrist inference
 
-- [ ] Build OpenCV `4.13.0` commit `fe38fc608f6acb8b68953438a62305d8318f4fcd` with the official Apple XCFramework builder for `ios-arm64` and `ios-arm64_x86_64-simulator`.
-- [ ] Pin OpenCV Zoo commit `47534e27c9851bb1128ccc0102f1145e27f23f98` and verify the four recorded ONNX SHA-256 values.
-- [ ] Link OpenCV only to the iOS companion target, never the visionOS target.
-- [ ] Load MP-Person and MP-Pose first; emit shoulder, elbow, and wrist points in unmirrored sensor coordinates with per-pose-point confidence.
-- [ ] Run inference serially off the main actor, keep only the newest pending frame, and convert every C++ exception to a stable error.
+- [x] Build OpenCV `4.13.0` commit `fe38fc608f6acb8b68953438a62305d8318f4fcd` with the official Apple XCFramework builder for `ios-arm64` and `ios-arm64_x86_64-simulator`.
+- [x] Pin OpenCV Zoo commit `47534e27c9851bb1128ccc0102f1145e27f23f98` and verify the four recorded ONNX SHA-256 values.
+- [x] Link OpenCV only to the iOS companion target, never the visionOS target.
+- [x] Load MP-Person and MP-Pose first; emit shoulder, elbow, and wrist points in unmirrored sensor coordinates with per-pose-point confidence.
+- [x] Run inference serially off the main actor, discard late capture frames, and convert every C++ exception to a stable error.
 - [ ] Verify model load and deterministic decoder shapes on simulator; then verify a signed iPhone build.
 
 Kill gate: stop if the generated XCFramework lacks a required device/simulator slice, `opencv2/dnn.hpp`, model checksum, model load, stable index mapping, or a minimal iOS link. Do not fall back silently to Apple Vision or a floating binary.
 
-## Milestone 3 — Existing spatial channel adaptation
+## Milestone 3 — Calibrated spatial channel implementation
 
-- [ ] Map qualified scanner output through the existing calibrated iPhone-camera-to-AVP-world function.
+- [ ] Add synchronized metric depth/intrinsics and map qualified image points into typed iPhone-camera metres; model-relative Z is not a substitute.
+- [ ] Establish a measured iPhone-camera-to-AVP-world transform plus independently authorized session/calibration/clock IDs. A QR or image marker is only acceptable if both devices' geometric relationship is observable and tested; a screen-only handshake must not imply an unknown camera-to-screen extrinsic.
 - [ ] Publish `UpperLimbJointFrame` as a tagged message over `PeerSession` without breaking legacy raw `OverlaySnapshot` decoding.
 - [ ] On AVP, gate each frame before it reaches anatomy.
 - [ ] Map elbow+wrist AVP-world metre observations into an explicit axis-only forearm result.

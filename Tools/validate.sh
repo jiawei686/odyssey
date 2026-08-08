@@ -7,6 +7,16 @@ PROJECT="$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj"
 BUILD_ROOT="$PROJECT_DIR/.build"
 mkdir -p "$BUILD_ROOT"
 
+OPENCV_XCFRAMEWORK="$PROJECT_DIR/Vendor/OpenCV/opencv2.xcframework"
+test -d "$OPENCV_XCFRAMEWORK" || {
+    echo "Missing OpenCV XCFramework; run Tools/bootstrap_body_scanner_dependencies.sh" >&2
+    exit 1
+}
+(
+    cd "$PROJECT_DIR"
+    shasum -a 256 -c ThirdParty/BodyScanner/models.sha256
+)
+
 run_xcode_stage() {
     local stage_log="$1"
     shift
@@ -67,6 +77,9 @@ rg -Fq 'LiDAR scene mesh has no joint labels' "$PROJECT_DIR/UpperLimbPOC/JointPr
 rg -q 'JointProbeView.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
 rg -q 'JointProbeImmersiveView.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
 rg -q 'JointProbeMetrics.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -q 'JointProbeRoute.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -q 'jointProbeRoute.present' "$PROJECT_DIR/UpperLimbPOC/ContentView.swift"
+rg -q 'navigationDestination' "$PROJECT_DIR/UpperLimbPOC/ContentView.swift"
 rg -q 'IndexFingerRigRoot' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
 rg -q 'indexFingerKnuckle' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift" "$PROJECT_DIR/UpperLimbPOC/LandmarkTrackingService.swift"
 rg -q 'indexFingerIntermediateBase' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift" "$PROJECT_DIR/UpperLimbPOC/LandmarkTrackingService.swift"
@@ -128,6 +141,82 @@ xcrun swiftc \
     -o "$BUILD_ROOT/hybrid-landmark-registration-check"
 "$BUILD_ROOT/hybrid-landmark-registration-check"
 
+echo "[5a/14] Checking upper-limb integration and scanner contracts"
+xcrun swiftc \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/UpperLimbJointFrame.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/UpperLimbPeerEnvelope.swift" \
+    "$PROJECT_DIR/Tools/UpperLimbJointFrameCheck.swift" \
+    -o "$BUILD_ROOT/upper-limb-joint-frame-check"
+"$BUILD_ROOT/upper-limb-joint-frame-check"
+
+xcrun swiftc \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/OverlaySnapshot.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/UpperLimbJointFrame.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/UpperLimbPeerEnvelope.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/UpperLimbPeerWireCodec.swift" \
+    "$PROJECT_DIR/Tools/UpperLimbPeerWireCheck.swift" \
+    -o "$BUILD_ROOT/upper-limb-peer-wire-check"
+"$BUILD_ROOT/upper-limb-peer-wire-check"
+
+xcrun swiftc \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/UpperLimbJointFrame.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/HybridLandmarkRegistration.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/UpperLimbIntegration/SpatialJointBridge.swift" \
+    "$PROJECT_DIR/Tools/UpperLimbSpatialBridgeCheck.swift" \
+    -o "$BUILD_ROOT/upper-limb-spatial-bridge-check"
+"$BUILD_ROOT/upper-limb-spatial-bridge-check"
+
+xcrun swiftc \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/UpperLimbJointFrame.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/HybridLandmarkRegistration.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/UpperLimbIntegration/SpatialJointBridge.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/UpperLimbIntegration/UpperLimbIntegrationState.swift" \
+    "$PROJECT_DIR/Tools/UpperLimbIntegrationStateCheck.swift" \
+    -o "$BUILD_ROOT/upper-limb-integration-state-check"
+"$BUILD_ROOT/upper-limb-integration-state-check"
+
+xcrun swiftc \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/BodyScanner/UI/BodyScannerPresentation.swift" \
+    "$PROJECT_DIR/Tools/BodyScannerUICheck.swift" \
+    -o "$BUILD_ROOT/body-scanner-ui-check"
+"$BUILD_ROOT/body-scanner-ui-check"
+
+xcrun swiftc \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/BodyScanner/UI/BodyScannerPresentation.swift" \
+    "$PROJECT_DIR/Tools/BodyScannerOrientationCheck.swift" \
+    -o "$BUILD_ROOT/body-scanner-orientation-check"
+"$BUILD_ROOT/body-scanner-orientation-check" "$PROJECT_DIR"
+
+xcrun swiftc \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/UpperLimbJointFrame.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/BodyScanner/Inference/BodyScannerModelManifest.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/BodyScanner/Inference/BodyScannerResourceInspector.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/BodyScanner/Inference/BodyScannerUpperLimbPoseMapper.swift" \
+    "$PROJECT_DIR/Tools/BodyScannerInferenceContractCheck.swift" \
+    -o "$BUILD_ROOT/body-scanner-inference-contract-check"
+"$BUILD_ROOT/body-scanner-inference-contract-check"
+
+xcrun swiftc \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/Tools/OpenCVWrapperContractCheck.swift" \
+    -o "$BUILD_ROOT/opencv-wrapper-contract-check"
+"$BUILD_ROOT/opencv-wrapper-contract-check" "$PROJECT_DIR"
+
 echo "[6/14] Checking AVP joint capability probe metrics"
 xcrun swiftc \
     -parse-as-library \
@@ -136,6 +225,14 @@ xcrun swiftc \
     "$PROJECT_DIR/Tools/JointProbeMetricsCheck.swift" \
     -o "$BUILD_ROOT/joint-probe-metrics-check"
 "$BUILD_ROOT/joint-probe-metrics-check"
+
+xcrun swiftc \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/JointProbeRoute.swift" \
+    "$PROJECT_DIR/Tools/JointProbeRouteCheck.swift" \
+    -o "$BUILD_ROOT/joint-probe-route-check"
+"$BUILD_ROOT/joint-probe-route-check"
 
 echo "[7/14] Checking index-finger calibration and reacquisition"
 xcrun swiftc \

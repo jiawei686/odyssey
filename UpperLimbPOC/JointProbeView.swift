@@ -3,6 +3,7 @@ import SwiftUI
 
 struct JointProbeView: View {
     @EnvironmentObject private var tracking: LandmarkTrackingService
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.openImmersiveSpace) private var openImmersiveSpace
     @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
     @Environment(\.dismissWindow) private var dismissWindow
@@ -54,6 +55,7 @@ struct JointProbeView: View {
                 Button("Close") {
                     Task {
                         await dismissImmersiveSpace()
+                        dismiss()
                         dismissWindow(id: "JointProbe")
                     }
                 }

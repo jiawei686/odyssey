@@ -125,7 +125,20 @@ The companion and Vision app exchange newline-framed JSON containing position, r
 
 ## Run on simulators
 
-1. Open `UpperLimbPOC.xcodeproj` in Xcode.
+The iPhone OpenCV arm-scanner route depends on pinned generated artifacts that
+are deliberately not committed. Before building `UpperLimbCompanion` from a
+clean checkout, select Xcode 27 and run:
+
+```bash
+Tools/bootstrap_body_scanner_dependencies.sh
+```
+
+The script builds both required iOS XCFramework slices, downloads the four
+pinned OpenCV Zoo models, and verifies their checksums. See
+`ThirdParty/BodyScanner/README.md` for revisions, licenses, and the narrow
+Xcode 27 build patch.
+
+1. Open `RadiographicAnatomyPOC.xcodeproj` in Xcode.
 2. Select the `UpperLimbCompanion` scheme and an iPad or iPhone simulator, then press Run.
 3. Select the `UpperLimbPOC` scheme and an Apple Vision Pro simulator, then press Run.
 4. Wait for both apps to show **Connected**.

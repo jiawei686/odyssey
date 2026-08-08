@@ -13,6 +13,7 @@ struct UpperLimbPOCApp: App {
             ContentView()
                 .environmentObject(overlay)
                 .environmentObject(peer)
+                .environmentObject(tracking)
         }
         .defaultSize(width: 960, height: 720)
 

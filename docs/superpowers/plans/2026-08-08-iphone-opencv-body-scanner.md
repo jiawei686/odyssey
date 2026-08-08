@@ -12,13 +12,13 @@
 
 ## Scope and execution topology
 
-Implement the approved design in `docs/superpowers/specs/2026-08-08-iphone-opencv-body-scanner-design.md`. Do not add Apple Vision body/hand pose APIs, AVP camera access, image export, or an alternative calibration/network stack. Transport and anatomy registration belong to the additive `UL-INTEGRATION-001` plan and must reuse the existing peer/spatial baseline.
+Implement the approved design in `docs/superpowers/specs/2026-08-08-iphone-opencv-body-scanner-design.md`. Do not add Apple Vision body/hand pose APIs, AVP camera access, image export, or a second network stack. Transport and anatomy registration belong to the additive `UL-INTEGRATION-001` plan and must reuse the existing peer/registration primitives while explicitly implementing the missing measured cross-device calibration.
 
 The user requested three specialist tracks:
 
 - **iPhone/OpenCV track:** Tasks 1–6.
 - **Scanner UI/UX track:** Task 7 can proceed against the Task 2 contracts and a debug fixture runtime while Tasks 3–6 continue.
-- **iPhone–AVP coordination track:** the active `UL-INTEGRATION-001` plan adapts the existing calibrated spatial pipeline and consumes only the frozen shared joint-frame contract.
+- **iPhone–AVP coordination track:** the active `UL-INTEGRATION-001` plan must implement metric projection and measured cross-device calibration before consuming the frozen shared joint-frame contract.
 
 Parallel implementation is safe only after Task 2 is committed. The OpenCV and UI workers must create disjoint files under `UpperLimbPOC/BodyScanner/`; neither may edit `project.pbxproj`, `Tools/validate.sh`, `CompanionApp.swift`, `CompanionContentView.swift`, or `InfoCompanion.plist`. Task 8 is the single integration point for those shared files. Preserve all pre-existing uncommitted AVP joint-probe edits and the signing team `QLYUY93X5V`.
 
@@ -1062,4 +1062,4 @@ git commit -m "docs: record iPhone body scanner feasibility"
 
 ## Final acceptance boundary
 
-Scanner completion means the physical iPhone upper-limb gate has passed or has an explicitly reported failure with evidence. It never means anatomical accuracy, patient registration, AVP overlay accuracy, or clinical suitability. The integration layer may consume only the structured joint values; it may not consume retained camera pixels or claim an AVP-world coordinate unless the existing calibration function emitted that typed coordinate under the active calibration ID.
+Scanner completion means the physical iPhone upper-limb gate has passed or has an explicitly reported failure with evidence. It never means anatomical accuracy, patient registration, AVP overlay accuracy, or clinical suitability. The integration layer may consume only the structured joint values; it may not consume retained camera pixels or claim an AVP-world coordinate unless a separately implemented and verified calibration function emitted that typed coordinate under an independently authorized calibration ID.

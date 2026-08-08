@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var launchError: String?
     @State private var didRunAutomatedDemo = false
     @State private var showPlannedRegions = false
+    @State private var jointProbeRoute = JointProbeRoute()
 
     private let columns = [
         GridItem(.adaptive(minimum: 190, maximum: 240), spacing: 18)
@@ -34,7 +35,7 @@ struct ContentView: View {
                     .disabled(isOpening || !selectedRegion.isAvailable)
 
                     Button {
-                        openWindow(id: "JointProbe")
+                        jointProbeRoute.present()
                     } label: {
                         Label(
                             "Test AVP joint detection",
@@ -91,6 +92,14 @@ struct ContentView: View {
                     )
                     .foregroundStyle(peer.isConnected ? .green : .secondary)
                 }
+            }
+            .navigationDestination(
+                isPresented: Binding(
+                    get: { jointProbeRoute.isPresented },
+                    set: { jointProbeRoute.setPresented($0) }
+                )
+            ) {
+                JointProbeView()
             }
         }
         .onAppear(perform: peer.start)

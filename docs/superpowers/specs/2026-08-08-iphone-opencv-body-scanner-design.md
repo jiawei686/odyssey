@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-08
 
-**Status:** Approved in conversation; corrected by `UL-INTEGRATION-001` to preserve the pinned hand model's true confidence scope and the working spatial baseline
+**Status:** Approved in conversation; implementation checkpoint corrected after repository audit: the iPhone arm detector exists, while metric depth, cross-device calibration, and live AVP consumption do not yet exist
 
 **Target:** `UpperLimbCompanion` on iPhone 17 Pro Max
 
@@ -10,7 +10,7 @@
 
 ## 1. Objective
 
-Build an iPhone prototype that uses the rear main camera and OpenCV DNN inference to estimate one consenting adult participant's shoulders, both elbows, both wrists, palms, and detailed finger joints. The first vertical slice proves that the iPhone can produce stable elbow-and-wrist observations for the existing iPhone-to-AVP spatial pipeline; fingers follow after that slice is verified.
+Build an iPhone prototype that uses the rear main camera and OpenCV DNN inference to estimate one consenting adult participant's shoulders, both elbows, both wrists, palms, and detailed finger joints. The first vertical slice proves stable iPhone elbow-and-wrist image observations. A separately verified metric-depth and iPhone-to-AVP calibration path is required before those observations may drive AVP anatomy; fingers follow after the image-observation slice is verified.
 
 The inference pipeline will use OpenCV directly. Apple frameworks remain responsible for capabilities OpenCV does not replace on iOS: camera capture, device orientation, optional LiDAR depth delivery, and SwiftUI presentation. Apple Vision body- or hand-pose APIs will not be used.
 
@@ -29,13 +29,13 @@ The inference pipeline will use OpenCV directly. Apple frameworks remain respons
 
 ### Out of scope
 
-- AVP camera access and AVP passthrough processing. The scanner component emits typed observations; the existing spatial-coordinate layer and AVP overlay consume them under the separate `UL-INTEGRATION-001` plan.
+- AVP camera access and AVP passthrough processing. The scanner component emits typed observations; metric projection, cross-device calibration, and AVP overlay consumption belong to the separate `UL-INTEGRATION-001` plan.
 - Registration to a 3D anatomical model, CT, MRI, sectional imaging, or patient-specific anatomy.
 - Persistent participant photos, video, face identification, participant identity, or cloud inference.
 - Multiple-person tracking, motion capture, gait analysis, clinical accuracy claims, or automated medical decisions.
 - Training or fine-tuning a custom model. Phase 1 uses pinned pretrained OpenCV Zoo models.
 
-The already working iPhone-to-AVP spatial-coordinate function remains the calibration baseline and is audited rather than replaced. This scanner design neither redefines that calibration nor permits uncalibrated image/model coordinates to be labelled as AVP-world metres.
+Repository audit found no working iPhone-camera-to-AVP-world calibration function. The existing baseline comprises peer transport, AVP-local image-marker tracking, and anatomy registration primitives. `UL-INTEGRATION-001` must establish a measured cross-device transform and clock authority before publication; this scanner never permits image/model coordinates to be labelled as AVP-world metres.
 
 ## 3. Truth and safety model
 
@@ -271,13 +271,13 @@ Phase 1 validates detection completeness and stability, not anatomical or metric
 3. **Inference integration:** run the full detector/pose/hand pipeline off the main thread and render the live overlay.
 4. **Qualification and freeze:** implement association, stability, failure states, structured observation, and the no-persistence freeze summary.
 5. **Physical feasibility test:** execute the five-scan protocol and record non-identifying results.
-6. **Integration decision:** publish only qualified elbow/wrist samples into the existing calibrated spatial channel; extend to distal radius/ulna, palm, fingers, and sectional display only after the vertical slice passes.
+6. **Integration decision:** after a measured metric-depth and cross-device calibration gate exists, publish only qualified elbow/wrist samples into that calibrated spatial channel; extend to distal radius/ulna, palm, fingers, and sectional display only after the vertical slice passes.
 
 The dependency spike is deliberately first: failure to compile OpenCV for the iOS target or decode any required model blocks UI implementation and triggers a model/runtime decision rather than a hidden workaround to Apple Vision.
 
 ## 13. Active integration seam
 
-The frozen scanner schema maps into the versioned `UpperLimbJointFrame` transport contract. The working calibration layer is responsible for producing AVP-world metre observations with a matching session ID, calibration ID, sender clock ID, sequence, and timestamp. The scanner never performs that relabelling itself.
+The frozen scanner schema can map into the versioned `UpperLimbJointFrame` transport contract only after a calibration layer produces AVP-world metre observations with a matching session ID, calibration ID, sender clock ID, measured clock offset, sequence, and timestamp. That production calibration layer is not yet implemented. The scanner never performs that relabelling itself.
 
 No image-pixel, normalized-image, model-relative, or iPhone-camera coordinate may be overlaid in AVP space unless the calibrated spatial layer has produced and identified the AVP-world transform. Wrong calibration, clock, sequence, unit, or stale state is rejected before anatomy can move.
 

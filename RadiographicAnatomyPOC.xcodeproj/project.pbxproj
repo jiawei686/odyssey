@@ -21,20 +21,43 @@
 		00000000000000000000002B /* PeerSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000016 /* PeerSession.swift */; };
 		00000000000000000000002C /* hand-to-elbow-overlay.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000014 /* hand-to-elbow-overlay.usdz */; };
 		00000000000000000000002D /* LandmarkTrackingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000019 /* LandmarkTrackingService.swift */; };
+		00000000000000000000002E /* Markers/elbow-marker.png in Resources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000001A /* Markers/elbow-marker.png */; };
+		00000000000000000000002F /* Markers/wrist-marker.png in Resources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000001B /* Markers/wrist-marker.png */; };
+		000000000000000000000060 /* reference-forearm-01.png in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000070 /* reference-forearm-01.png */; };
+		000000000000000000000061 /* reference-forearm-02.png in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000071 /* reference-forearm-02.png */; };
+		000000000000000000000062 /* reference-forearm-03.png in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000072 /* reference-forearm-03.png */; };
+		000000000000000000000063 /* reference-forearm-04.png in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000073 /* reference-forearm-04.png */; };
+		000000000000000000000064 /* reference-forearm-05.png in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000074 /* reference-forearm-05.png */; };
+		000000000000000000000065 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000075 /* README.md */; };
 		000000000000000000000066 /* IndexFingerKinematics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000077 /* IndexFingerKinematics.swift */; };
 		000000000000000000000067 /* HybridLandmarkRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000078 /* HybridLandmarkRegistration.swift */; };
 		000000000000000000000068 /* HybridLandmarkRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000078 /* HybridLandmarkRegistration.swift */; };
 		000000000000000000000069 /* JointProbeMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000079 /* JointProbeMetrics.swift */; };
 		00000000000000000000006A /* JointProbeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000007A /* JointProbeView.swift */; };
 		00000000000000000000006B /* JointProbeImmersiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000007B /* JointProbeImmersiveView.swift */; };
-		00000000000000000000002E /* elbow-marker.png in Resources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000001A /* elbow-marker.png */; };
-		00000000000000000000002F /* wrist-marker.png in Resources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000001B /* wrist-marker.png */; };
-		000000000000000000000060 /* reference-forearm-01.png in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000070 /* reference-forearm-01.png */; };
-		000000000000000000000061 /* reference-forearm-02.png in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000071 /* reference-forearm-02.png */; };
-		000000000000000000000062 /* reference-forearm-03.png in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000072 /* reference-forearm-03.png */; };
-		000000000000000000000063 /* reference-forearm-04.png in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000073 /* reference-forearm-04.png */; };
-		000000000000000000000064 /* reference-forearm-05.png in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000074 /* reference-forearm-05.png */; };
-		000000000000000000000065 /* ReferenceSlices README.md in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000075 /* README.md */; };
+		00000000000000000000006C /* JointProbeRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000007C /* JointProbeRoute.swift */; };
+		000000000000000000000080 /* UpperLimbJointFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A0 /* UpperLimbJointFrame.swift */; };
+		000000000000000000000081 /* UpperLimbJointFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A0 /* UpperLimbJointFrame.swift */; };
+		000000000000000000000082 /* UpperLimbPeerEnvelope.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A1 /* UpperLimbPeerEnvelope.swift */; };
+		000000000000000000000083 /* UpperLimbPeerEnvelope.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A1 /* UpperLimbPeerEnvelope.swift */; };
+		000000000000000000000084 /* UpperLimbPeerWireCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A2 /* UpperLimbPeerWireCodec.swift */; };
+		000000000000000000000085 /* UpperLimbPeerWireCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A2 /* UpperLimbPeerWireCodec.swift */; };
+		000000000000000000000086 /* SpatialJointBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A3 /* SpatialJointBridge.swift */; };
+		000000000000000000000087 /* UpperLimbIntegrationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A4 /* UpperLimbIntegrationState.swift */; };
+		000000000000000000000088 /* BodyScannerModelManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A5 /* BodyScannerModelManifest.swift */; };
+		000000000000000000000089 /* BodyScannerResourceInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A6 /* BodyScannerResourceInspector.swift */; };
+		00000000000000000000008A /* BodyScannerUpperLimbPoseMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A7 /* BodyScannerUpperLimbPoseMapper.swift */; };
+		00000000000000000000008B /* BodyScannerCameraModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A8 /* BodyScannerCameraModel.swift */; };
+		00000000000000000000008C /* BodyScannerPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A9 /* BodyScannerPresentation.swift */; };
+		00000000000000000000008D /* BodyScannerCameraPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000AA /* BodyScannerCameraPreview.swift */; };
+		00000000000000000000008E /* BodyScannerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000AB /* BodyScannerScreen.swift */; };
+		00000000000000000000008F /* OpenCVBodyScanner.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000AF /* OpenCVBodyScanner.mm */; };
+		000000000000000000000090 /* MPPersonPosePipeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000AD /* MPPersonPosePipeline.cpp */; };
+		000000000000000000000091 /* opencv2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000B1 /* opencv2.xcframework */; };
+		000000000000000000000092 /* person_detection_mediapipe_2023mar.onnx in Resources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000B2 /* person_detection_mediapipe_2023mar.onnx */; };
+		000000000000000000000093 /* pose_estimation_mediapipe_2023mar.onnx in Resources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000B3 /* pose_estimation_mediapipe_2023mar.onnx */; };
+		000000000000000000000094 /* palm_detection_mediapipe_2023feb.onnx in Resources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000B4 /* palm_detection_mediapipe_2023feb.onnx */; };
+		000000000000000000000095 /* handpose_estimation_mediapipe_2023feb.onnx in Resources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000B5 /* handpose_estimation_mediapipe_2023feb.onnx */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,19 +73,42 @@
 		000000000000000000000017 /* CompanionApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionApp.swift; sourceTree = "<group>"; };
 		000000000000000000000018 /* CompanionContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionContentView.swift; sourceTree = "<group>"; };
 		000000000000000000000019 /* LandmarkTrackingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkTrackingService.swift; sourceTree = "<group>"; };
-		00000000000000000000001A /* elbow-marker.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Markers/elbow-marker.png"; sourceTree = "<group>"; };
-		00000000000000000000001B /* wrist-marker.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Markers/wrist-marker.png"; sourceTree = "<group>"; };
-		000000000000000000000077 /* IndexFingerKinematics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndexFingerKinematics.swift; sourceTree = "<group>"; };
-		000000000000000000000078 /* HybridLandmarkRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HybridLandmarkRegistration.swift; sourceTree = "<group>"; };
-		000000000000000000000079 /* JointProbeMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JointProbeMetrics.swift; sourceTree = "<group>"; };
-		00000000000000000000007A /* JointProbeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JointProbeView.swift; sourceTree = "<group>"; };
-		00000000000000000000007B /* JointProbeImmersiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JointProbeImmersiveView.swift; sourceTree = "<group>"; };
+		00000000000000000000001A /* Markers/elbow-marker.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Markers/elbow-marker.png"; sourceTree = "<group>"; };
+		00000000000000000000001B /* Markers/wrist-marker.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Markers/wrist-marker.png"; sourceTree = "<group>"; };
 		000000000000000000000070 /* reference-forearm-01.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reference-forearm-01.png"; sourceTree = "<group>"; };
 		000000000000000000000071 /* reference-forearm-02.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reference-forearm-02.png"; sourceTree = "<group>"; };
 		000000000000000000000072 /* reference-forearm-03.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reference-forearm-03.png"; sourceTree = "<group>"; };
 		000000000000000000000073 /* reference-forearm-04.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reference-forearm-04.png"; sourceTree = "<group>"; };
 		000000000000000000000074 /* reference-forearm-05.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reference-forearm-05.png"; sourceTree = "<group>"; };
 		000000000000000000000075 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		000000000000000000000077 /* IndexFingerKinematics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndexFingerKinematics.swift; sourceTree = "<group>"; };
+		000000000000000000000078 /* HybridLandmarkRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HybridLandmarkRegistration.swift; sourceTree = "<group>"; };
+		000000000000000000000079 /* JointProbeMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JointProbeMetrics.swift; sourceTree = "<group>"; };
+		00000000000000000000007A /* JointProbeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JointProbeView.swift; sourceTree = "<group>"; };
+		00000000000000000000007B /* JointProbeImmersiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JointProbeImmersiveView.swift; sourceTree = "<group>"; };
+		00000000000000000000007C /* JointProbeRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JointProbeRoute.swift; sourceTree = "<group>"; };
+		0000000000000000000000A0 /* UpperLimbJointFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpperLimbJointFrame.swift; sourceTree = "<group>"; };
+		0000000000000000000000A1 /* UpperLimbPeerEnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpperLimbPeerEnvelope.swift; sourceTree = "<group>"; };
+		0000000000000000000000A2 /* UpperLimbPeerWireCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpperLimbPeerWireCodec.swift; sourceTree = "<group>"; };
+		0000000000000000000000A3 /* SpatialJointBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpperLimbIntegration/SpatialJointBridge.swift; sourceTree = "<group>"; };
+		0000000000000000000000A4 /* UpperLimbIntegrationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpperLimbIntegration/UpperLimbIntegrationState.swift; sourceTree = "<group>"; };
+		0000000000000000000000A5 /* BodyScannerModelManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyScanner/Inference/BodyScannerModelManifest.swift; sourceTree = "<group>"; };
+		0000000000000000000000A6 /* BodyScannerResourceInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyScanner/Inference/BodyScannerResourceInspector.swift; sourceTree = "<group>"; };
+		0000000000000000000000A7 /* BodyScannerUpperLimbPoseMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyScanner/Inference/BodyScannerUpperLimbPoseMapper.swift; sourceTree = "<group>"; };
+		0000000000000000000000A8 /* BodyScannerCameraModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyScanner/UI/BodyScannerCameraModel.swift; sourceTree = "<group>"; };
+		0000000000000000000000A9 /* BodyScannerPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyScanner/UI/BodyScannerPresentation.swift; sourceTree = "<group>"; };
+		0000000000000000000000AA /* BodyScannerCameraPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyScanner/UI/BodyScannerCameraPreview.swift; sourceTree = "<group>"; };
+		0000000000000000000000AB /* BodyScannerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyScanner/UI/BodyScannerScreen.swift; sourceTree = "<group>"; };
+		0000000000000000000000AC /* MPPersonPosePipeline.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = BodyScanner/OpenCV/MPPersonPosePipeline.hpp; sourceTree = "<group>"; };
+		0000000000000000000000AD /* MPPersonPosePipeline.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = BodyScanner/OpenCV/MPPersonPosePipeline.cpp; sourceTree = "<group>"; };
+		0000000000000000000000AE /* OpenCVBodyScanner.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BodyScanner/OpenCV/OpenCVBodyScanner.h; sourceTree = "<group>"; };
+		0000000000000000000000AF /* OpenCVBodyScanner.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = BodyScanner/OpenCV/OpenCVBodyScanner.mm; sourceTree = "<group>"; };
+		0000000000000000000000B0 /* OpenCVBodyScanner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BodyScanner/OpenCV/OpenCVBodyScanner-Bridging-Header.h; sourceTree = "<group>"; };
+		0000000000000000000000B1 /* opencv2.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = Vendor/OpenCV/opencv2.xcframework; sourceTree = SOURCE_ROOT; };
+		0000000000000000000000B2 /* person_detection_mediapipe_2023mar.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; path = BodyScannerModels/person_detection_mediapipe_2023mar.onnx; sourceTree = "<group>"; };
+		0000000000000000000000B3 /* pose_estimation_mediapipe_2023mar.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; path = BodyScannerModels/pose_estimation_mediapipe_2023mar.onnx; sourceTree = "<group>"; };
+		0000000000000000000000B4 /* palm_detection_mediapipe_2023feb.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; path = BodyScannerModels/palm_detection_mediapipe_2023feb.onnx; sourceTree = "<group>"; };
+		0000000000000000000000B5 /* handpose_estimation_mediapipe_2023feb.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; path = BodyScannerModels/handpose_estimation_mediapipe_2023feb.onnx; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,6 +123,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				000000000000000000000091 /* opencv2.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -87,6 +134,7 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000009 /* UpperLimbPOC */,
+				0000000000000000000000B1 /* opencv2.xcframework */,
 				000000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -118,8 +166,30 @@
 				000000000000000000000079 /* JointProbeMetrics.swift */,
 				00000000000000000000007A /* JointProbeView.swift */,
 				00000000000000000000007B /* JointProbeImmersiveView.swift */,
-				00000000000000000000001A /* elbow-marker.png */,
-				00000000000000000000001B /* wrist-marker.png */,
+				00000000000000000000007C /* JointProbeRoute.swift */,
+				0000000000000000000000A0 /* UpperLimbJointFrame.swift */,
+				0000000000000000000000A1 /* UpperLimbPeerEnvelope.swift */,
+				0000000000000000000000A2 /* UpperLimbPeerWireCodec.swift */,
+				0000000000000000000000A3 /* SpatialJointBridge.swift */,
+				0000000000000000000000A4 /* UpperLimbIntegrationState.swift */,
+				0000000000000000000000A5 /* BodyScannerModelManifest.swift */,
+				0000000000000000000000A6 /* BodyScannerResourceInspector.swift */,
+				0000000000000000000000A7 /* BodyScannerUpperLimbPoseMapper.swift */,
+				0000000000000000000000A8 /* BodyScannerCameraModel.swift */,
+				0000000000000000000000A9 /* BodyScannerPresentation.swift */,
+				0000000000000000000000AA /* BodyScannerCameraPreview.swift */,
+				0000000000000000000000AB /* BodyScannerScreen.swift */,
+				0000000000000000000000AC /* MPPersonPosePipeline.hpp */,
+				0000000000000000000000AD /* MPPersonPosePipeline.cpp */,
+				0000000000000000000000AE /* OpenCVBodyScanner.h */,
+				0000000000000000000000AF /* OpenCVBodyScanner.mm */,
+				0000000000000000000000B0 /* OpenCVBodyScanner-Bridging-Header.h */,
+				0000000000000000000000B2 /* person_detection_mediapipe_2023mar.onnx */,
+				0000000000000000000000B3 /* pose_estimation_mediapipe_2023mar.onnx */,
+				0000000000000000000000B4 /* palm_detection_mediapipe_2023feb.onnx */,
+				0000000000000000000000B5 /* handpose_estimation_mediapipe_2023feb.onnx */,
+				00000000000000000000001A /* Markers/elbow-marker.png */,
+				00000000000000000000001B /* Markers/wrist-marker.png */,
 				000000000000000000000076 /* ReferenceSlices */,
 			);
 			path = UpperLimbPOC;
@@ -193,7 +263,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 000000000000000000000040 /* Build configuration list for PBXProject "UpperLimbPOC" */;
+			buildConfigurationList = 000000000000000000000040 /* Build configuration list for PBXProject "RadiographicAnatomyPOC" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -218,14 +288,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				000000000000000000000024 /* hand-to-elbow-overlay.usdz in Resources */,
-				00000000000000000000002E /* elbow-marker.png in Resources */,
-				00000000000000000000002F /* wrist-marker.png in Resources */,
+				00000000000000000000002E /* Markers/elbow-marker.png in Resources */,
+				00000000000000000000002F /* Markers/wrist-marker.png in Resources */,
 				000000000000000000000060 /* reference-forearm-01.png in Resources */,
 				000000000000000000000061 /* reference-forearm-02.png in Resources */,
 				000000000000000000000062 /* reference-forearm-03.png in Resources */,
 				000000000000000000000063 /* reference-forearm-04.png in Resources */,
 				000000000000000000000064 /* reference-forearm-05.png in Resources */,
-				000000000000000000000065 /* ReferenceSlices README.md in Resources */,
+				000000000000000000000065 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -234,6 +304,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				00000000000000000000002C /* hand-to-elbow-overlay.usdz in Resources */,
+				000000000000000000000092 /* person_detection_mediapipe_2023mar.onnx in Resources */,
+				000000000000000000000093 /* pose_estimation_mediapipe_2023mar.onnx in Resources */,
+				000000000000000000000094 /* palm_detection_mediapipe_2023feb.onnx in Resources */,
+				000000000000000000000095 /* handpose_estimation_mediapipe_2023feb.onnx in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -256,6 +330,12 @@
 				000000000000000000000069 /* JointProbeMetrics.swift in Sources */,
 				00000000000000000000006A /* JointProbeView.swift in Sources */,
 				00000000000000000000006B /* JointProbeImmersiveView.swift in Sources */,
+				00000000000000000000006C /* JointProbeRoute.swift in Sources */,
+				000000000000000000000080 /* UpperLimbJointFrame.swift in Sources */,
+				000000000000000000000082 /* UpperLimbPeerEnvelope.swift in Sources */,
+				000000000000000000000084 /* UpperLimbPeerWireCodec.swift in Sources */,
+				000000000000000000000086 /* SpatialJointBridge.swift in Sources */,
+				000000000000000000000087 /* UpperLimbIntegrationState.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -269,6 +349,18 @@
 				00000000000000000000002A /* OverlaySnapshot.swift in Sources */,
 				00000000000000000000002B /* PeerSession.swift in Sources */,
 				000000000000000000000068 /* HybridLandmarkRegistration.swift in Sources */,
+				000000000000000000000081 /* UpperLimbJointFrame.swift in Sources */,
+				000000000000000000000083 /* UpperLimbPeerEnvelope.swift in Sources */,
+				000000000000000000000085 /* UpperLimbPeerWireCodec.swift in Sources */,
+				000000000000000000000088 /* BodyScannerModelManifest.swift in Sources */,
+				000000000000000000000089 /* BodyScannerResourceInspector.swift in Sources */,
+				00000000000000000000008A /* BodyScannerUpperLimbPoseMapper.swift in Sources */,
+				00000000000000000000008B /* BodyScannerCameraModel.swift in Sources */,
+				00000000000000000000008C /* BodyScannerPresentation.swift in Sources */,
+				00000000000000000000008D /* BodyScannerCameraPreview.swift in Sources */,
+				00000000000000000000008E /* BodyScannerScreen.swift in Sources */,
+				00000000000000000000008F /* OpenCVBodyScanner.mm in Sources */,
+				000000000000000000000090 /* MPPersonPosePipeline.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -313,13 +405,12 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = QLYUY93X5V;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = UpperLimbPOC/InfoVision.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Radiographic Anatomy POC";
-				INFOPLIST_KEY_NSBonjourServices = (
-					"_upperlimb-poc._tcp",
-				);
+				INFOPLIST_KEY_NSBonjourServices = "_upperlimb-poc._tcp";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Connect to the Upper-Limb Companion on the local network to synchronize non-identifying overlay controls.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -345,13 +436,12 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = QLYUY93X5V;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = UpperLimbPOC/InfoVision.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Radiographic Anatomy POC";
-				INFOPLIST_KEY_NSBonjourServices = (
-					"_upperlimb-poc._tcp",
-				);
+				INFOPLIST_KEY_NSBonjourServices = "_upperlimb-poc._tcp";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Connect to the Upper-Limb Companion on the local network to synchronize non-identifying overlay controls.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -374,16 +464,16 @@
 		000000000000000000000034 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = QLYUY93X5V;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = UpperLimbPOC/InfoCompanion.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Radiographic Companion";
-				INFOPLIST_KEY_NSBonjourServices = (
-					"_upperlimb-poc._tcp",
-				);
+				INFOPLIST_KEY_NSBonjourServices = "_upperlimb-poc._tcp";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Connect to Apple Vision Pro on the local network to synchronize non-identifying overlay controls.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -397,6 +487,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_OBJC_BRIDGING_HEADER = "UpperLimbPOC/BodyScanner/OpenCV/OpenCVBodyScanner-Bridging-Header.h";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -406,16 +497,16 @@
 		000000000000000000000035 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = QLYUY93X5V;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = UpperLimbPOC/InfoCompanion.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Radiographic Companion";
-				INFOPLIST_KEY_NSBonjourServices = (
-					"_upperlimb-poc._tcp",
-				);
+				INFOPLIST_KEY_NSBonjourServices = "_upperlimb-poc._tcp";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Connect to Apple Vision Pro on the local network to synchronize non-identifying overlay controls.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -429,6 +520,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_OBJC_BRIDGING_HEADER = "UpperLimbPOC/BodyScanner/OpenCV/OpenCVBodyScanner-Bridging-Header.h";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -438,7 +530,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		000000000000000000000040 /* Build configuration list for PBXProject "UpperLimbPOC" */ = {
+		000000000000000000000040 /* Build configuration list for PBXProject "RadiographicAnatomyPOC" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				000000000000000000000030 /* Debug */,

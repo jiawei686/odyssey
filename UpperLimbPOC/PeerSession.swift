@@ -12,6 +12,8 @@ final class PeerSession: ObservableObject, @unchecked Sendable {
     @Published private(set) var status = "Not started"
     @Published private(set) var isConnected = false
     @Published private(set) var lastSnapshot: OverlaySnapshot?
+    @Published private(set) var lastJointFrame: UpperLimbJointFrame?
+    @Published private(set) var lastJointFrameReceivedAtMonotonic: TimeInterval?
 
     private let role: Role
     private let queue = DispatchQueue(label: "com.marcel.upperlimbpoc.peer")
@@ -67,24 +69,38 @@ final class PeerSession: ObservableObject, @unchecked Sendable {
 
     func send(_ snapshot: OverlaySnapshot) {
         do {
-            var data = try JSONEncoder().encode(snapshot)
-            data.append(0x0A)
-            let framedData = data
-            queue.async { [weak self] in
-                guard let self, let connection = self.connection else { return }
-                connection.send(
-                    content: framedData,
-                    completion: .contentProcessed { [weak self, weak connection] error in
-                        guard let error, let connection else { return }
-                        self?.handleConnectionEnded(
-                            connection,
-                            status: "Send failed: \(error.localizedDescription)"
-                        )
-                    }
-                )
-            }
+            sendPacket(try UpperLimbPeerWireCodec.encode(snapshot))
         } catch {
             publish(status: "Encode failed", connected: false)
+        }
+    }
+
+    func send(_ frame: UpperLimbJointFrame) {
+        guard frame.isTruthful else {
+            publish(status: "Joint frame rejected before send", connected: isConnected)
+            return
+        }
+        do {
+            sendPacket(try UpperLimbPeerWireCodec.encode(frame))
+        } catch {
+            publish(status: "Joint-frame encode failed", connected: false)
+        }
+    }
+
+    private func sendPacket(_ packet: Data) {
+        let framedData = packet + Data([0x0A])
+        queue.async { [weak self] in
+            guard let self, let connection = self.connection else { return }
+            connection.send(
+                content: framedData,
+                completion: .contentProcessed { [weak self, weak connection] error in
+                    guard let error, let connection else { return }
+                    self?.handleConnectionEnded(
+                        connection,
+                        status: "Send failed: \(error.localizedDescription)"
+                    )
+                }
+            )
         }
     }
 
@@ -251,13 +267,18 @@ final class PeerSession: ObservableObject, @unchecked Sendable {
             let packet = Data(receiveBuffer[..<newline])
             receiveBuffer.removeSubrange(...newline)
 
-            guard let snapshot = try? JSONDecoder().decode(
-                OverlaySnapshot.self,
-                from: packet
-            ) else { continue }
+            guard let payload = try? UpperLimbPeerWireCodec.decode(packet) else {
+                continue
+            }
 
             DispatchQueue.main.async { [weak self] in
-                self?.lastSnapshot = snapshot
+                switch payload {
+                case .overlaySnapshot(let snapshot):
+                    self?.lastSnapshot = snapshot
+                case .jointFrame(let frame):
+                    self?.lastJointFrame = frame
+                    self?.lastJointFrameReceivedAtMonotonic = ProcessInfo.processInfo.systemUptime
+                }
             }
         }
     }
