@@ -78,6 +78,19 @@ review changes do not affect registration until explicitly approved.
   research provider. They cannot silently replace markers or human review.
 - The status window explains the active providers and this sensing limitation.
 
+## Version 3.5: physical joint capability probe
+
+- The anatomy library now opens a dedicated **Test AVP joint detection**
+  window and mixed-reality joint-sphere view.
+- The probe starts ARKit hand tracking without requiring the ELBOW/WRIST image
+  markers and visualizes every hand-skeleton joint exposed by the runtime.
+- A 30-second measurement reports update count, mean tracked-joint count, and
+  continuity for wrist plus the three index-finger pivots.
+- The probe labels the scope honestly: wearer hands only; no standard
+  whole-body ARKit provider; no named joints from the LiDAR scene mesh.
+- The physical sequence and decision thresholds are in
+  `JOINT_CAPABILITY_PROBE.md`.
+
 ## Version 3.2: gaze, recovery, and verification hardening
 
 - Apple Vision Pro uses system gaze targeting and pinch confirmation: look at a highlighted bone, then single-pinch to identify it. The app does not receive or record raw gaze coordinates.

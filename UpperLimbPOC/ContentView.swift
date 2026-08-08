@@ -33,6 +33,18 @@ struct ContentView: View {
                     .controlSize(.large)
                     .disabled(isOpening || !selectedRegion.isAvailable)
 
+                    Button {
+                        openWindow(id: "JointProbe")
+                    } label: {
+                        Label(
+                            "Test AVP joint detection",
+                            systemImage: "hand.raised.fingers.spread"
+                        )
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+
                     LazyVGrid(columns: columns, spacing: 18) {
                         ForEach(BodyRegion.allCases.filter(\.isAvailable)) { region in
                             RegionCard(

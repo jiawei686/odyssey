@@ -14,7 +14,9 @@ The current integrated prototype combines:
 - a clinician-guided, three-phalanx index-finger kinematic experiment using
   reviewed MCP, PIP, and DIP model landmarks;
 - a provider-labelled hybrid landmark contract with a deterministic
-  three-point forearm similarity solver and explicit LiDAR/body-joint limits.
+  three-point forearm similarity solver and explicit LiDAR/body-joint limits;
+- a physical-device joint capability probe that visualizes all runtime hand
+  joints and records a 30-second critical-joint continuity result.
 
 GitHub baseline: `main` at `4de2f2d`.
 
@@ -29,7 +31,12 @@ GitHub baseline: `main` at `4de2f2d`.
 
 ## Evidence
 
-- `[AUTO]` `Tools/validate.sh` passed all 13 stages on Xcode 27 beta: invariants,
+- `[AUTO]` `Tools/validate.sh` passed all 14 stages on Xcode 27 beta, including
+  the new deterministic joint-probe continuity evaluator and all existing
+  simulator/device build gates.
+- `[BUILD]` The probe branch also passed strict-concurrency, warnings-as-errors
+  builds for both the visionOS simulator and physical visionOS 27 SDK.
+- `[AUTO]` Existing baseline coverage includes invariants,
   snapshot compatibility, overlay-state behavior, hybrid landmark readiness,
   known-transform/degenerate-frame checks, index-finger calibration and
   reacquisition, physical-metric evaluator self-test, resource checks, and two
@@ -52,27 +59,23 @@ GitHub baseline: `main` at `4de2f2d`.
 
 ## Active next slice
 
-`HYBRID-LM-001` — **FEATURE**
+`JOINT-PROBE-001` — **RESEARCH SPIKE**
 
-Pair human-reviewed model points with provider-labelled live landmarks. The
-first vertical slice adds a deterministic three-point forearm similarity
-solver, reports two-point input as axis-only, rejects a scene-reconstruction
-surface as anatomical identity, and explains the current marker/hand providers
-inside the status window.
+Determine which named joints a standard visionOS app can observe on physical
+Apple Vision Pro and whether the registration-critical wearer-hand subset has
+adequate continuity for the next hybrid overlay experiment.
 
 Acceptance evidence:
 
-1. A synthetic known transform is recovered with negligible residual.
-2. Collinear points are rejected.
-3. ELBOW + wrist observations report axis-only readiness.
-4. Elbow + distal-radius + distal-ulna report full-frame readiness.
-5. A LiDAR-derived scene surface is rejected as a named joint source.
-6. Vision and companion targets clean-build with Xcode 27 beta.
+1. Physical AVP displays cyan left-hand and orange right-hand joint spheres.
+2. The 30-second report includes sample count, mean joint count, and critical
+   continuity for each hand.
+3. At least one controlled run reaches 90% critical-joint continuity, or the
+   route is reshaped after two controlled failures.
+4. Another-person whole-body and LiDAR-joint claims remain explicitly absent.
 
-Physical integration remains pending: standard visionOS does not provide an
-elbow or whole-body skeleton. The next device implementation must choose either
-three visible markers/manual points or an approved enterprise-camera research
-provider; ARKit hand tracking remains valid for wrist/finger joints only.
+Physical execution remains pending because no Apple Vision Pro is connected.
+The run card is `JOINT_CAPABILITY_PROBE.md`.
 
 ## Human gate
 

@@ -48,6 +48,17 @@ final class LandmarkTrackingService: ObservableObject {
         case running
         case failed(String)
 
+        var message: String {
+            switch self {
+            case .idle: "Hand tracking is idle"
+            case .simulatorUnavailable: "Hand joints require a physical Apple Vision Pro"
+            case .unsupported: "Hand tracking is unavailable on this device"
+            case .authorizationDenied: "Hands Tracking permission was denied"
+            case .running: "Hand joint stream is running"
+            case .failed(let reason): "Hand tracking failed: \(reason)"
+            }
+        }
+
         var canRetry: Bool {
             switch self {
             case .authorizationDenied, .failed:
@@ -67,16 +78,24 @@ final class LandmarkTrackingService: ObservableObject {
     @Published private(set) var handTrackingGeneration = 0
     @Published private(set) var leftHandJointTransforms: [HandSkeleton.JointName: simd_float4x4] = [:]
     @Published private(set) var rightHandJointTransforms: [HandSkeleton.JointName: simd_float4x4] = [:]
+    @Published private(set) var isProbeRecording = false
+    @Published private(set) var probeReport: JointProbeReport?
+    @Published private(set) var probeSecondsRemaining = 30
 
     private let session = ARKitSession()
     private var provider: ImageTrackingProvider?
     private var handProvider: HandTrackingProvider?
     private var updateTask: Task<Void, Never>?
     private var handUpdateTask: Task<Void, Never>?
+    private var probeTimerTask: Task<Void, Never>?
     private var elbowTransform: simd_float4x4?
     private var wristTransform: simd_float4x4?
     private var leftIndexFingerWasTracked = false
     private var rightIndexFingerWasTracked = false
+    private var probeAccumulator = JointProbeAccumulator(
+        expectedJointCount: HandSkeleton.JointName.allCases.count,
+        expectedCriticalJointCount: 4
+    )
 
     private let referenceForearmLength: Float = 0.2625
     private let smoothingFactor: Float = 0.24
@@ -85,9 +104,15 @@ final class LandmarkTrackingService: ObservableObject {
         .indexFingerIntermediateBase,
         .indexFingerIntermediateTip
     ]
+    private let probeCriticalJointNames: [HandSkeleton.JointName] = [
+        .wrist,
+        .indexFingerKnuckle,
+        .indexFingerIntermediateBase,
+        .indexFingerIntermediateTip
+    ]
 
     func start() async {
-        guard updateTask == nil else { return }
+        guard updateTask == nil, handUpdateTask == nil else { return }
 
 #if targetEnvironment(simulator)
         phase = .simulatorUnavailable
@@ -164,14 +189,7 @@ final class LandmarkTrackingService: ObservableObject {
                 self?.handleProviderStreamEnded()
             }
             if let handProvider {
-                handUpdateTask = Task { [weak self] in
-                    for await update in handProvider.anchorUpdates {
-                        guard !Task.isCancelled else { break }
-                        self?.consume(update.anchor)
-                    }
-                    guard !Task.isCancelled else { return }
-                    self?.handleHandProviderStreamEnded()
-                }
+                startHandAnchorUpdates(from: handProvider)
             }
         } catch {
             phase = .failed(error.localizedDescription)
@@ -181,7 +199,102 @@ final class LandmarkTrackingService: ObservableObject {
 #endif
     }
 
+    func startHandJointProbe() async {
+        guard updateTask == nil, handUpdateTask == nil else { return }
+
+#if targetEnvironment(simulator)
+        handPhase = .simulatorUnavailable
+        return
+#else
+        guard HandTrackingProvider.isSupported else {
+            handPhase = .unsupported
+            return
+        }
+
+        let authorization = await session.requestAuthorization(
+            for: HandTrackingProvider.requiredAuthorizations
+        )
+        let authorizationDenied = HandTrackingProvider.requiredAuthorizations
+            .contains { authorization[$0] == .denied }
+        guard !authorizationDenied else {
+            handPhase = .authorizationDenied
+            return
+        }
+
+        do {
+            let handProvider = HandTrackingProvider()
+            self.handProvider = handProvider
+            try await session.run([handProvider])
+            handTrackingGeneration += 1
+            handPhase = .running
+            startHandAnchorUpdates(from: handProvider)
+        } catch {
+            handProvider = nil
+            handPhase = .failed(error.localizedDescription)
+        }
+#endif
+    }
+
+    func beginProbeMeasurement(durationSeconds: Int = 30) {
+        guard handPhase == .running else { return }
+        let durationSeconds = max(1, durationSeconds)
+        probeTimerTask?.cancel()
+        probeAccumulator = JointProbeAccumulator(
+            expectedJointCount: HandSkeleton.JointName.allCases.count,
+            expectedCriticalJointCount: probeCriticalJointNames.count
+        )
+        probeAccumulator.start(at: ProcessInfo.processInfo.systemUptime)
+        probeReport = nil
+        probeSecondsRemaining = durationSeconds
+        isProbeRecording = true
+
+        probeTimerTask = Task { [weak self] in
+            for remaining in stride(
+                from: durationSeconds - 1,
+                through: 0,
+                by: -1
+            ) {
+                do {
+                    try await Task.sleep(for: .seconds(1))
+                } catch {
+                    return
+                }
+                guard !Task.isCancelled else { return }
+                self?.probeSecondsRemaining = remaining
+            }
+            self?.finishProbeMeasurement()
+        }
+    }
+
+    func finishProbeMeasurement() {
+        guard isProbeRecording else { return }
+        isProbeRecording = false
+        probeTimerTask?.cancel()
+        probeTimerTask = nil
+        probeReport = probeAccumulator.finish(
+            at: ProcessInfo.processInfo.systemUptime
+        )
+    }
+
+    func resetProbeMeasurement() {
+        probeTimerTask?.cancel()
+        probeTimerTask = nil
+        isProbeRecording = false
+        probeSecondsRemaining = 30
+        probeReport = nil
+        probeAccumulator = JointProbeAccumulator(
+            expectedJointCount: HandSkeleton.JointName.allCases.count,
+            expectedCriticalJointCount: probeCriticalJointNames.count
+        )
+    }
+
     func stop() {
+        if isProbeRecording {
+            finishProbeMeasurement()
+        } else {
+            probeTimerTask?.cancel()
+            probeTimerTask = nil
+        }
         updateTask?.cancel()
         updateTask = nil
         handUpdateTask?.cancel()
@@ -225,6 +338,17 @@ final class LandmarkTrackingService: ObservableObject {
         handPhase = .failed("hand-tracking stream ended — retry tracking")
     }
 
+    private func startHandAnchorUpdates(from provider: HandTrackingProvider) {
+        handUpdateTask = Task { [weak self] in
+            for await update in provider.anchorUpdates {
+                guard !Task.isCancelled else { break }
+                self?.consume(update.anchor)
+            }
+            guard !Task.isCancelled else { return }
+            self?.handleHandProviderStreamEnded()
+        }
+    }
+
     private func consume(_ anchor: ImageAnchor) {
         guard let name = anchor.referenceImage.name?.lowercased() else { return }
         let transform = anchor.isTracked ? anchor.originFromAnchorTransform : nil
@@ -245,19 +369,13 @@ final class LandmarkTrackingService: ObservableObject {
             } else {
                 rightHandJointTransforms = [:]
             }
+            recordProbeSample(anchor: anchor, transforms: [:])
             updateHandTrackingState()
             return
         }
 
-        let jointNames: [HandSkeleton.JointName] = [
-            .wrist,
-            .indexFingerKnuckle,
-            .indexFingerIntermediateBase,
-            .indexFingerIntermediateTip,
-            .indexFingerTip
-        ]
         var transforms: [HandSkeleton.JointName: simd_float4x4] = [:]
-        for jointName in jointNames {
+        for jointName in HandSkeleton.JointName.allCases {
             let joint = skeleton.joint(jointName)
             guard joint.isTracked else { continue }
             transforms[jointName] = anchor.originFromAnchorTransform
@@ -269,7 +387,25 @@ final class LandmarkTrackingService: ObservableObject {
         } else {
             rightHandJointTransforms = transforms
         }
+        recordProbeSample(anchor: anchor, transforms: transforms)
         updateHandTrackingState()
+    }
+
+    private func recordProbeSample(
+        anchor: HandAnchor,
+        transforms: [HandSkeleton.JointName: simd_float4x4]
+    ) {
+        guard isProbeRecording else { return }
+        let hand: JointProbeHand = anchor.chirality == .left ? .left : .right
+        let trackedCriticalJointCount = probeCriticalJointNames.filter {
+            transforms[$0] != nil
+        }.count
+        probeAccumulator.record(
+            timestamp: ProcessInfo.processInfo.systemUptime,
+            hand: hand,
+            trackedJointCount: transforms.count,
+            trackedCriticalJointCount: trackedCriticalJointCount
+        )
     }
 
     func handJointTransforms(isLeft: Bool) -> [HandSkeleton.JointName: simd_float4x4] {
