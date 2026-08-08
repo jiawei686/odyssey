@@ -1,4 +1,7 @@
 .DS_Store
 .build/
+.dependencies/
+Vendor/OpenCV/opencv2.xcframework/
+UpperLimbPOC/BodyScannerModels/*.onnx
 **/xcuserdata/
 *.xcuserstate

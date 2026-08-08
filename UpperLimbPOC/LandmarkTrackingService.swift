@@ -48,6 +48,17 @@ final class LandmarkTrackingService: ObservableObject {
         case running
         case failed(String)
 
+        var message: String {
+            switch self {
+            case .idle: "Hand tracking is idle"
+            case .simulatorUnavailable: "Hand joints require a physical Apple Vision Pro"
+            case .unsupported: "Hand tracking is unavailable on this device"
+            case .authorizationDenied: "Hands Tracking permission was denied"
+            case .running: "Hand joint stream is running"
+            case .failed(let reason): "Hand tracking failed: \(reason)"
+            }
+        }
+
         var canRetry: Bool {
             switch self {
             case .authorizationDenied, .failed:
@@ -67,16 +78,43 @@ final class LandmarkTrackingService: ObservableObject {
     @Published private(set) var handTrackingGeneration = 0
     @Published private(set) var leftHandJointTransforms: [HandSkeleton.JointName: simd_float4x4] = [:]
     @Published private(set) var rightHandJointTransforms: [HandSkeleton.JointName: simd_float4x4] = [:]
+    @Published private(set) var isProbeRecording = false
+    @Published private(set) var probeReport: JointProbeReport?
+    @Published private(set) var probeSecondsRemaining = 30
+    @Published private(set) var probeSelectedHand: JointProbeHand = .left
+    @Published private(set) var probeBoneVisible = false
+    @Published private(set) var probeSectionFraction = 0.55
+    @Published private(set) var leftHandAnchorUpdateCount = 0
+    @Published private(set) var rightHandAnchorUpdateCount = 0
+    @Published private(set) var leftForearmResolution = AVPForearmOverlayResolution(
+        state: .searching,
+        trackedPointCount: 0,
+        detail: "Show the selected forearm and hand",
+        pose: nil
+    )
+    @Published private(set) var rightForearmResolution = AVPForearmOverlayResolution(
+        state: .searching,
+        trackedPointCount: 0,
+        detail: "Show the selected forearm and hand",
+        pose: nil
+    )
 
     private let session = ARKitSession()
     private var provider: ImageTrackingProvider?
     private var handProvider: HandTrackingProvider?
     private var updateTask: Task<Void, Never>?
     private var handUpdateTask: Task<Void, Never>?
+    private var probeTimerTask: Task<Void, Never>?
     private var elbowTransform: simd_float4x4?
     private var wristTransform: simd_float4x4?
     private var leftIndexFingerWasTracked = false
     private var rightIndexFingerWasTracked = false
+    private var probeAccumulator = JointProbeAccumulator(
+        expectedJointCount: HandSkeleton.JointName.allCases.count,
+        expectedCriticalJointCount: 3
+    )
+    private var leftForearmTracker = AVPForearmOverlayTracker()
+    private var rightForearmTracker = AVPForearmOverlayTracker()
 
     private let referenceForearmLength: Float = 0.2625
     private let smoothingFactor: Float = 0.24
@@ -85,9 +123,14 @@ final class LandmarkTrackingService: ObservableObject {
         .indexFingerIntermediateBase,
         .indexFingerIntermediateTip
     ]
+    private let probeCriticalJointNames: [HandSkeleton.JointName] = [
+        .wrist,
+        .forearmWrist,
+        .forearmArm
+    ]
 
     func start() async {
-        guard updateTask == nil else { return }
+        guard updateTask == nil, handUpdateTask == nil else { return }
 
 #if targetEnvironment(simulator)
         phase = .simulatorUnavailable
@@ -164,14 +207,7 @@ final class LandmarkTrackingService: ObservableObject {
                 self?.handleProviderStreamEnded()
             }
             if let handProvider {
-                handUpdateTask = Task { [weak self] in
-                    for await update in handProvider.anchorUpdates {
-                        guard !Task.isCancelled else { break }
-                        self?.consume(update.anchor)
-                    }
-                    guard !Task.isCancelled else { return }
-                    self?.handleHandProviderStreamEnded()
-                }
+                startHandAnchorUpdates(from: handProvider)
             }
         } catch {
             phase = .failed(error.localizedDescription)
@@ -181,7 +217,130 @@ final class LandmarkTrackingService: ObservableObject {
 #endif
     }
 
+    func startHandJointProbe() async {
+        guard updateTask == nil, handUpdateTask == nil else { return }
+
+#if targetEnvironment(simulator)
+        handPhase = .simulatorUnavailable
+        publishForearmFailure("Physical Apple Vision Pro required")
+        return
+#else
+        guard HandTrackingProvider.isSupported else {
+            handPhase = .unsupported
+            publishForearmFailure("HandTrackingProvider is unavailable")
+            return
+        }
+
+        let authorization = await session.requestAuthorization(
+            for: HandTrackingProvider.requiredAuthorizations
+        )
+        let authorizationDenied = HandTrackingProvider.requiredAuthorizations
+            .contains { authorization[$0] == .denied }
+        guard !authorizationDenied else {
+            handPhase = .authorizationDenied
+            publishForearmFailure("Hands Tracking permission was denied")
+            return
+        }
+
+        do {
+            let handProvider = HandTrackingProvider()
+            self.handProvider = handProvider
+            try await session.run([handProvider])
+            handTrackingGeneration += 1
+            handPhase = .running
+            print("[UL-SELF-ARM] HandTrackingProvider session running")
+            startHandAnchorUpdates(from: handProvider)
+        } catch {
+            handProvider = nil
+            handPhase = .failed(error.localizedDescription)
+            publishForearmFailure(error.localizedDescription)
+        }
+#endif
+    }
+
+    func selectProbeHand(_ hand: JointProbeHand) {
+        probeSelectedHand = hand
+    }
+
+    func setProbeBoneVisible(_ isVisible: Bool) {
+        probeBoneVisible = isVisible
+    }
+
+    func setProbeSectionFraction(_ fraction: Double) {
+        probeSectionFraction = min(max(fraction, 0), 1)
+        let timestamp = ProcessInfo.processInfo.systemUptime
+        updateForearmResolution(
+            isLeft: true,
+            transforms: leftHandJointTransforms,
+            timestamp: timestamp
+        )
+        updateForearmResolution(
+            isLeft: false,
+            transforms: rightHandJointTransforms,
+            timestamp: timestamp
+        )
+    }
+
+    func beginProbeMeasurement(durationSeconds: Int = 30) {
+        guard handPhase == .running else { return }
+        let durationSeconds = max(1, durationSeconds)
+        probeTimerTask?.cancel()
+        probeAccumulator = JointProbeAccumulator(
+            expectedJointCount: HandSkeleton.JointName.allCases.count,
+            expectedCriticalJointCount: probeCriticalJointNames.count
+        )
+        probeAccumulator.start(at: ProcessInfo.processInfo.systemUptime)
+        probeReport = nil
+        probeSecondsRemaining = durationSeconds
+        isProbeRecording = true
+
+        probeTimerTask = Task { [weak self] in
+            for remaining in stride(
+                from: durationSeconds - 1,
+                through: 0,
+                by: -1
+            ) {
+                do {
+                    try await Task.sleep(for: .seconds(1))
+                } catch {
+                    return
+                }
+                guard !Task.isCancelled else { return }
+                self?.probeSecondsRemaining = remaining
+            }
+            self?.finishProbeMeasurement()
+        }
+    }
+
+    func finishProbeMeasurement() {
+        guard isProbeRecording else { return }
+        isProbeRecording = false
+        probeTimerTask?.cancel()
+        probeTimerTask = nil
+        probeReport = probeAccumulator.finish(
+            at: ProcessInfo.processInfo.systemUptime
+        )
+    }
+
+    func resetProbeMeasurement() {
+        probeTimerTask?.cancel()
+        probeTimerTask = nil
+        isProbeRecording = false
+        probeSecondsRemaining = 30
+        probeReport = nil
+        probeAccumulator = JointProbeAccumulator(
+            expectedJointCount: HandSkeleton.JointName.allCases.count,
+            expectedCriticalJointCount: probeCriticalJointNames.count
+        )
+    }
+
     func stop() {
+        if isProbeRecording {
+            finishProbeMeasurement()
+        } else {
+            probeTimerTask?.cancel()
+            probeTimerTask = nil
+        }
         updateTask?.cancel()
         updateTask = nil
         handUpdateTask?.cancel()
@@ -196,8 +355,19 @@ final class LandmarkTrackingService: ObservableObject {
         isAvailableOnDevice = false
         isHandTracking = false
         handPhase = .idle
+        probeBoneVisible = false
         leftHandJointTransforms = [:]
         rightHandJointTransforms = [:]
+        leftHandAnchorUpdateCount = 0
+        rightHandAnchorUpdateCount = 0
+        leftForearmTracker.reset()
+        rightForearmTracker.reset()
+        leftForearmResolution = AVPForearmOverlayPoseResolver.resolve(
+            forearmArm: nil,
+            forearmWrist: nil,
+            wrist: nil
+        )
+        rightForearmResolution = leftForearmResolution
         leftIndexFingerWasTracked = false
         rightIndexFingerWasTracked = false
         phase = .idle
@@ -223,6 +393,18 @@ final class LandmarkTrackingService: ObservableObject {
         leftHandJointTransforms = [:]
         rightHandJointTransforms = [:]
         handPhase = .failed("hand-tracking stream ended — retry tracking")
+        publishForearmFailure("Hand-tracking stream ended")
+    }
+
+    private func startHandAnchorUpdates(from provider: HandTrackingProvider) {
+        handUpdateTask = Task { [weak self] in
+            for await update in provider.anchorUpdates {
+                guard !Task.isCancelled else { break }
+                self?.consume(update.anchor)
+            }
+            guard !Task.isCancelled else { return }
+            self?.handleHandProviderStreamEnded()
+        }
     }
 
     private func consume(_ anchor: ImageAnchor) {
@@ -242,22 +424,27 @@ final class LandmarkTrackingService: ObservableObject {
         guard anchor.isTracked, let skeleton = anchor.handSkeleton else {
             if anchor.chirality == .left {
                 leftHandJointTransforms = [:]
+                updateForearmResolution(
+                    isLeft: true,
+                    transforms: [:],
+                    timestamp: ProcessInfo.processInfo.systemUptime
+                )
             } else {
                 rightHandJointTransforms = [:]
+                updateForearmResolution(
+                    isLeft: false,
+                    transforms: [:],
+                    timestamp: ProcessInfo.processInfo.systemUptime
+                )
             }
+            recordHandAnchorDiagnostic(anchor: anchor, transforms: [:])
+            recordProbeSample(anchor: anchor, transforms: [:])
             updateHandTrackingState()
             return
         }
 
-        let jointNames: [HandSkeleton.JointName] = [
-            .wrist,
-            .indexFingerKnuckle,
-            .indexFingerIntermediateBase,
-            .indexFingerIntermediateTip,
-            .indexFingerTip
-        ]
         var transforms: [HandSkeleton.JointName: simd_float4x4] = [:]
-        for jointName in jointNames {
+        for jointName in HandSkeleton.JointName.allCases {
             let joint = skeleton.joint(jointName)
             guard joint.isTracked else { continue }
             transforms[jointName] = anchor.originFromAnchorTransform
@@ -266,10 +453,125 @@ final class LandmarkTrackingService: ObservableObject {
 
         if anchor.chirality == .left {
             leftHandJointTransforms = transforms
+            updateForearmResolution(
+                isLeft: true,
+                transforms: transforms,
+                timestamp: ProcessInfo.processInfo.systemUptime
+            )
         } else {
             rightHandJointTransforms = transforms
+            updateForearmResolution(
+                isLeft: false,
+                transforms: transforms,
+                timestamp: ProcessInfo.processInfo.systemUptime
+            )
         }
+        recordHandAnchorDiagnostic(anchor: anchor, transforms: transforms)
+        recordProbeSample(anchor: anchor, transforms: transforms)
         updateHandTrackingState()
+    }
+
+    private func recordProbeSample(
+        anchor: HandAnchor,
+        transforms: [HandSkeleton.JointName: simd_float4x4]
+    ) {
+        guard isProbeRecording else { return }
+        let hand: JointProbeHand = anchor.chirality == .left ? .left : .right
+        let trackedCriticalJointCount = probeCriticalJointNames.filter {
+            transforms[$0] != nil
+        }.count
+        var trackedCriticalSignals: Set<JointProbeCriticalSignal> = []
+        if transforms[.forearmArm] != nil {
+            trackedCriticalSignals.insert(.forearmArm)
+        }
+        if transforms[.forearmWrist] != nil {
+            trackedCriticalSignals.insert(.forearmWrist)
+        }
+        if transforms[.wrist] != nil {
+            trackedCriticalSignals.insert(.wrist)
+        }
+        probeAccumulator.record(
+            timestamp: ProcessInfo.processInfo.systemUptime,
+            hand: hand,
+            trackedJointCount: transforms.count,
+            trackedCriticalJointCount: trackedCriticalJointCount,
+            trackedCriticalSignals: trackedCriticalSignals
+        )
+    }
+
+    private func recordHandAnchorDiagnostic(
+        anchor: HandAnchor,
+        transforms: [HandSkeleton.JointName: simd_float4x4]
+    ) {
+        let updateCount: Int
+        if anchor.chirality == .left {
+            leftHandAnchorUpdateCount += 1
+            updateCount = leftHandAnchorUpdateCount
+        } else {
+            rightHandAnchorUpdateCount += 1
+            updateCount = rightHandAnchorUpdateCount
+        }
+        guard updateCount == 1 || updateCount.isMultiple(of: 60) else { return }
+        let side = anchor.chirality == .left ? "left" : "right"
+        print(
+            "[UL-SELF-ARM] \(side) update=\(updateCount) "
+                + "anchorTracked=\(anchor.isTracked) joints=\(transforms.count) "
+                + "forearmArm=\(transforms[.forearmArm] != nil) "
+                + "forearmWrist=\(transforms[.forearmWrist] != nil) "
+                + "wrist=\(transforms[.wrist] != nil)"
+        )
+    }
+
+    private func updateForearmResolution(
+        isLeft: Bool,
+        transforms: [HandSkeleton.JointName: simd_float4x4],
+        timestamp: Double
+    ) {
+        let forearmArm = transforms[.forearmArm].map(translation(of:))
+        let forearmWrist = transforms[.forearmWrist].map(translation(of:))
+        let wrist = transforms[.wrist].map(translation(of:))
+        if isLeft {
+            leftForearmResolution = leftForearmTracker.update(
+                forearmArm: forearmArm,
+                forearmWrist: forearmWrist,
+                wrist: wrist,
+                sectionFraction: Float(probeSectionFraction),
+                timestamp: timestamp
+            )
+        } else {
+            rightForearmResolution = rightForearmTracker.update(
+                forearmArm: forearmArm,
+                forearmWrist: forearmWrist,
+                wrist: wrist,
+                sectionFraction: Float(probeSectionFraction),
+                timestamp: timestamp
+            )
+        }
+        selectReadyProbeHandIfNeeded()
+    }
+
+    private func selectReadyProbeHandIfNeeded() {
+        guard !probeBoneVisible else { return }
+        let selectedResolution = probeSelectedHand == .left
+            ? leftForearmResolution
+            : rightForearmResolution
+        guard !isReady(selectedResolution) else { return }
+        let otherHand: JointProbeHand = probeSelectedHand == .left ? .right : .left
+        let otherResolution = otherHand == .left
+            ? leftForearmResolution
+            : rightForearmResolution
+        if isReady(otherResolution) {
+            probeSelectedHand = otherHand
+        }
+    }
+
+    private func isReady(_ resolution: AVPForearmOverlayResolution) -> Bool {
+        resolution.state == .live || resolution.state == .stale
+    }
+
+    private func publishForearmFailure(_ detail: String) {
+        leftForearmResolution = leftForearmTracker.fail(detail: detail)
+        rightForearmResolution = rightForearmTracker.fail(detail: detail)
     }
 
     func handJointTransforms(isLeft: Bool) -> [HandSkeleton.JointName: simd_float4x4] {

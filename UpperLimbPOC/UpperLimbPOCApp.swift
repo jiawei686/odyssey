@@ -6,12 +6,14 @@ struct UpperLimbPOCApp: App {
     @StateObject private var peer = PeerSession(role: .client)
     @StateObject private var tracking = LandmarkTrackingService()
     @State private var immersionStyle: ImmersionStyle = .mixed
+    @State private var probeImmersionStyle: ImmersionStyle = .mixed
 
     var body: some Scene {
         WindowGroup(id: "AnatomyLibrary") {
             ContentView()
                 .environmentObject(overlay)
                 .environmentObject(peer)
+                .environmentObject(tracking)
         }
         .defaultSize(width: 960, height: 720)
 
@@ -24,6 +26,13 @@ struct UpperLimbPOCApp: App {
         .defaultSize(width: 820, height: 620)
         .windowStyle(.plain)
 
+        WindowGroup(id: "JointProbe") {
+            JointProbeView()
+                .environmentObject(tracking)
+        }
+        .defaultSize(width: 980, height: 760)
+        .windowStyle(.plain)
+
         ImmersiveSpace(id: "BoneOverlay") {
             ImmersiveView()
                 .environmentObject(overlay)
@@ -31,5 +40,11 @@ struct UpperLimbPOCApp: App {
                 .environmentObject(tracking)
         }
         .immersionStyle(selection: $immersionStyle, in: .mixed)
+
+        ImmersiveSpace(id: "JointProbeSpace") {
+            JointProbeImmersiveView()
+                .environmentObject(tracking)
+        }
+        .immersionStyle(selection: $probeImmersionStyle, in: .mixed)
     }
 }

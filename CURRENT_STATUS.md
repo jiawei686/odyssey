@@ -4,17 +4,25 @@ Last verified: 2026-08-08
 
 ## Feature
 
-The current integrated prototype combines:
+The active vertical slice is `UL-SELF-ARM-001`: a wearer-only Apple Vision Pro
+overlay driven directly by ARKit `HandTrackingProvider` data. The primary flow
+is deliberately small:
 
-- mixed-reality forearm-and-hand rendering;
-- two-marker rigid elbow-to-wrist registration with manual fallback;
-- five cross-subject NLM axial reference levels;
-- synchronized Vision and iPad/iPhone placement, appearance, and section state;
-- deterministic semantic bone guidance and gaze-targeted/pinch-confirmed input;
-- a clinician-guided, three-phalanx index-finger kinematic experiment using
-  reviewed MCP, PIP, and DIP model landmarks.
+1. open the mixed-reality wearer view;
+2. detect one wearer arm with small joint dots;
+3. explicitly show an opaque, joint-driven 3D skeletal overlay.
 
-GitHub baseline: `main` at `69e8d55`.
+The forearm uses `forearmArm`, `forearmWrist`, and `wrist`. The hand overlay
+uses the named wrist, thumb, and finger joints. The UI automatically selects a
+ready hand, keeps LIVE/STALE/PARTIAL/FAILED behavior explicit, and treats the
+near-elbow provider endpoint as an approximation rather than an anatomical
+elbow centre.
+
+The earlier iPhone/OpenCV scanner and cross-device plans remain preserved for
+future work. They are not part of this AVP-only runtime path.
+
+GitHub feature branch baseline before this checkpoint:
+`codex/avp-joint-capability-probe` at `95d24bb`.
 
 ## Environment
 
@@ -23,55 +31,49 @@ GitHub baseline: `main` at `69e8d55`.
 - visionOS deployment target 2.0 with guarded newer APIs
 - iOS deployment target 18.0
 - visionOS 27 and iPadOS 27 simulators installed
-- No physical Apple Vision Pro currently connected
+- Physical Apple Vision Pro was connected for the marker and rigid-model
+  trials; CoreDevice was unavailable for the latest articulated-build install
 
 ## Evidence
 
-- `[AUTO]` `Tools/validate.sh` passed all 12 stages on Xcode 27 beta: invariants,
-  snapshot compatibility, overlay-state behavior, index-finger calibration and
-  reacquisition, physical-metric evaluator self-test, resource checks, and two
-  analyzers.
-- `[BUILD]` Vision simulator, Vision device SDK, companion simulator, and
-  companion device SDK targets clean-built successfully.
-- `[SIM]` Paired simulator smoke passed the Vision-owned amber, 65%, axial
-  slice-4 synchronization assertion. The library and connected companion were
-  visibly inspected.
-- `[SIM]` The immersive bone/section composition has not yet been captured in
-  the latest Xcode 27 run because visionOS requires a visible user activation
-  and the attempted remote pointer mapping did not activate the launch button.
-- `[HUMAN]` Marcel supplied clinician-guided Blender landmark placements. They
-  remain reviewed generic-model landmarks, not patient registration truth.
-- `[BLOCKED]` Marker tracking, index-finger motion, gaze feel, comfort,
-  manipulation, occlusion, registration accuracy, and recovery metrics require
-  a physical Vision Pro.
+- `[DEVICE][HUMAN]` Marcel confirmed that wearer hand, finger, wrist, and
+  forearm markers appeared and followed movement on physical Vision Pro.
+- `[DEVICE][HUMAN]` The first generic USDZ overlay appeared, but the supplied
+  photo showed two blocking defects: its translucent material did not
+  superimpose clearly, and the rigid hand model could not follow individual
+  joint movement.
+- `[AUTO]` The replacement segment resolver maps both ends of every generated
+  bone segment to its two live joint positions and rejects degenerate input.
+- `[AUTO]` `Tools/validate.sh` passed all 14 stages after the simplified UI and
+  articulated renderer were introduced, including state, compatibility,
+  scanner, transform, build, and analyzer gates.
+- `[BUILD]` The final small-dot build passed an Xcode 27 physical-device SDK
+  build with code signing and warnings treated as errors.
+- `[BLOCKED]` The final articulated build has not yet been observed on-device.
+  Installation stopped with CoreDevice error 4016 because the headset exposed
+  no assertable trusted-connectivity/device-service state.
+- `[DEVICE]` The preserved iPhone/OpenCV checkpoint reached an upright landscape
+  view and one 6/6 upper-limb joint observation after orientation remediation.
+  Participant identity, iPhone-to-AVP transport, and metric calibration remain
+  deferred.
 
 ## Active next slice
 
-`SIM-ENTRY-001` — **RESEARCH SPIKE**
+Complete the physical retest of the latest AVP build:
 
-Question: What is the smallest reliable Xcode 27 simulator workflow that opens
-the mixed immersive overlay after the required user activation and leaves the
-3D model, reference plane, and status panel visible for review?
+1. reinstall when the Vision Pro is awake, unlocked, trusted, and connected;
+2. pinch **Open wearer arm overlay**;
+3. pinch **Open & detect arm** and confirm the small dots follow one arm;
+4. pinch **Show 3D bone overlay**;
+5. flex the wrist and each finger while checking that the opaque segments stay
+   attached to their tracked endpoints;
+6. record any forearm-axis offset, joint lag, flicker, or loss behavior.
 
-Acceptance evidence:
-
-1. Reproducible steps from a clean paired-simulator launch.
-2. Visible forearm-and-hand model in mixed reality.
-3. Visible reference axial plane at slice 4/5.
-4. Visible status panel reporting simulator/manual mode and data source.
-5. Companion controls visibly change opacity, colour, and section level.
-6. A captured screenshot or recording of the composition.
-
-Non-goals: image-marker accuracy, hand tracking, raw gaze, physical comfort,
-patient registration, or new anatomy regions.
-
-Stop condition: if Xcode 27 beta cannot provide reliable activation through the
-supported simulator controls, record the platform limitation and specify a
-clearly labelled in-window simulator preview fallback rather than weakening the
-physical mixed-reality architecture.
+No 30-second continuity run is required for this acceptance slice.
 
 ## Human gate
 
-After the simulator composition is visible, Marcel reviews legibility,
-comprehension, and demonstration value. Physical registration and movement are
-accepted only through the PDD physical acceptance script on Apple Vision Pro.
+The current commit may be published to the draft PR as an implementation
+checkpoint. It must not be merged to `main` until Marcel completes the physical
+articulated-overlay retest and no blocking registration or movement defect is
+observed.

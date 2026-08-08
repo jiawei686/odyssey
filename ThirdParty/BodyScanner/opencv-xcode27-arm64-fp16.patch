@@ -1,0 +1,23 @@
+diff --git a/platforms/ios/build_framework.py b/platforms/ios/build_framework.py
+--- a/platforms/ios/build_framework.py
++++ b/platforms/ios/build_framework.py
+@@ -265,8 +265,17 @@ class Builder:
+         toolchain = self.getToolchain(arch, target)
+         cmakecmd = self.getCMakeArgs(arch, target) + \
+             (["-DCMAKE_TOOLCHAIN_FILE=%s" % toolchain] if toolchain is not None else [])
+-        if target.lower().startswith("iphoneos") or target.lower().startswith("xros"):
+-            cmakecmd.append("-DCPU_BASELINE=DETECT")
++        if arch == "arm64" and (
++            target.lower().startswith("iphoneos") or
++            target.lower().startswith("iphonesimulator")
++        ):
++            # Xcode 27 rejects FP16 intrinsics in the generic NEON baseline
++            # translation unit. Keep NEON as the baseline and compile FP16
++            # kernels through OpenCV's feature-specific dispatch path.
++            cmakecmd.append("-DCPU_BASELINE=NEON")
++            cmakecmd.append("-DCPU_DISPATCH=NEON_FP16")
++        elif target.lower().startswith("iphoneos") or target.lower().startswith("xros"):
++            cmakecmd.append("-DCPU_BASELINE=DETECT")
+         if target.lower().startswith("iphonesimulator") or target.lower().startswith("xrsimulator"):
+             build_arch = check_output(["uname", "-m"]).decode('utf-8').rstrip()
+             if build_arch != arch:

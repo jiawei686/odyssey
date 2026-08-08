@@ -26,6 +26,8 @@
 	<array>
 		<string>_upperlimb-poc._tcp</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Run on-device OpenCV to estimate upper-limb visual landmarks for an educational research prototype. Camera images are not saved.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Connect to Apple Vision Pro on the local network to synchronize non-identifying overlay controls.</string>
 	<key>UIApplicationSceneManifest</key>

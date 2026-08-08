@@ -20,6 +20,8 @@ A useful overlay must stay registered as the limb translates and rotates. Bone m
 
 For this prototype, elbow and wrist landmarks define one rigid forearm-and-hand root. A deliberately limited index-finger experiment adds three nested, reviewed MCP/PIP/DIP pivots driven by Apple Vision Pro hand-skeleton rotations. It tests whether a visible three-phalanx chain can follow flexion without separating; it does not claim internal-bone localization, coupled joint translation, physiological constraint modelling, or validated natural hand kinematics.
 
+The registration architecture pairs a human-reviewed point on the model with a live observation carrying the same landmark identifier. Every observation records its provider and tracking state. Standard visionOS can provide named hand joints and known image-marker anchors; scene reconstruction supplies surface geometry but does not identify an elbow, shoulder, hip, or other named anatomical joint. Camera-based body-joint proposals remain an enterprise-entitlement research path and require human validation.
+
 ### Safety problem
 
 The current CT slices, AnatomyTOOL mesh, and live participant are different anatomical sources. Their overlay may look convincing while being anatomically inaccurate. The interface must therefore keep the cross-subject, illustrative-orientation, non-patient-specific, and non-clinical limitations visible.
@@ -74,6 +76,7 @@ Two visible landmarks, a rigid forearm root, reviewed index joint pivots, system
 - Shared tracking status visible after the anatomy library closes.
 - Explicit cross-subject, illustrative-orientation, educational-only disclosure.
 - Local-only companion messages containing calibration values, not images or identifiers.
+- A provider-labelled landmark contract that distinguishes human-reviewed model points, image-marker anchors, ARKit hand joints, manual points, non-semantic scene surfaces, and future enterprise-camera proposals.
 
 ### Should have during physical-device validation
 
@@ -121,6 +124,8 @@ Two visible landmarks, a rigid forearm root, reviewed index joint pivots, system
 | FR-21 | The companion presents usable single-column controls at compact iPhone width and two columns at regular iPad width; placement reset preserves appearance and section state. | Compact/regular simulator screenshots plus overlay-state logic test. |
 | FR-22 | A failed model load produces a visible error with Retry and Return-to-library recovery actions. | Forced-load-failure interaction test. |
 | FR-23 | On a physical Vision Pro, the selected hand's tracked index MCP/PIP/DIP rotations drive a nested three-phalanx pivot chain; temporary joint loss freezes the last pose with STALE status, reacquisition resumes from the established calibration, permission/stream failure is explicit, and the other hand does not drive the selected overlay. | Kinematics state test, privacy/build invariants, and physical left/right flexion, loss, reacquisition, and gap inspection. |
+| FR-24 | Registration pairs only human-reviewed model landmarks with live observations carrying the same identifier, provider, coordinate space, tracking state, and optional confidence. Three reviewed non-collinear forearm points enable a full 3D similarity fit; two points are reported as axis-only. Scene-reconstruction surfaces never become named anatomical joints without a separate validated classifier. | Deterministic transform/readiness test, source invariant, truthful in-app provider disclosure, and later physical three-point measurement. |
+| FR-25 | A dedicated physical-device probe starts hand tracking independently of image markers, visualizes every tracked runtime hand joint, and reports a 30-second continuity result for wrist plus the three index pivots while stating that standard visionOS has no whole-body provider and scene reconstruction has no named joints. | Deterministic continuity evaluator, source/build checks, and `JOINT_CAPABILITY_PROBE.md` physical run card. |
 
 ## 6. Non-functional requirements
 
@@ -134,6 +139,7 @@ Two visible landmarks, a rigid forearm root, reviewed index joint pivots, system
 - Gaze input must use system focus/hover and pinch confirmation. The app must not claim access to raw eye position or gaze coordinates.
 - The development pipeline must build the Vision simulator target, compile the physical Vision target, build the companion simulator target, and confirm resources in the app bundle.
 - Hand-joint transforms remain on-device and are neither serialized to the companion nor recorded. Hands Tracking denial must preserve the rigid overlay and explain that finger animation is unavailable.
+- A LiDAR-derived scene mesh may support surface contact or occlusion, but must not be labelled as a joint detector. Main-camera inference requires an approved enterprise entitlement, explicit permission, a measured model, and human acceptance.
 
 ## 7. Motion and joint model
 

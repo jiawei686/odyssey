@@ -270,6 +270,20 @@ final class OverlayState: ObservableObject {
         sectionVisible ? "3D bone + axial section" : "3D bone"
     }
 
+    var landmarkRegistrationModeName: String {
+        trackingEnabled
+            ? "FOREARM ROOT — ELBOW + WRIST IMAGE LANDMARKS"
+            : "FOREARM ROOT — MANUAL / UNREGISTERED"
+    }
+
+    var landmarkRegistrationSourceSummary: String {
+        "The 3D model uses human-reviewed landmarks. ARKit hand tracking supplies wrist and finger joints; ELBOW and WRIST image landmarks currently fit the rigid forearm root."
+    }
+
+    var sceneSensingLimitation: String {
+        "Scene reconstruction (LiDAR-derived surface mesh) does not identify named body joints. Automatic elbow or other body-joint proposals require an approved enterprise camera model and human validation."
+    }
+
     func reset() {
         x = 0.0
         y = -0.15

@@ -24,6 +24,21 @@ Apple Vision Pro gaze is also intentionally system-private. The product can use 
    - Later LLM: retrieval over a versioned, clinician-reviewed anatomy corpus using the structured entity ID.
    - The LLM may explain, quiz, translate, or adapt reading level. It may not select a bone, move the overlay, calculate registration confidence, or provide diagnosis.
 
+## Hybrid landmark contract
+
+The model and the live participant remain separate coordinate spaces. A registration correspondence is valid only when a human-reviewed model point and a live observation share the same named landmark identifier. Every live point carries its provider, world-space position, tracking state, and optional confidence.
+
+| Provider | What it can supply | Anatomical role in this prototype |
+|---|---|---|
+| Human annotation | Reviewed points on the generic 3D model or a future converted volume | Anatomical reference truth for the experiment |
+| `ImageTrackingProvider` | Pose of a known ELBOW/WRIST marker | Current rigid forearm-root observation |
+| `HandTrackingProvider` | Wrist, MCP, PIP, DIP, and other hand-skeleton transforms | Current hand/finger observation; not internal bone position |
+| Manual placement | A facilitator-confirmed world point | Explicit fallback or calibration observation |
+| `SceneReconstructionProvider` | Unlabelled surface mesh derived from spatial sensing | Surface contact/occlusion only; never a named joint by itself |
+| Enterprise main-camera model | Proposed visible body-region or surface-joint point | Future research provider requiring entitlement, validation, and human acceptance |
+
+Two named points can define a forearm axis and scale but cannot independently determine roll. A full forearm similarity fit therefore requires at least three reviewed, non-collinear correspondences such as elbow reference, distal radius, and distal ulna. Provider loss or low confidence must degrade the state rather than silently retain a `LIVE` registration claim.
+
 ## Why ML is useful—and where it is not
 
 - Useful: detecting visible surface landmarks, classifying the viewed body region, segmenting a consented scan, and estimating pose over time.

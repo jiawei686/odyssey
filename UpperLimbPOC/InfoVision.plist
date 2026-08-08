@@ -30,6 +30,13 @@
 	<string>Use index-finger joint motion to animate the educational finger-bone overlay around reviewed anatomical landmarks.</string>
 	<key>NSWorldSensingUsageDescription</key>
 	<string>Track printed elbow and wrist landmarks to align the educational bone overlay with a selected forearm.</string>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<true/>
+		<key>UISceneConfigurations</key>
+		<dict/>
+	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 </dict>

@@ -64,6 +64,51 @@ review changes do not affect registration until explicitly approved.
   permission. The simulator validates code and resources but cannot validate
   finger-pose accuracy, joint continuity, latency, occlusion, or comfort.
 
+## Version 3.4: hybrid landmark registration contract
+
+- Human-reviewed model points and live observations now use matching semantic
+  landmark identifiers and explicit provider types.
+- The deterministic registration core reports two-point forearm input as
+  axis-only and accepts a full 3D similarity fit only from reviewed,
+  non-collinear elbow, distal-radius, and distal-ulna correspondences.
+- Image markers and ARKit hand joints are valid named providers for their
+  supported points. A scene-reconstruction/LiDAR mesh is surface geometry, not
+  a body-joint detector.
+- Main-camera body-joint proposals remain a separate enterprise-entitlement
+  research provider. They cannot silently replace markers or human review.
+- The status window explains the active providers and this sensing limitation.
+
+## Version 3.6: AVP wearer-arm overlay
+
+- The primary interface is reduced to **Open → Detect → Show 3D bones**; legacy
+  anatomy and cross-device controls remain collapsed for future work.
+- ARKit `HandTrackingProvider` supplies wearer-only wrist, finger, and forearm
+  endpoint transforms without iPhone networking or image-marker calibration.
+- Small cyan dots confirm detection. An explicit action replaces them with 26
+  opaque RealityKit bone segments and joint nodes driven by the selected hand's
+  live named joints.
+- The rigid `hand-to-elbow-overlay.usdz` remains available to the legacy manual
+  prototype, but it is intentionally absent from the live wearer-tracking path
+  because a single rigid mesh cannot articulate with wrist and finger motion.
+- LIVE/STALE/PARTIAL/FAILED behavior remains explicit. The forearm is an
+  endpoint-based educational approximation; `forearmArm` is not claimed as a
+  validated anatomical elbow centre.
+- The latest articulated build is automated/build verified. Its physical AVP
+  retest remains open and blocks merging this checkpoint to `main`.
+
+## Version 3.5: physical joint capability probe (preserved research spike)
+
+- The anatomy library now opens a dedicated **Test AVP joint detection**
+  window and mixed-reality joint-sphere view.
+- The probe starts ARKit hand tracking without requiring the ELBOW/WRIST image
+  markers and visualizes every hand-skeleton joint exposed by the runtime.
+- A 30-second measurement reports update count, mean tracked-joint count, and
+  continuity for wrist plus the three index-finger pivots.
+- The probe labels the scope honestly: wearer hands only; no standard
+  whole-body ARKit provider; no named joints from the LiDAR scene mesh.
+- The physical sequence and decision thresholds are in
+  `JOINT_CAPABILITY_PROBE.md`.
+
 ## Version 3.2: gaze, recovery, and verification hardening
 
 - Apple Vision Pro uses system gaze targeting and pinch confirmation: look at a highlighted bone, then single-pinch to identify it. The app does not receive or record raw gaze coordinates.
@@ -98,7 +143,20 @@ The companion and Vision app exchange newline-framed JSON containing position, r
 
 ## Run on simulators
 
-1. Open `UpperLimbPOC.xcodeproj` in Xcode.
+The iPhone OpenCV arm-scanner route depends on pinned generated artifacts that
+are deliberately not committed. Before building `UpperLimbCompanion` from a
+clean checkout, select Xcode 27 and run:
+
+```bash
+Tools/bootstrap_body_scanner_dependencies.sh
+```
+
+The script builds both required iOS XCFramework slices, downloads the four
+pinned OpenCV Zoo models, and verifies their checksums. See
+`ThirdParty/BodyScanner/README.md` for revisions, licenses, and the narrow
+Xcode 27 build patch.
+
+1. Open `RadiographicAnatomyPOC.xcodeproj` in Xcode.
 2. Select the `UpperLimbCompanion` scheme and an iPad or iPhone simulator, then press Run.
 3. Select the `UpperLimbPOC` scheme and an Apple Vision Pro simulator, then press Run.
 4. Wait for both apps to show **Connected**.
@@ -143,6 +201,8 @@ If discovery fails, confirm that Local Network access is enabled for both apps, 
 - Physical landmark tracking: ARKit `ImageTrackingProvider`
 - Index-finger motion: ARKit `HandTrackingProvider` driving a reviewed nested
   MCP/PIP/DIP pivot chain
+- Current wearer overlay: ARKit `HandTrackingProvider` driving 26 generated,
+  opaque RealityKit segments between named wrist, hand, and finger joints
 - Fit anchors: local elbow Z `+0.205 m`, local wrist Z approximately `-0.058 m`
 - Reference elbow–wrist model length: `0.2625 m`
 - Sectional reference: five bundled NLM Visible Human CT crops, loaded as local RealityKit textures

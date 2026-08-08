@@ -47,6 +47,16 @@ struct CompanionContentView: View {
     private var controlPanel: some View {
         ScrollView {
             VStack(spacing: 14) {
+                NavigationLink {
+                    BodyScannerScreen()
+                } label: {
+                    Label("Scan both arms with OpenCV", systemImage: "camera.viewfinder")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.cyan)
+                .accessibilityIdentifier(BodyScannerAccessibilityID.entry)
+
                 Label(
                     peer.status,
                     systemImage: peer.isConnected ? "vision.pro" : "network"

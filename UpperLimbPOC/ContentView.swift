@@ -12,6 +12,8 @@ struct ContentView: View {
     @State private var launchError: String?
     @State private var didRunAutomatedDemo = false
     @State private var showPlannedRegions = false
+    @State private var showLegacyTools = false
+    @State private var jointProbeRoute = JointProbeRoute()
 
     private let columns = [
         GridItem(.adaptive(minimum: 190, maximum: 240), spacing: 18)
@@ -24,61 +26,84 @@ struct ContentView: View {
                     introduction
 
                     Button {
-                        Task { await openBoneOverlay() }
+                        jointProbeRoute.present()
                     } label: {
-                        Label("Open \(selectedRegion.name) overlay", systemImage: "vision.pro")
-                            .frame(maxWidth: .infinity)
+                        Label(
+                            "Open wearer arm overlay",
+                            systemImage: "move.3d"
+                        )
+                        .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
-                    .disabled(isOpening || !selectedRegion.isAvailable)
-
-                    LazyVGrid(columns: columns, spacing: 18) {
-                        ForEach(BodyRegion.allCases.filter(\.isAvailable)) { region in
-                            RegionCard(
-                                region: region,
-                                isSelected: selectedRegion == region
-                            ) {
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    selectedRegion = region
-                                }
-                            }
-                        }
-                    }
 
                     DisclosureGroup(
-                        "Planned anatomy regions (\(BodyRegion.allCases.filter { !$0.isAvailable }.count))",
-                        isExpanded: $showPlannedRegions
+                        "Legacy anatomy tools",
+                        isExpanded: $showLegacyTools
                     ) {
-                        LazyVGrid(columns: columns, spacing: 18) {
-                            ForEach(BodyRegion.allCases.filter { !$0.isAvailable }) { region in
-                                RegionCard(
-                                    region: region,
-                                    isSelected: selectedRegion == region
-                                ) {
-                                    withAnimation(.easeInOut(duration: 0.2)) {
-                                        selectedRegion = region
+                        VStack(alignment: .leading, spacing: 18) {
+                            Button {
+                                Task { await openBoneOverlay() }
+                            } label: {
+                                Label(
+                                    "Open legacy manual overlay",
+                                    systemImage: "vision.pro"
+                                )
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.large)
+                            .disabled(isOpening || !selectedRegion.isAvailable)
+
+                            LazyVGrid(columns: columns, spacing: 18) {
+                                ForEach(BodyRegion.allCases.filter(\.isAvailable)) { region in
+                                    RegionCard(
+                                        region: region,
+                                        isSelected: selectedRegion == region
+                                    ) {
+                                        withAnimation(.easeInOut(duration: 0.2)) {
+                                            selectedRegion = region
+                                        }
                                     }
                                 }
                             }
+
+                            DisclosureGroup(
+                                "Planned anatomy regions (\(BodyRegion.allCases.filter { !$0.isAvailable }.count))",
+                                isExpanded: $showPlannedRegions
+                            ) {
+                                LazyVGrid(columns: columns, spacing: 18) {
+                                    ForEach(BodyRegion.allCases.filter { !$0.isAvailable }) { region in
+                                        RegionCard(
+                                            region: region,
+                                            isSelected: selectedRegion == region
+                                        ) {
+                                            withAnimation(.easeInOut(duration: 0.2)) {
+                                                selectedRegion = region
+                                            }
+                                        }
+                                    }
+                                }
+                                .padding(.top, 14)
+                            }
+                            .font(.headline)
+
+                            selectionPanel
                         }
                         .padding(.top, 14)
                     }
                     .font(.headline)
-
-                    selectionPanel
                 }
                 .padding(28)
             }
-            .navigationTitle("Radiographic Anatomy")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Label(
-                        peer.isConnected ? "Companion connected" : "Searching for companion",
-                        systemImage: peer.isConnected ? "vision.pro.fill" : "network"
-                    )
-                    .foregroundStyle(peer.isConnected ? .green : .secondary)
-                }
+            .navigationTitle("Wearer Arm Overlay")
+            .navigationDestination(
+                isPresented: Binding(
+                    get: { jointProbeRoute.isPresented },
+                    set: { jointProbeRoute.setPresented($0) }
+                )
+            ) {
+                JointProbeView()
             }
         }
         .onAppear(perform: peer.start)
@@ -96,9 +121,9 @@ struct ContentView: View {
 
     private var introduction: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Choose a skeletal region")
+            Text("Track your own arm")
                 .font(.largeTitle.bold())
-            Text("Look at a card until it highlights, then pinch to select. The menu closes after the translucent bone overlay opens.")
+            Text("Open the wearer view, detect one arm, then place an opaque joint-driven 3D bone overlay.")
                 .font(.title3)
                 .foregroundStyle(.secondary)
 
@@ -277,6 +302,23 @@ struct TrackingStatusView: View {
                 Label(alignmentSafetyText, systemImage: alignmentSafetyIcon)
                     .font(.callout.weight(.bold))
                     .foregroundStyle(tracking.isTracking ? .green : .orange)
+
+                DisclosureGroup("How landmark alignment works") {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label(
+                            overlay.landmarkRegistrationModeName,
+                            systemImage: "point.3.connected.trianglepath.dotted"
+                        )
+                        .font(.caption.weight(.bold))
+
+                        Text(overlay.landmarkRegistrationSourceSummary)
+                        Text(overlay.sceneSensingLimitation)
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 4)
+                }
+                .font(.callout.weight(.semibold))
 
                 Label(
                     selectedHandStatusText,
