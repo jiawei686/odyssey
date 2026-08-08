@@ -80,6 +80,35 @@ struct OverlayStateLogicCheck {
         overlay.focusBone(entityName: "Capitate_r")
         expect(overlay.focusedBoneName == "Capitate", "carpal semantic mapping")
 
+        let initialElbow = overlay.landmarkPosition(for: .elbowReference)
+        overlay.setLandmarkCoordinate(
+            0.05,
+            landmark: .elbowReference,
+            axis: 0
+        )
+        expect(
+            overlay.landmarkPosition(for: .elbowReference).x == 0.05,
+            "landmark coordinate update"
+        )
+        expect(
+            overlay.annotatedWristCenter.z < 0,
+            "derived wrist centre remains distal"
+        )
+        expect(
+            overlay.landmarkPosition(for: .indexMCP).z
+                > overlay.landmarkPosition(for: .indexPIP).z
+                && overlay.landmarkPosition(for: .indexPIP).z
+                > overlay.landmarkPosition(for: .indexDIP).z
+                && overlay.landmarkPosition(for: .indexDIP).z
+                > overlay.landmarkPosition(for: .indexTip).z,
+            "index landmarks progress from MCP to fingertip"
+        )
+        overlay.resetLandmarkAnnotations()
+        expect(
+            overlay.landmarkPosition(for: .elbowReference) == initialElbow,
+            "landmark annotation reset"
+        )
+
         print("Overlay state logic checks passed.")
     }
 

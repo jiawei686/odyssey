@@ -6,7 +6,7 @@ Build a three-day, non-clinical proof of concept that places a translucent forea
 
 The prototype tests whether the interaction is understandable and technically stable enough to justify a patient-specific research phase. It does not test diagnostic accuracy.
 
-**Current gate (7 August 2026): code-ready for supervised physical validation.** Automated builds, analyzers, state logic, strict-concurrency checks, and simulator synchronization pass. The prototype is not yet demonstration-complete because no physical Apple Vision Pro registration, gaze/gesture, occlusion, or measured five-minute rehearsal has been recorded.
+**Current gate (8 August 2026): code-ready for supervised physical validation.** Automated builds, analyzers, state logic, index-finger kinematics checks, strict-concurrency checks, and simulator synchronization pass. The prototype is not yet demonstration-complete because no physical Apple Vision Pro registration, gaze/gesture, finger-motion/occlusion, or measured five-minute rehearsal has been recorded.
 
 ## 2. Problem framing
 
@@ -18,7 +18,7 @@ Learners and clinical educators must mentally translate between flat sectional i
 
 A useful overlay must stay registered as the limb translates and rotates. Bone motion cannot be modelled as rotation around an arbitrary object origin: each segment needs an anatomically meaningful joint centre, local bone transform, and constrained degrees of freedom. Joint surfaces can also produce coupled translation during rotation.
 
-For this prototype, elbow and wrist landmarks define one rigid forearm segment. This is deliberately simpler than articulating individual bones. It proves registration and sectional interaction without claiming natural joint kinematics.
+For this prototype, elbow and wrist landmarks define one rigid forearm-and-hand root. A deliberately limited index-finger experiment adds three nested, reviewed MCP/PIP/DIP pivots driven by Apple Vision Pro hand-skeleton rotations. It tests whether a visible three-phalanx chain can follow flexion without separating; it does not claim internal-bone localization, coupled joint translation, physiological constraint modelling, or validated natural hand kinematics.
 
 ### Safety problem
 
@@ -30,11 +30,11 @@ If a mixed-reality overlay can remain stable enough to teach the relationship be
 
 ### Three-day design question
 
-Can a supervised user place or track one educational forearm model, understand whether its alignment is live, stale, or illustrative, identify a named bone with system gaze targeting plus pinch, and relate that model to an elbow-to-wrist axial reference plane in under five minutes?
+Can a supervised user place or track one educational forearm model, understand whether alignment and selected-hand joint motion are live or stale, observe an approximate index-finger flexion chain, identify a named bone with system gaze targeting plus pinch, and relate the model to an elbow-to-wrist axial reference plane in under five minutes?
 
 ### Prototype hypothesis
 
-Two visible landmarks, a rigid forearm model, a persistent status/control window, and privacy-preserving gaze targeting are sufficient to test the spatial-learning interaction. They are not sufficient to infer hidden patient anatomy, model natural joint kinematics, or support clinical guidance.
+Two visible landmarks, a rigid forearm root, reviewed index joint pivots, system hand-skeleton rotations, a persistent status/control window, and privacy-preserving gaze targeting are sufficient to test the spatial-learning interaction. They are not sufficient to infer hidden patient anatomy, validate natural joint kinematics, or support clinical guidance.
 
 ## 3. Prototype users and jobs
 
@@ -63,6 +63,7 @@ Two visible landmarks, a rigid forearm model, a persistent status/control window
 - One forearm-and-hand skeletal model with left/right mirroring.
 - ELBOW and WRIST printed-image landmarks.
 - Rigid translation, rotation, and uniform scale fit from the two landmarks.
+- A limited index-finger chain whose three phalanges rotate around clinician-reviewed MCP, PIP, and DIP model pivots using the selected hand's ARKit joint rotations.
 - Last valid pose retained with visible fade when tracking is lost.
 - Five bundled axial reference CT levels selectable from elbow to wrist.
 - Slice visibility and opacity controls on Vision Pro and companion.
@@ -85,7 +86,7 @@ Two visible landmarks, a rigid forearm model, a persistent status/control window
 
 - Diagnostic, navigation, procedural, or treatment use.
 - Patient-specific CT/MRI import, segmentation, or deformable registration.
-- Natural elbow, wrist, finger, or multi-bone articulation.
+- Validated natural elbow/wrist kinematics, coupled joint translation, carpal motion, other-finger articulation, or a full anatomical hand model.
 - A/P or R/L registration of the cropped reference CT textures.
 - Multiple Vision Pro viewers sharing a common spatial anchor.
 - Authentication, encryption, clinical-system integration, or data persistence.
@@ -119,6 +120,7 @@ Two visible landmarks, a rigid forearm model, a persistent status/control window
 | FR-20 | System gaze highlights a control or anatomical entity and pinch confirms it; looking alone never activates an app action, raw gaze is neither available nor recorded, and explicit imaging-mode and bone-list alternatives remain available. | Source/accessibility invariant plus physical first-attempt/false-activation test. |
 | FR-21 | The companion presents usable single-column controls at compact iPhone width and two columns at regular iPad width; placement reset preserves appearance and section state. | Compact/regular simulator screenshots plus overlay-state logic test. |
 | FR-22 | A failed model load produces a visible error with Retry and Return-to-library recovery actions. | Forced-load-failure interaction test. |
+| FR-23 | On a physical Vision Pro, the selected hand's tracked index MCP/PIP/DIP rotations drive a nested three-phalanx pivot chain; temporary joint loss freezes the last pose with STALE status, reacquisition resumes from the established calibration, permission/stream failure is explicit, and the other hand does not drive the selected overlay. | Kinematics state test, privacy/build invariants, and physical left/right flexion, loss, reacquisition, and gap inspection. |
 
 ## 6. Non-functional requirements
 
@@ -131,12 +133,27 @@ Two visible landmarks, a rigid forearm model, a persistent status/control window
 - An LLM must never generate transforms, registration confidence, or bone identity; it may explain a deterministic structured selection only.
 - Gaze input must use system focus/hover and pinch confirmation. The app must not claim access to raw eye position or gaze coordinates.
 - The development pipeline must build the Vision simulator target, compile the physical Vision target, build the companion simulator target, and confirm resources in the app bundle.
+- Hand-joint transforms remain on-device and are neither serialized to the companion nor recorded. Hands Tracking denial must preserve the rigid overlay and explain that finger animation is unavailable.
 
 ## 7. Motion and joint model
 
 ### Prototype model
 
 The elbow and wrist landmarks form a vector. Its midpoint/length supplies translation and uniform scale; a surface-normal estimate supplies roll orientation. A fixed local elbow-to-wrist axis maps the rigid model to this fit. This is appropriate only for the forearm segment represented by the current mesh.
+
+The index-finger experiment reparents the proximal, middle, and distal index
+phalanges under nested pivots located at the reviewed MCP, PIP, and DIP model
+coordinates. The first complete selected-hand ARKit joint pose establishes a
+joint-to-pivot rotation offset without snapping. Later joint rotations drive
+the pivots while model-local translations remain fixed, preserving segment
+lengths and joint continuity. If any required joint is lost, the last pose and
+calibration are frozen; reacquisition applies the current pose using the same
+offset. Only a hand-tracking session restart or side change recalibrates.
+
+This is a kinematic visualization approximation, not anatomical machine
+learning or internal-bone tracking. It currently omits physiological range
+limits, coupled translations, skin-to-bone offsets, per-user phalanx-length
+fitting, and formal pose-error validation.
 
 ### Required next model for more body parts
 
@@ -149,7 +166,7 @@ Represent anatomy as a kinematic graph:
 5. Add coupled translation or learned pose corrections where rotation alone is insufficient.
 6. Validate landmark-to-bone offsets and joint-centre estimates for the intended population.
 
-The next recommended region is upper arm + forearm with shoulder, elbow, and wrist landmarks. Fingers and wrist carpals should remain out of scope until rigid long-bone tracking is validated.
+The next recommended region is upper arm + forearm with shoulder, elbow, and wrist landmarks. Additional fingers and wrist carpals should remain out of scope until the rigid long-bone and limited index-chain physical gates pass.
 
 ## 8. Sectional-imaging data strategy
 
@@ -189,6 +206,7 @@ The current prototype supports one Vision Pro viewer and one companion controlle
 | Gaze-targeted interaction | First-attempt selection succeeds in at least 90% of trials; looking alone causes zero activation; no more than one unintended mode change occurs per 20 single-pinches. | Hover/input/accessibility source checks pass; physical Vision Pro test pending. |
 | Responsive companion | Placement, appearance, and section controls remain readable and operable in compact iPhone and regular iPad layouts. | Responsive source/build checks, iPad visual review, and compact-iPhone upper/AX review pass; scroll-to-bottom visual check remains. |
 | Tracking transparency | Phase is visible; loss retains pose and fades the overlay. | UI/source checks pass; physical occlusion test pending. |
+| Index-finger motion | Both selected-hand sides flex the three connected phalanges around reviewed MCP/PIP/DIP pivots; the unselected hand has no effect; temporary loss shows STALE/frozen and reacquires without recalibrating to the stale pose. | Resolver state test and Xcode 27 device compile pass; physical Vision Pro accuracy, gap, latency, left-mirror, and occlusion checks pending. |
 | Safety communication | Cross-subject, illustrative orientation, not patient-specific/clinical visible before and during use. | Static/UI review passes. |
 | Registration | Provisional POC target: median endpoint error ≤15 mm and 95th-percentile error ≤25 mm across neutral, pronated, supinated, and flexed poses. These are engineering targets, not clinical tolerances. | Physical Vision Pro required. |
 | Stability | Provisional POC target: ≤5 mm RMS endpoint jitter over 10 seconds and ≤2 seconds recovery after a two-second occlusion. | Physical Vision Pro required. |
@@ -209,6 +227,7 @@ The current prototype supports one Vision Pro viewer and one companion controlle
 - Print markers at actual size.
 - Run neutral, pronation/supination, and elbow-flexion trials.
 - Record landmark error, jitter, recovery, scale, orientation, and status-panel behavior.
+- Run right- and left-hand index flexion, joint-loss/reacquisition, and visible-gap trials.
 - Fix only critical demo blockers; preserve the rigid-segment limitation.
 
 ### Day 3 — rehearsal and evidence pack
@@ -223,7 +242,7 @@ For each change:
 
 1. Frame the requirement and acceptance evidence in this document.
 2. Implement the smallest end-to-end slice across model, state, UI, rendering, and resources.
-3. Run `git diff --check` and `Tools/validate.sh`. The validator executes snapshot compatibility, overlay-state behavior, physical-metric evaluator self-test, four platform builds, two analyzers, resource checks, and interaction invariants.
+3. Run `git diff --check` and `Tools/validate.sh`. The validator executes snapshot compatibility, overlay-state behavior, index-finger calibration/loss/reacquisition logic, physical-metric evaluator self-test, clean platform builds, two analyzers, resource checks, and interaction invariants.
 4. Run `Tools/simulator_smoke.sh`. It must assert receipt of the Vision-owned amber/slice-4 snapshot before capturing both screens. Then activate the visible Vision launch button and inspect the mixed-reality scene.
 5. Have an independent reviewer inspect geometry, disclosure, compatibility, and failure behavior.
 6. Run the physical acceptance script for tracking-affecting changes.
@@ -231,24 +250,28 @@ For each change:
 
 ## 13. Physical acceptance script
 
-1. Launch companion, then Vision app; confirm connection and status window.
+1. Launch companion, then Vision app; allow World Sensing and Hands Tracking; confirm connection and status window.
 2. Open the right forearm overlay with tracking enabled.
-3. Present both markers; confirm partial and then locked status.
+3. Present both markers; confirm partial and then live/detected status.
 4. Measure visible elbow and wrist alignment in a neutral pose.
 5. Rotate the forearm, flex the elbow, and repeat the measurement.
-6. Enable each CT level; confirm the plane follows the anatomy root and does not distort.
-7. Lock transform calibration; confirm slice controls still work.
-8. Occlude one and then both markers; confirm last pose, fade, and status message.
-9. Restore the markers; confirm recovery without app restart.
-10. Return to the anatomy library from the status panel and reopen the overlay.
-11. Turn marker following off; pinch-drag and resize the model, then confirm companion position/scale update after release.
-12. Set all six bone colours and opacity to 25%, 50%, 75%, and 100%; confirm preview and Vision agree numerically and visually.
-13. Single-pinch radius, ulna, and one carpal; confirm the guide label. Double-pinch into axial mode; confirm the side level bar appears.
-14. Drag the bar from ELBOW to WRIST; confirm the registered plane moves continuously, levels 1–5 change, and the companion matches. Double-pinch again; confirm the bar disappears in 3D-only mode.
-15. Run at least three measured trials in each required pose: `neutral`, `pronated`, `supinated`, and `flexed`. Enter endpoint error, RMS jitter, and recovery time in a copy of `Tools/physical_acceptance_template.csv`, then run `.build/physical-acceptance-metrics <results.csv>`.
-16. Gaze-target the radius, ulna, and a carpal across 20 single-pinches. Confirm at least 90% first-attempt selection, zero gaze-only activation, and at most one unintended imaging-mode change.
-17. Verify VoiceOver activation and the status-window bone list, then repeat with Dwell or Pointer Control if available.
-18. Confirm all safety disclosures are visible and no patient data is used.
+6. Hold the right index finger extended until selected-hand joints report LIVE; slowly flex MCP, PIP, and DIP separately and together. Inspect from two views for correct pivot centres and visible gaps.
+7. Move only the left hand; confirm it does not drive the right overlay. Repeat with the left-forearm selection and confirm the right hand then has no effect.
+8. Hide the selected index finger while flexed; confirm `INDEX FINGER STALE — last pose frozen`. Change pose while hidden, restore the hand, and confirm the overlay resumes the current pose rather than recalibrating the stale pose.
+9. Deny or revoke Hands Tracking in a separate run; confirm the rigid marker overlay remains usable and the permission failure/retry state is explicit.
+10. Enable each CT level; confirm the plane follows the anatomy root and does not distort.
+11. Lock transform calibration; confirm slice controls still work.
+12. Occlude one and then both printed markers; confirm last root pose, fade, and status message.
+13. Restore the markers; confirm recovery without app restart.
+14. Return to the anatomy library from the status panel and reopen the overlay.
+15. Turn marker following off; pinch-drag and resize the model, then confirm companion position/scale update after release.
+16. Set all six bone colours and opacity to 25%, 50%, 75%, and 100%; confirm preview and Vision agree numerically and visually.
+17. Single-pinch radius, ulna, and one carpal; confirm the guide label. Double-pinch into axial mode; confirm the side level bar appears.
+18. Drag the bar from ELBOW to WRIST; confirm the registered plane moves continuously, levels 1–5 change, and the companion matches. Double-pinch again; confirm the bar disappears in 3D-only mode.
+19. Run at least three measured trials in each required pose: `neutral`, `pronated`, `supinated`, and `flexed`. Enter endpoint error, RMS jitter, and recovery time in a copy of `Tools/physical_acceptance_template.csv`, then run `.build/physical-acceptance-metrics <results.csv>`.
+20. Gaze-target the radius, ulna, and a carpal across 20 single-pinches. Confirm at least 90% first-attempt selection, zero gaze-only activation, and at most one unintended imaging-mode change.
+21. Verify VoiceOver activation and the status-window bone list, then repeat with Dwell or Pointer Control if available.
+22. Confirm all safety disclosures are visible, hand transforms are not transmitted/recorded, and no patient data is used.
 
 ## 14. Go/no-go rule
 

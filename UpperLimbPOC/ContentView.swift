@@ -279,6 +279,17 @@ struct TrackingStatusView: View {
                     .foregroundStyle(tracking.isTracking ? .green : .orange)
 
                 Label(
+                    selectedHandStatusText,
+                    systemImage: selectedHandStatusIcon
+                )
+                .font(.callout.weight(.semibold))
+                .foregroundStyle(selectedHandStatusColor)
+
+                Text("Index-finger motion rotates the three phalanges around the reviewed MCP, PIP, and DIP pivots. Hand skeleton estimates are approximate and are not internal-bone registration.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Label(
                     peer.isConnected ? "Companion connected" : "Companion disconnected",
                     systemImage: peer.isConnected ? "vision.pro.fill" : "network.slash"
                 )
@@ -318,8 +329,20 @@ struct TrackingStatusView: View {
                 )
                 .toggleStyle(.switch)
 
+                landmarkAnnotationControls
+
                 if case .failed = tracking.phase {
                     Button("Retry marker tracking", systemImage: "arrow.clockwise") {
+                        Task { await tracking.retry() }
+                    }
+                    .buttonStyle(.bordered)
+                }
+
+                if tracking.handPhase.canRetry {
+                    Button(
+                        "Restart hand and marker tracking",
+                        systemImage: "hand.raised"
+                    ) {
                         Task { await tracking.retry() }
                     }
                     .buttonStyle(.bordered)
@@ -446,6 +469,87 @@ struct TrackingStatusView: View {
         (label: "Finger phalanges", entityName: "Phalanx_r")
     ]
 
+    private var landmarkAnnotationControls: some View {
+        DisclosureGroup("Landmark annotation review") {
+            VStack(alignment: .leading, spacing: 10) {
+                Toggle(
+                    "Show 3D landmark markers",
+                    isOn: $overlay.landmarkAnnotationsVisible
+                )
+
+                Text("These model-local annotation points are for review. Adjusting them does not change live registration until the coordinates are approved.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                if overlay.landmarkAnnotationsVisible {
+                    Picker("Landmark", selection: $overlay.selectedLandmark) {
+                        ForEach(AnatomyLandmarkID.allCases) { landmark in
+                            Text("\(landmark.colorName): \(landmark.name)")
+                                .tag(landmark)
+                        }
+                    }
+
+                    Text(overlay.selectedLandmark.shortDefinition)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    landmarkCoordinateRow(label: "X", axis: 0, range: -0.12...0.12)
+                    landmarkCoordinateRow(label: "Y", axis: 1, range: -0.12...0.12)
+                    landmarkCoordinateRow(label: "Z", axis: 2, range: -0.24...0.25)
+
+                    let position = overlay.landmarkPosition(
+                        for: overlay.selectedLandmark
+                    )
+                    Text(
+                        "Model coordinates: x \(position.x, format: .number.precision(.fractionLength(4))) m · y \(position.y, format: .number.precision(.fractionLength(4))) m · z \(position.z, format: .number.precision(.fractionLength(4))) m"
+                    )
+                    .font(.caption.monospacedDigit())
+                    .textSelection(.enabled)
+
+                    Button("Reset annotation candidates", systemImage: "arrow.counterclockwise") {
+                        overlay.resetLandmarkAnnotations()
+                    }
+                    .buttonStyle(.bordered)
+                }
+            }
+            .padding(.top, 8)
+        }
+    }
+
+    private func landmarkCoordinateRow(
+        label: String,
+        axis: Int,
+        range: ClosedRange<Double>
+    ) -> some View {
+        let landmark = overlay.selectedLandmark
+        return HStack(spacing: 8) {
+            Text(label)
+                .font(.caption.weight(.bold))
+                .frame(width: 16)
+
+            Slider(
+                value: Binding(
+                    get: { overlay.landmarkPosition(for: landmark)[axis] },
+                    set: { value in
+                        overlay.setLandmarkCoordinate(
+                            value,
+                            landmark: landmark,
+                            axis: axis
+                        )
+                    }
+                ),
+                in: range,
+                step: 0.001
+            )
+
+            Text(
+                "\(Int((overlay.landmarkPosition(for: landmark)[axis] * 1_000).rounded())) mm"
+            )
+            .font(.caption.monospacedDigit())
+            .frame(width: 58, alignment: .trailing)
+        }
+    }
+
     private var alignmentSafetyText: String {
         if tracking.isTracking {
             return "LIVE — both markers detected"
@@ -454,6 +558,52 @@ struct TrackingStatusView: View {
             return "STALE — last pose; do not rely on alignment"
         }
         return "NOT REGISTERED — reference placement only"
+    }
+
+    private var selectedHandHasJoints: Bool {
+        tracking.hasTrackedIndexFinger(isLeft: overlay.selectedRegion.isLeft)
+    }
+
+    private var selectedHandStatusText: String {
+        if selectedHandHasJoints {
+            return "INDEX FINGER — selected-hand joints live"
+        }
+
+        switch tracking.handPhase {
+        case .idle:
+            return "INDEX FINGER — hand tracking is off"
+        case .simulatorUnavailable:
+            return "INDEX FINGER — physical Vision Pro required"
+        case .unsupported:
+            return "INDEX FINGER — hand tracking unavailable"
+        case .authorizationDenied:
+            return "INDEX FINGER — Hands Tracking permission denied"
+        case .running:
+            if tracking.hasPreviouslyTrackedIndexFinger(
+                isLeft: overlay.selectedRegion.isLeft
+            ) {
+                return "INDEX FINGER STALE — last pose frozen"
+            }
+            return "INDEX FINGER — show the selected hand"
+        case .failed(let reason):
+            return "INDEX FINGER STOPPED — \(reason)"
+        }
+    }
+
+    private var selectedHandStatusColor: Color {
+        if selectedHandHasJoints { return .green }
+        switch tracking.handPhase {
+        case .simulatorUnavailable, .idle:
+            return .blue
+        case .unsupported, .authorizationDenied, .failed:
+            return .red
+        case .running:
+            return .orange
+        }
+    }
+
+    private var selectedHandStatusIcon: String {
+        selectedHandHasJoints ? "hand.raised.fill" : "hand.raised.slash"
     }
 
     private var alignmentSafetyIcon: String {

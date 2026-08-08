@@ -21,6 +21,7 @@
 		00000000000000000000002B /* PeerSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000016 /* PeerSession.swift */; };
 		00000000000000000000002C /* hand-to-elbow-overlay.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000014 /* hand-to-elbow-overlay.usdz */; };
 		00000000000000000000002D /* LandmarkTrackingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000019 /* LandmarkTrackingService.swift */; };
+		000000000000000000000066 /* IndexFingerKinematics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000077 /* IndexFingerKinematics.swift */; };
 		00000000000000000000002E /* elbow-marker.png in Resources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000001A /* elbow-marker.png */; };
 		00000000000000000000002F /* wrist-marker.png in Resources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000001B /* wrist-marker.png */; };
 		000000000000000000000060 /* reference-forearm-01.png in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000070 /* reference-forearm-01.png */; };
@@ -46,6 +47,7 @@
 		000000000000000000000019 /* LandmarkTrackingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkTrackingService.swift; sourceTree = "<group>"; };
 		00000000000000000000001A /* elbow-marker.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Markers/elbow-marker.png"; sourceTree = "<group>"; };
 		00000000000000000000001B /* wrist-marker.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Markers/wrist-marker.png"; sourceTree = "<group>"; };
+		000000000000000000000077 /* IndexFingerKinematics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndexFingerKinematics.swift; sourceTree = "<group>"; };
 		000000000000000000000070 /* reference-forearm-01.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reference-forearm-01.png"; sourceTree = "<group>"; };
 		000000000000000000000071 /* reference-forearm-02.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reference-forearm-02.png"; sourceTree = "<group>"; };
 		000000000000000000000072 /* reference-forearm-03.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reference-forearm-03.png"; sourceTree = "<group>"; };
@@ -102,6 +104,7 @@
 				000000000000000000000017 /* CompanionApp.swift */,
 				000000000000000000000018 /* CompanionContentView.swift */,
 				000000000000000000000019 /* LandmarkTrackingService.swift */,
+				000000000000000000000077 /* IndexFingerKinematics.swift */,
 				00000000000000000000001A /* elbow-marker.png */,
 				00000000000000000000001B /* wrist-marker.png */,
 				000000000000000000000076 /* ReferenceSlices */,
@@ -235,6 +238,7 @@
 				000000000000000000000025 /* OverlaySnapshot.swift in Sources */,
 				000000000000000000000026 /* PeerSession.swift in Sources */,
 				00000000000000000000002D /* LandmarkTrackingService.swift in Sources */,
+				000000000000000000000066 /* IndexFingerKinematics.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "coordinateSpace": "Blender scene world / imported USD stage root",
+  "modelSpaceAnchor": null,
+  "units": "metres",
+  "clinicalStatus": "clinician-selected review landmarks; not diagnostic registration",
+  "landmarks": [
+    {
+      "name": "DistalRadius",
+      "objectName": "LM_DistalRadius",
+      "positionMetres": {
+        "x": -0.004117,
+        "y": -0.004471,
+        "z": -0.037588
+      }
+    },
+    {
+      "name": "DistalUlna",
+      "objectName": "LM_DistalUlna",
+      "positionMetres": {
+        "x": 0.025707,
+        "y": -0.003168,
+        "z": -0.039805
+      }
+    },
+    {
+      "name": "ElbowReference_User",
+      "objectName": "LM_ElbowReference_User",
+      "positionMetres": {
+        "x": 0.039852,
+        "y": 0.054006,
+        "z": 0.185587
+      }
+    },
+    {
+      "name": "IndexDIP",
+      "objectName": "LM_IndexDIP",
+      "positionMetres": {
+        "x": -0.044962,
+        "y": -0.057959,
+        "z": -0.189123
+      }
+    },
+    {
+      "name": "IndexMCP",
+      "objectName": "LM_IndexMCP",
+      "positionMetres": {
+        "x": -0.027149,
+        "y": -0.025324,
+        "z": -0.139703
+      }
+    },
+    {
+      "name": "IndexPIP",
+      "objectName": "LM_IndexPIP",
+      "positionMetres": {
+        "x": -0.039851,
+        "y": -0.041607,
+        "z": -0.173793
+      }
+    },
+    {
+      "name": "IndexTip",
+      "objectName": "LM_IndexTip",
+      "positionMetres": {
+        "x": -0.049405,
+        "y": -0.068787,
+        "z": -0.200471
+      }
+    }
+  ]
+}

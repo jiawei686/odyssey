@@ -121,6 +121,68 @@ enum BodyRegion: String, CaseIterable, Codable, Identifiable {
     }
 }
 
+enum AnatomyLandmarkID: String, CaseIterable, Identifiable {
+    case elbowReference
+    case distalRadius
+    case distalUlna
+    case indexMCP
+    case indexPIP
+    case indexDIP
+    case indexTip
+
+    var id: String { rawValue }
+
+    var name: String {
+        switch self {
+        case .elbowReference:
+            "Elbow reference"
+        case .distalRadius:
+            "Distal radius"
+        case .distalUlna:
+            "Distal ulna"
+        case .indexMCP:
+            "Index MCP"
+        case .indexPIP:
+            "Index PIP"
+        case .indexDIP:
+            "Index DIP"
+        case .indexTip:
+            "Index fingertip"
+        }
+    }
+
+    var shortDefinition: String {
+        switch self {
+        case .elbowReference:
+            "Midpoint of the proximal radius and ulna surfaces in this forearm-only mesh."
+        case .distalRadius:
+            "Centre of the distal radius surface near the wrist."
+        case .distalUlna:
+            "Centre of the distal ulna surface near the wrist."
+        case .indexMCP:
+            "Index-finger metacarpophalangeal joint centre selected on the model surface."
+        case .indexPIP:
+            "Index-finger proximal interphalangeal joint centre selected on the model surface."
+        case .indexDIP:
+            "Index-finger distal interphalangeal joint centre selected on the model surface."
+        case .indexTip:
+            "Distal endpoint of the index-finger distal phalanx."
+        }
+    }
+
+    var colorName: String {
+        switch self {
+        case .elbowReference: "Red"
+        case .distalRadius: "Green"
+        case .distalUlna: "Blue"
+        case .indexMCP: "Orange"
+        case .indexPIP: "Yellow"
+        case .indexDIP: "Pink"
+        case .indexTip: "Purple"
+        }
+    }
+}
+
 @MainActor
 final class OverlayState: ObservableObject {
     enum SectionSourceStatus: Equatable {
@@ -164,6 +226,43 @@ final class OverlayState: ObservableObject {
     @Published private(set) var focusedBoneDescription = "Look at a highlighted bone and single-pinch to identify it. Double-pinch the overlay to change imaging mode."
     @Published private(set) var overlayLoadError: String?
     @Published private(set) var overlayLoadRevision = 0
+    @Published var landmarkAnnotationsVisible = false
+    @Published var selectedLandmark: AnatomyLandmarkID = .elbowReference
+    @Published private(set) var elbowReferenceLandmark = SIMD3<Double>(
+        0.039852,
+        0.054006,
+        0.185587
+    )
+    @Published private(set) var distalRadiusLandmark = SIMD3<Double>(
+        -0.004117,
+        -0.004471,
+        -0.037588
+    )
+    @Published private(set) var distalUlnaLandmark = SIMD3<Double>(
+        0.025707,
+        -0.003168,
+        -0.039805
+    )
+    @Published private(set) var indexMCPLandmark = SIMD3<Double>(
+        -0.027149,
+        -0.025324,
+        -0.139703
+    )
+    @Published private(set) var indexPIPLandmark = SIMD3<Double>(
+        -0.039851,
+        -0.041607,
+        -0.173793
+    )
+    @Published private(set) var indexDIPLandmark = SIMD3<Double>(
+        -0.044962,
+        -0.057959,
+        -0.189123
+    )
+    @Published private(set) var indexTipLandmark = SIMD3<Double>(
+        -0.049405,
+        -0.068787,
+        -0.200471
+    )
 
     let sliceCount = referenceSliceCount
 
@@ -282,6 +381,66 @@ final class OverlayState: ObservableObject {
             (abs(entityScale.x) + abs(entityScale.y) + abs(entityScale.z)) / 3
         )
         scale = min(max(measuredScale, 0.50), 1.50)
+    }
+
+    func landmarkPosition(for landmark: AnatomyLandmarkID) -> SIMD3<Double> {
+        switch landmark {
+        case .elbowReference:
+            elbowReferenceLandmark
+        case .distalRadius:
+            distalRadiusLandmark
+        case .distalUlna:
+            distalUlnaLandmark
+        case .indexMCP:
+            indexMCPLandmark
+        case .indexPIP:
+            indexPIPLandmark
+        case .indexDIP:
+            indexDIPLandmark
+        case .indexTip:
+            indexTipLandmark
+        }
+    }
+
+    func setLandmarkCoordinate(
+        _ value: Double,
+        landmark: AnatomyLandmarkID,
+        axis: Int
+    ) {
+        var position = landmarkPosition(for: landmark)
+        position[axis] = value
+
+        switch landmark {
+        case .elbowReference:
+            elbowReferenceLandmark = position
+        case .distalRadius:
+            distalRadiusLandmark = position
+        case .distalUlna:
+            distalUlnaLandmark = position
+        case .indexMCP:
+            indexMCPLandmark = position
+        case .indexPIP:
+            indexPIPLandmark = position
+        case .indexDIP:
+            indexDIPLandmark = position
+        case .indexTip:
+            indexTipLandmark = position
+        }
+    }
+
+    func resetLandmarkAnnotations() {
+        elbowReferenceLandmark = SIMD3<Double>(0.039852, 0.054006, 0.185587)
+        distalRadiusLandmark = SIMD3<Double>(-0.004117, -0.004471, -0.037588)
+        distalUlnaLandmark = SIMD3<Double>(0.025707, -0.003168, -0.039805)
+        indexMCPLandmark = SIMD3<Double>(-0.027149, -0.025324, -0.139703)
+        indexPIPLandmark = SIMD3<Double>(-0.039851, -0.041607, -0.173793)
+        indexDIPLandmark = SIMD3<Double>(-0.044962, -0.057959, -0.189123)
+        indexTipLandmark = SIMD3<Double>(-0.049405, -0.068787, -0.200471)
+        selectedLandmark = .elbowReference
+    }
+
+    var annotatedWristCenter: SIMD3<Double> {
+        (distalRadiusLandmark + distalUlnaLandmark) / 2
     }
 
     func focusBone(entityName: String?) {

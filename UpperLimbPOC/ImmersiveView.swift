@@ -1,6 +1,12 @@
+import ARKit
 import SwiftUI
 import RealityKit
 import CoreGraphics
+
+private struct HandJointRigComponent: Component {
+    let jointName: HandSkeleton.JointName
+    var calibration = JointRotationCalibration()
+}
 
 struct ImmersiveView: View {
     @EnvironmentObject private var overlay: OverlayState
@@ -13,6 +19,12 @@ struct ImmersiveView: View {
     private let localElbow = SIMD3<Float>(0, 0, 0.205)
     private let referenceForearmLength: Float = 0.2625
     private let sectionRootName = "ReferenceSectionRoot"
+    private let landmarkRootName = "LandmarkAnnotationRoot"
+    private let indexFingerRigRootName = "IndexFingerRigRoot"
+
+    private var indexFingerPivotNames: [String] {
+        ["IndexFingerPivot-MCP", "IndexFingerPivot-PIP", "IndexFingerPivot-DIP"]
+    }
 
     var body: some View {
         RealityView { content in
@@ -24,6 +36,7 @@ struct ImmersiveView: View {
                 }
                 let model = try await Entity(named: assetName)
                 model.name = "BoneOverlayRoot"
+                configureIndexFingerRig(in: model)
                 configureBoneHitTargets(in: model)
                 if #available(visionOS 26.0, *) {
                     ManipulationComponent.configureEntity(model)
@@ -36,10 +49,14 @@ struct ImmersiveView: View {
                     sliceCount: overlay.sliceCount
                 )
                 model.addChild(sectionRoot)
+                let landmarkRoot = makeLandmarkAnnotationRoot()
+                model.addChild(landmarkRoot)
                 applyTransform(to: model)
                 applyAppearance(effectiveOpacity, tint: overlay.tint, to: model)
                 applySectionState(to: sectionRoot)
+                applyLandmarkAnnotationState(to: landmarkRoot)
                 content.add(model)
+                applyIndexFingerTracking(to: model)
                 accessibilityActivateSubscription = content.subscribe(
                     to: AccessibilityEvents.Activate.self
                 ) { event in
@@ -90,6 +107,7 @@ struct ImmersiveView: View {
             }) else { return }
 
             applyTransform(to: model)
+            applyIndexFingerTracking(to: model)
             applyAppearance(effectiveOpacity, tint: overlay.tint, to: model)
             if #available(visionOS 26.0, *) {
                 setManualManipulation(
@@ -99,6 +117,9 @@ struct ImmersiveView: View {
             }
             if let sectionRoot = model.findEntity(named: sectionRootName) {
                 applySectionState(to: sectionRoot)
+            }
+            if let landmarkRoot = model.findEntity(named: landmarkRootName) {
+                applyLandmarkAnnotationState(to: landmarkRoot)
             }
         }
         .id(overlay.overlayLoadRevision)
@@ -192,6 +213,124 @@ struct ImmersiveView: View {
         for child in entity.children {
             configureBoneHitTargets(in: child)
         }
+    }
+
+    private func configureIndexFingerRig(in model: Entity) {
+        guard model.findEntity(named: indexFingerRigRootName) == nil,
+              let proximalBone = model.findEntity(
+                  named: "Proximal_phalanx_of_2d_finger_r"
+              ),
+              let middleBone = model.findEntity(
+                  named: "Middle_phalanx_of_2d_finger_r"
+              ),
+              let distalBone = model.findEntity(
+                  named: "Distal_phalanx_of_2d_finger_r"
+              ) else { return }
+
+        let mcpPosition = floatPosition(overlay.indexMCPLandmark)
+        let pipPosition = floatPosition(overlay.indexPIPLandmark)
+        let dipPosition = floatPosition(overlay.indexDIPLandmark)
+
+        let rigRoot = Entity()
+        rigRoot.name = indexFingerRigRootName
+        model.addChild(rigRoot)
+
+        let mcpPivot = makeHandJointPivot(
+            name: indexFingerPivotNames[0],
+            position: mcpPosition,
+            jointName: .indexFingerKnuckle
+        )
+        rigRoot.addChild(mcpPivot)
+
+        let pipPivot = makeHandJointPivot(
+            name: indexFingerPivotNames[1],
+            position: pipPosition - mcpPosition,
+            jointName: .indexFingerIntermediateBase
+        )
+        mcpPivot.addChild(pipPivot)
+
+        let dipPivot = makeHandJointPivot(
+            name: indexFingerPivotNames[2],
+            position: dipPosition - pipPosition,
+            jointName: .indexFingerIntermediateTip
+        )
+        pipPivot.addChild(dipPivot)
+
+        reparentPreservingModelTransform(
+            proximalBone,
+            to: mcpPivot,
+            relativeTo: model
+        )
+        reparentPreservingModelTransform(
+            middleBone,
+            to: pipPivot,
+            relativeTo: model
+        )
+        reparentPreservingModelTransform(
+            distalBone,
+            to: dipPivot,
+            relativeTo: model
+        )
+    }
+
+    private func makeHandJointPivot(
+        name: String,
+        position: SIMD3<Float>,
+        jointName: HandSkeleton.JointName
+    ) -> Entity {
+        let pivot = Entity()
+        pivot.name = name
+        pivot.position = position
+        pivot.components.set(
+            HandJointRigComponent(
+                jointName: jointName
+            )
+        )
+        return pivot
+    }
+
+    private func reparentPreservingModelTransform(
+        _ entity: Entity,
+        to newParent: Entity,
+        relativeTo model: Entity
+    ) {
+        let modelTransform = entity.transformMatrix(relativeTo: model)
+        newParent.addChild(entity)
+        entity.setTransformMatrix(modelTransform, relativeTo: model)
+    }
+
+    private func applyIndexFingerTracking(to model: Entity) {
+        let isLeftHand = overlay.selectedRegion.isLeft
+        let jointTransforms = tracking.handJointTransforms(isLeft: isLeftHand)
+
+        guard tracking.hasTrackedIndexFinger(isLeft: isLeftHand) else {
+            return
+        }
+
+        // The model remains attached to the elbow/wrist registration. Only joint
+        // rotations are transferred to the nested pivots. Their translations stay
+        // at the clinician-reviewed MCP/PIP/DIP centres, preserving model segment
+        // lengths and avoiding the gaps caused by independently moving each bone.
+        for pivotName in indexFingerPivotNames {
+            guard let pivot = model.findEntity(named: pivotName),
+                  var binding = pivot.components[HandJointRigComponent.self],
+                  let jointTransform = jointTransforms[binding.jointName]
+            else { continue }
+
+            let jointRotation = Transform(matrix: jointTransform).rotation
+            let resolvedRotation = binding.calibration.resolvedPivotRotation(
+                jointRotation: jointRotation,
+                currentPivotRotation: pivot.orientation(relativeTo: nil),
+                isLeftHand: isLeftHand,
+                sessionGeneration: tracking.handTrackingGeneration
+            )
+            pivot.setOrientation(resolvedRotation, relativeTo: nil)
+            pivot.components.set(binding)
+        }
+    }
+
+    private func floatPosition(_ position: SIMD3<Double>) -> SIMD3<Float> {
+        SIMD3<Float>(Float(position.x), Float(position.y), Float(position.z))
     }
 
     private func accessibleBoneLabel(for entityName: String) -> String {
@@ -292,7 +431,8 @@ struct ImmersiveView: View {
         tint: OverlayTint,
         to entity: Entity
     ) {
-        guard entity.name != sectionRootName else { return }
+        guard entity.name != sectionRootName,
+              entity.name != landmarkRootName else { return }
 
         let rgb = tint.rgb
 
@@ -343,6 +483,70 @@ struct ImmersiveView: View {
             return requested
         }
         return min(requested, 0.12)
+    }
+
+    private func makeLandmarkAnnotationRoot() -> Entity {
+        let root = Entity()
+        root.name = landmarkRootName
+
+        for landmark in AnatomyLandmarkID.allCases {
+            let color: UIColor
+            switch landmark {
+            case .elbowReference:
+                color = .systemRed
+            case .distalRadius:
+                color = .systemGreen
+            case .distalUlna:
+                color = .systemBlue
+            case .indexMCP:
+                color = .systemOrange
+            case .indexPIP:
+                color = .systemYellow
+            case .indexDIP:
+                color = .systemPink
+            case .indexTip:
+                color = .systemPurple
+            }
+
+            let markerRadius: Float
+            switch landmark {
+            case .elbowReference, .distalRadius, .distalUlna:
+                markerRadius = 0.008
+            case .indexMCP, .indexPIP, .indexDIP, .indexTip:
+                markerRadius = 0.005
+            }
+
+            let marker = ModelEntity(
+                mesh: .generateSphere(radius: markerRadius),
+                materials: [UnlitMaterial(color: color)]
+            )
+            marker.name = "AnatomyLandmark-\(landmark.rawValue)"
+            root.addChild(marker)
+        }
+
+        root.isEnabled = overlay.landmarkAnnotationsVisible
+        return root
+    }
+
+    private func applyLandmarkAnnotationState(to root: Entity) {
+        root.isEnabled = overlay.landmarkAnnotationsVisible
+        guard root.isEnabled else { return }
+
+        for landmark in AnatomyLandmarkID.allCases {
+            guard let marker = root.findEntity(
+                named: "AnatomyLandmark-\(landmark.rawValue)"
+            ) else { continue }
+
+            let position = overlay.landmarkPosition(for: landmark)
+            marker.position = SIMD3<Float>(
+                Float(position.x),
+                Float(position.y),
+                Float(position.z)
+            )
+            marker.scale = SIMD3<Float>(
+                repeating: landmark == overlay.selectedLandmark ? 1.45 : 1.0
+            )
+        }
     }
 
     private func applySectionState(to root: Entity) {

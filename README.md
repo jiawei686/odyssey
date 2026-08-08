@@ -29,6 +29,30 @@ The CT slices, AnatomyTOOL 3D mesh, and live participant come from different ana
 
 The markerless ML and LLM design, data boundaries, and verification gates are in `ML_ASSISTANT_ARCHITECTURE.md`.
 
+The human-review workflow for the model's elbow, distal-radius, and distal-ulna
+annotation candidates is in `LANDMARK_ANNOTATION_PROTOCOL.md`. The tracking
+status window can show and adjust these coloured markers in 1 mm increments;
+review changes do not affect registration until explicitly approved.
+
+## Version 3.3: reviewed index-finger joint prototype
+
+- A clinician-guided Blender batch captured model-local elbow, distal-radius,
+  distal-ulna, index MCP, PIP, DIP, and fingertip landmarks. The source JSON,
+  repeatable batch tool, and review protocol are bundled with the project.
+- On a physical Apple Vision Pro, ARKit hand tracking supplies the selected
+  hand's index MCP, PIP, and DIP joint rotations. The app calibrates the first
+  live pose without snapping the model.
+- The proximal, middle, and distal index phalanges form a nested RealityKit
+  pivot chain at the reviewed MCP, PIP, and DIP points. Motion rotates around
+  those joint centres while preserving model segment lengths; the bones are
+  not translated independently.
+- The implementation is an educational kinematic approximation. Apple Vision
+  Pro estimates the external hand skeleton; it does not locate the person's
+  internal bone surfaces or replace patient-specific registration.
+- Hand tracking needs a physical headset and explicit Hands Tracking
+  permission. The simulator validates code and resources but cannot validate
+  finger-pose accuracy, joint continuity, latency, occlusion, or comfort.
+
 ## Version 3.2: gaze, recovery, and verification hardening
 
 - Apple Vision Pro uses system gaze targeting and pinch confirmation: look at a highlighted bone, then single-pinch to identify it. The app does not receive or record raw gaze coordinates.
@@ -106,6 +130,8 @@ If discovery fails, confirm that Local Network access is enabled for both apps, 
 - Companion preview: SceneKit
 - Vision rendering: RealityKit `RealityView`
 - Physical landmark tracking: ARKit `ImageTrackingProvider`
+- Index-finger motion: ARKit `HandTrackingProvider` driving a reviewed nested
+  MCP/PIP/DIP pivot chain
 - Fit anchors: local elbow Z `+0.205 m`, local wrist Z approximately `-0.058 m`
 - Reference elbow–wrist model length: `0.2625 m`
 - Sectional reference: five bundled NLM Visible Human CT crops, loaded as local RealityKit textures

@@ -26,6 +26,8 @@
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Connect to the Upper-Limb Companion on the local network to synchronize non-identifying overlay controls.</string>
+	<key>NSHandsTrackingUsageDescription</key>
+	<string>Use index-finger joint motion to animate the educational finger-bone overlay around reviewed anatomical landmarks.</string>
 	<key>NSWorldSensingUsageDescription</key>
 	<string>Track printed elbow and wrist landmarks to align the educational bone overlay with a selected forearm.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
