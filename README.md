@@ -30,6 +30,12 @@ protection without transmitting pixels or ARKit transforms. See
 `docs/CLINICIAN_GUIDANCE_CONTRACT.md` and
 `docs/CLAUDE_CODEX_WORKFLOW.md`.
 
+The Codex backend maps normalized guidance only on Vision Pro, using the live
+wearer forearm axis. A small fracture marker and optional preset collar follow
+that axis; stale or disconnected remote state hides the guidance. Existing
+local AVP arm tracking remains the fallback when no negotiated remote command
+is authoritative.
+
 Physical AVP behavior is DEVICE-PENDING / NOT VERIFIED. This generic educational
 POC is not patient-specific and is not procedural guidance.
 

@@ -131,6 +131,9 @@ rg -q 'onChange\(of: peer\.isConnected\)' "$PROJECT_DIR/UpperLimbPOC/ImmersiveVi
 rg -q 'scheduleReconnect' "$PROJECT_DIR/UpperLimbPOC/PeerSession.swift"
 test -f "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceContract.swift"
 test -f "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceWireCodec.swift"
+test -f "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceSyncEngine.swift"
+test -f "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceSession.swift"
+test -f "$PROJECT_DIR/UpperLimbPOC/AVPClinicianGuidanceSpatialMapper.swift"
 test -f "$PROJECT_DIR/docs/CLINICIAN_GUIDANCE_CONTRACT.md"
 test -f "$PROJECT_DIR/docs/CLAUDE_CODEX_WORKFLOW.md"
 rg -q 'ClinicianGuidanceProtocol.staleAfterSeconds' "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceContract.swift" "$PROJECT_DIR/Tools/ClinicianGuidanceContractCheck.swift"
@@ -139,6 +142,10 @@ rg -q 'ClinicianConnectionStatusView.swift' "$PROJECT_DIR/RadiographicAnatomyPOC
 rg -q 'ClinicianForearmCanvas.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
 rg -q 'ClinicianControlPanel.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
 rg -q 'ClinicianGuidancePreviewSupport.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -q 'ClinicianGuidanceSyncEngine.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -q 'ClinicianGuidanceSession.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -q 'AVPClinicianGuidanceSpatialMapper.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -q 'avpRenderedGuidanceState' "$PROJECT_DIR/UpperLimbPOC/JointProbeImmersiveView.swift"
 test -f "$PROJECT_DIR/PRODUCT_DEVELOPMENT_DOCUMENT.md"
 test -f "$PROJECT_DIR/ML_ASSISTANT_ARCHITECTURE.md"
 test -f "$PROJECT_DIR/JOINT_CAPABILITY_PROBE.md"
@@ -194,6 +201,25 @@ xcrun swiftc \
     "$PROJECT_DIR/Tools/ClinicianGuidanceContractCheck.swift" \
     -o "$BUILD_ROOT/clinician-guidance-contract-check"
 "$BUILD_ROOT/clinician-guidance-contract-check"
+
+xcrun swiftc \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceContract.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceSyncEngine.swift" \
+    "$PROJECT_DIR/Tools/ClinicianGuidanceSyncCheck.swift" \
+    -o "$BUILD_ROOT/clinician-guidance-sync-check"
+"$BUILD_ROOT/clinician-guidance-sync-check"
+
+xcrun swiftc \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceContract.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/AVPForearmOverlayPose.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/AVPClinicianGuidanceSpatialMapper.swift" \
+    "$PROJECT_DIR/Tools/ClinicianGuidanceSpatialCheck.swift" \
+    -o "$BUILD_ROOT/clinician-guidance-spatial-check"
+"$BUILD_ROOT/clinician-guidance-spatial-check"
 
 xcrun swiftc \
     -parse-as-library \

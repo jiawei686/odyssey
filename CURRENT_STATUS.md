@@ -23,9 +23,26 @@ from the Codex contract checkpoint.
   clear/bone independence, capability negotiation, malformed values,
   versioning, sequence/replay rejection, stale messages, and safe disconnected
   UI state.
+- `[AUTO]` The backend synchronization check covers the bidirectional handshake,
+  single in-flight command, desired/applied ACK flow, missing and unknown
+  capabilities, unavailable-to-live application, reconnect resynchronization,
+  replay/order rejection, heartbeat staleness, safe hiding, and recovery.
+- `[AUTO]` AVP coordinate checks prove that normalized `0...1` guidance maps
+  from live `forearmArm` (proximal) to `forearmWrist` (distal), while bone
+  visibility remains independent from the fracture marker and preset guide.
+- `[BUILD]` Full `Tools/validate.sh` passes with the shared session controller:
+  all focused checks, clean simulator and generic device-SDK builds for both
+  targets, and both analyzers. The AVP wearer view consumes only AVP-applied
+  state, hides remote guidance when stale, and renders a small fracture marker
+  plus axis-aligned preset collar without changing the existing local fallback.
+- `[KNOWN]` The new engine/mapper and the whole companion target pass an
+  opt-in complete strict-concurrency probe. The whole vision target's extra
+  probe remains blocked by unchanged Foundation attributed-string key-path
+  diagnostics and an existing Medical Assistant binding warning; the normal
+  warnings-as-errors build and repository analyzer are green.
 - `[BLOCKED]` The physical Vision Pro is unavailable. The articulated wearer
-  overlay and future remote guidance rendering are DEVICE-PENDING / NOT
-  VERIFIED, never passed by simulator evidence.
+  overlay and remote guidance rendering are DEVICE-PENDING / NOT VERIFIED,
+  never passed by simulator evidence.
 
 ## Preserved medical-assistant slice
 

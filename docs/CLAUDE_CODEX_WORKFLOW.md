@@ -42,6 +42,10 @@ Child views receive:
 - `ClinicianGuidanceClientState` values;
 - `ClinicianGuidanceActionSet` closures.
 
+The companion root may own/inject `ClinicianGuidanceSession`, then pass
+`clinicianGuidanceState` and `actionSet` into Claude-owned child views. Child
+views still do not reference `PeerSession`.
+
 Required actions are `setBoneVisible`, `setFracturePosition`,
 `setIncisionGuideVisible`, and `clearGuidance`. Expose retry only when the
 backend supplies it. Clear is immediate, not confirmation-gated. Slider network

@@ -4,6 +4,7 @@ import SwiftUI
 
 struct JointProbeImmersiveView: View {
     @EnvironmentObject private var tracking: LandmarkTrackingService
+    @EnvironmentObject private var clinicianGuidance: ClinicianGuidanceSession
 
     private struct BoneEdge {
         let start: HandSkeleton.JointName
@@ -12,6 +13,9 @@ struct JointProbeImmersiveView: View {
     }
 
     private let boneRootName = "TrackedArticulatedBoneRoot"
+    private let guidanceRootName = "ClinicianGuidanceRoot"
+    private let fractureMarkerName = "ClinicianFractureMarker"
+    private let incisionGuideName = "ClinicianIncisionGuide"
 
     private var boneEdges: [BoneEdge] {
         [
@@ -96,6 +100,27 @@ struct JointProbeImmersiveView: View {
                 boneRoot.addChild(joint)
             }
             root.addChild(boneRoot)
+
+            let guidanceRoot = Entity()
+            guidanceRoot.name = guidanceRootName
+            guidanceRoot.isEnabled = false
+
+            let fractureMarker = ModelEntity(
+                mesh: .generateSphere(radius: 0.009),
+                materials: [UnlitMaterial(color: .systemPink)]
+            )
+            fractureMarker.name = fractureMarkerName
+            fractureMarker.isEnabled = false
+            guidanceRoot.addChild(fractureMarker)
+
+            let incisionGuide = ModelEntity(
+                mesh: .generateCylinder(height: 1, radius: 1),
+                materials: [UnlitMaterial(color: .systemOrange)]
+            )
+            incisionGuide.name = incisionGuideName
+            incisionGuide.isEnabled = false
+            guidanceRoot.addChild(incisionGuide)
+            root.addChild(guidanceRoot)
             content.add(root)
         } update: { content in
             guard let root = content.entities.first(where: {
@@ -105,26 +130,48 @@ struct JointProbeImmersiveView: View {
             let transforms = tracking.probeSelectedHand == .left
                 ? tracking.leftHandJointTransforms
                 : tracking.rightHandJointTransforms
+            let remoteState = clinicianGuidance.avpRenderedGuidanceState
+            let boneVisible = remoteState?.showBone
+                ?? tracking.probeBoneVisible
             updateDetectionMarkers(
                 in: root,
                 transforms: transforms,
                 visible: tracking.handPhase == .running
-                    && !tracking.probeBoneVisible
+                    && !boneVisible
             )
-            updateBoneOverlay(in: root, transforms: transforms)
+            updateBoneOverlay(
+                in: root,
+                transforms: transforms,
+                visible: boneVisible
+            )
+            updateClinicianGuidance(
+                in: root,
+                appliedState: remoteState
+            )
+        }
+        .task {
+            await publishTrackingStateUntilCancelled()
+        }
+        .onDisappear {
+            clinicianGuidance.updateAVPTracking(
+                status: .unavailable,
+                participantSide: .unknown,
+                detail: "Wearer forearm view is closed"
+            )
         }
     }
 
     private func updateBoneOverlay(
         in root: Entity,
-        transforms: [HandSkeleton.JointName: simd_float4x4]
+        transforms: [HandSkeleton.JointName: simd_float4x4],
+        visible: Bool
     ) {
         guard let boneRoot = root.findEntity(named: boneRootName) else { return }
         let resolution = tracking.probeSelectedHand == .left
             ? tracking.leftForearmResolution
             : tracking.rightForearmResolution
 
-        guard tracking.probeBoneVisible else {
+        guard visible else {
             boneRoot.isEnabled = false
             return
         }
@@ -141,6 +188,91 @@ struct JointProbeImmersiveView: View {
             boneRoot.isEnabled = hasLastPose
         case .searching, .partial, .failed:
             boneRoot.isEnabled = false
+        }
+    }
+
+    private func updateClinicianGuidance(
+        in root: Entity,
+        appliedState: ClinicianGuidanceState?
+    ) {
+        guard let guidanceRoot = root.findEntity(named: guidanceRootName),
+              let appliedState else {
+            root.findEntity(named: guidanceRootName)?.isEnabled = false
+            return
+        }
+        let resolution = tracking.probeSelectedHand == .left
+            ? tracking.leftForearmResolution
+            : tracking.rightForearmResolution
+        guard resolution.state == .live,
+              let pose = resolution.pose,
+              let placement = AVPClinicianGuidanceSpatialMapper.resolve(
+                  pose: pose,
+                  appliedState: appliedState
+              ) else {
+            guidanceRoot.isEnabled = false
+            return
+        }
+
+        if let marker = guidanceRoot.findEntity(named: fractureMarkerName) {
+            if let center = placement.fractureMarkerCenter {
+                marker.position = center
+                marker.isEnabled = true
+            } else {
+                marker.isEnabled = false
+            }
+        }
+        if let guide = guidanceRoot.findEntity(named: incisionGuideName) {
+            if let center = placement.incisionGuideCenter {
+                guide.transform = Transform(
+                    scale: SIMD3<Float>(
+                        placement.incisionGuideRadius,
+                        placement.incisionGuideThickness,
+                        placement.incisionGuideRadius
+                    ),
+                    rotation: placement.incisionGuideRotation,
+                    translation: center
+                )
+                guide.isEnabled = true
+            } else {
+                guide.isEnabled = false
+            }
+        }
+        guidanceRoot.isEnabled = guidanceRoot.children.contains { $0.isEnabled }
+    }
+
+    @MainActor
+    private func publishTrackingStateUntilCancelled() async {
+        while !Task.isCancelled {
+            let resolution = tracking.probeSelectedHand == .left
+                ? tracking.leftForearmResolution
+                : tracking.rightForearmResolution
+            clinicianGuidance.updateAVPTracking(
+                status: clinicianTrackingStatus(for: resolution.state),
+                participantSide: tracking.probeSelectedHand == .left
+                    ? .left
+                    : .right,
+                detail: resolution.detail
+            )
+            do {
+                try await Task.sleep(for: .milliseconds(100))
+            } catch {
+                return
+            }
+        }
+    }
+
+    private func clinicianTrackingStatus(
+        for state: AVPForearmOverlayState
+    ) -> ClinicianGuidanceTrackingStatus {
+        switch state {
+        case .live:
+            .live
+        case .stale:
+            .stale
+        case .searching, .partial:
+            .unavailable
+        case .failed:
+            .failed
         }
     }
 

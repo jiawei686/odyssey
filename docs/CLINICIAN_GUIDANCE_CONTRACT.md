@@ -101,6 +101,29 @@ On reconnect within an app session:
 An app restart creates a new session ID and sequence space. No queued command
 from an old session is replayed.
 
+## Implemented synchronization and AVP mapping
+
+`ClinicianGuidanceSyncEngine` is the deterministic shared state machine.
+`ClinicianGuidanceSession` is its main-actor, mockable app adapter; it receives
+typed events from `PeerSession`, emits typed messages through the existing
+Bonjour/TCP transport, and exposes both `clinicianGuidanceState` and
+`actionSet`. `PeerSession` still decodes the legacy raw `OverlaySnapshot` and
+tagged upper-limb joint frame formats.
+
+The companion creates the session and sends the first handshake. Vision Pro
+adopts a new session only from that expected handshake. Reconnects reuse the
+companion's session and increasing outbound sequence; the desired snapshot is
+resent only after capability negotiation. Both endpoints send heartbeats.
+Vision Pro hides remotely controlled output on disconnect or after the central
+stale threshold, then publishes a fresh applied snapshot after safe recovery.
+
+`AVPClinicianGuidanceSpatialMapper` linearly maps the normalized value from the
+live `forearmArm` endpoint to `forearmWrist`. `JointProbeImmersiveView` renders a
+small fracture marker and a radially symmetric preset collar, so this axis-only
+slice does not claim resolved forearm roll. It consumes AVP-applied state, not
+unacknowledged companion intent. When no remote command is authoritative, the
+existing wearer-local arm/bone controls remain available.
+
 ## Frontend API
 
 Claude-owned child views consume values and closures, never `PeerSession`:
@@ -108,6 +131,8 @@ Claude-owned child views consume values and closures, never `PeerSession`:
 - state: `ClinicianGuidanceClientState`
 - actions: `ClinicianGuidanceActionSet`
 - controller boundary: `ClinicianGuidanceControlling`
+- production adapter: `ClinicianGuidanceSession`
+- adapter closure set: `ClinicianGuidanceSession.actionSet`
 - action names:
   - `setBoneVisible`
   - `setFracturePosition`
