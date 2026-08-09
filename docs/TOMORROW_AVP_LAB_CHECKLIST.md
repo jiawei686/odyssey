@@ -13,9 +13,10 @@ evidence as physical Apple Vision Pro acceptance.
 - Claude presentation source: `claude/anatomical-layer-ui` at
   `d8b87927dc6b00bb9729fc398cd545e0d53b2925`
 
-The published branch tip is a docs-only child of the app-code commit and is
-reported in the overnight handoff. Fetch/open the branch tip; the exact code
-installed by Xcode is the app-code commit above.
+The published branch tip adds this checklist and records the exact CT/Claude
+lineages with tree-identical merge commits; it is reported in the overnight
+handoff. Fetch/open the branch tip. The exact app tree installed by Xcode is
+the app-code commit above.
 
 ## What this candidate genuinely contains
 
