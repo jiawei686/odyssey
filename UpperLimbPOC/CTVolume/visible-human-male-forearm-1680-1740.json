@@ -1,0 +1,142 @@
+{
+  "assetFilename" : "visible-human-male-forearm-1680-1740.r8",
+  "assetSHA256" : "43244b476c3e409dc1b32d2f55982b4f3946c058063b4d187c617b8243ef3a2d",
+  "coordinateMapping" : "texture +X -> forearm +X; texture +Y -> forearm -Z; increasing source index -> forearm +Y (proximal-to-distal illustrative axis)",
+  "coordinateRootIdentifier" : "GenericForearmCoordinateRoot",
+  "crop" : {
+    "height" : 160,
+    "width" : 112,
+    "x" : 0,
+    "y" : 130
+  },
+  "dimensions" : [
+    112,
+    160,
+    21
+  ],
+  "limitations" : [
+    "Reference anatomy from one cadaver; not wearer-specific imaging.",
+    "The original CT field of view truncates the lateral forearm surface in this crop.",
+    "No A/P or R/L orientation claim is made.",
+    "No physical Apple Vision Pro registration or rendering performance is verified by this asset build."
+  ],
+  "pixelFormat" : "r8Unorm",
+  "quantization" : "UInt8(clamp(round(sourceValue / 8), 0...255))",
+  "schemaVersion" : 1,
+  "sourceDataset" : "NLM Visible Human Male normalCT",
+  "sourceDirectoryURL" : "https://data.lhncbc.nlm.nih.gov/public/Visible-Human/Male-Images/PNG_format/radiological/normalCT/",
+  "sourceEncoding" : "12-bit GE CT values stored in 16-bit grayscale PNG",
+  "sourceFilePattern" : "cvm{index}f.png",
+  "sourceSlices" : [
+    {
+      "filename" : "cvm1680f.png",
+      "index" : 1680,
+      "sha256" : "280e0ebd115c76be8740ea5d443ddf548bde042bc3ddef8a9d3d5e91bf34f422"
+    },
+    {
+      "filename" : "cvm1683f.png",
+      "index" : 1683,
+      "sha256" : "de2d6553628f4d0ab6ccdf7c9cbc3c469c4cd4cb97cbfeef1f666f036e741cf2"
+    },
+    {
+      "filename" : "cvm1686f.png",
+      "index" : 1686,
+      "sha256" : "d85c832b5ec075de2c8e3b8d98fe3ef65875ed7a1d91d172b3aecbf2546082a5"
+    },
+    {
+      "filename" : "cvm1689f.png",
+      "index" : 1689,
+      "sha256" : "79dedf3922bb6151d8f3661b00515dbee9c4dcea83744fbad342dbbeacd7d351"
+    },
+    {
+      "filename" : "cvm1692f.png",
+      "index" : 1692,
+      "sha256" : "7b48867536bbb2d62899b07d1647e5e20758aefcc1864bad40d1d7f3a7916a4f"
+    },
+    {
+      "filename" : "cvm1695f.png",
+      "index" : 1695,
+      "sha256" : "1e0934baa1ed976f12fe8bf51495c6371312f7298f845b368320588a62ebefb5"
+    },
+    {
+      "filename" : "cvm1698f.png",
+      "index" : 1698,
+      "sha256" : "11bee9fee07d38becbcbc72dd90c2ae93e62e7a159bee6041d736760d9ec46aa"
+    },
+    {
+      "filename" : "cvm1701f.png",
+      "index" : 1701,
+      "sha256" : "7b7dc2454f5f3fb562ba348313a6c7a5a8fba2f14498c5a8ba0389d2f839ee62"
+    },
+    {
+      "filename" : "cvm1704f.png",
+      "index" : 1704,
+      "sha256" : "1fc65804ab1a69cb74548a9315cd5a542dddbae174127f31b6f1f0233be07c19"
+    },
+    {
+      "filename" : "cvm1707f.png",
+      "index" : 1707,
+      "sha256" : "422591da94a130d6c159554402f823dc59242b14c9cb2a3bffec1ac48336bc39"
+    },
+    {
+      "filename" : "cvm1710f.png",
+      "index" : 1710,
+      "sha256" : "e5e5895f09dd9d012a346c3b9f21e03c12810a582a7fab08f3f568e3870462ed"
+    },
+    {
+      "filename" : "cvm1713f.png",
+      "index" : 1713,
+      "sha256" : "3e6b6fc330a5b76e3e438d560eb174c24d313b754139ea2c3ec70bcd9e598718"
+    },
+    {
+      "filename" : "cvm1716f.png",
+      "index" : 1716,
+      "sha256" : "8ed19b3a01d950df58b17e335de56a0e6d7c50caa01b03806d2f25b569c1206d"
+    },
+    {
+      "filename" : "cvm1719f.png",
+      "index" : 1719,
+      "sha256" : "1558222dc67c9002521427bb5b7d8c4deda1413fdb163dde32630e4006a9b48a"
+    },
+    {
+      "filename" : "cvm1722f.png",
+      "index" : 1722,
+      "sha256" : "e1bee731832068f7f54520c6c85a6765b61b3c961c7da57ce81d42a51dc92b3f"
+    },
+    {
+      "filename" : "cvm1725f.png",
+      "index" : 1725,
+      "sha256" : "dc6475c356969ee69ae14e134c9a587da6ea20e4ecf56c8a25b017f9b9f07b9a"
+    },
+    {
+      "filename" : "cvm1728f.png",
+      "index" : 1728,
+      "sha256" : "e6adcda29b49f03e5805bb71963e25dbc4c21236e67844efa19c7b2b3530354a"
+    },
+    {
+      "filename" : "cvm1731f.png",
+      "index" : 1731,
+      "sha256" : "c930d51812218924ed0d980b5c7ab49a0d6f997e260681e2bb63ef7d705389d1"
+    },
+    {
+      "filename" : "cvm1734f.png",
+      "index" : 1734,
+      "sha256" : "b6a9cc02c0be16bcd02de778d5bd70f3ab62ad9b094d1ffca214e0eb429ba877"
+    },
+    {
+      "filename" : "cvm1737f.png",
+      "index" : 1737,
+      "sha256" : "8563f212f31053c0cb81c4dd7933407784781fec183d648023733c93f521ec07"
+    },
+    {
+      "filename" : "cvm1740f.png",
+      "index" : 1740,
+      "sha256" : "917de5a5cd2880ec8d4b23073cb2afb0922364ccbc11ac4d9036e5298a513717"
+    }
+  ],
+  "spacingMillimetres" : {
+    "x" : 0.8984375,
+    "y" : 0.8984375,
+    "z" : 3
+  }
+}

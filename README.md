@@ -66,6 +66,14 @@ POC is not patient-specific and is not procedural guidance.
 Architecture, setup, provider status, safety limitations, and the future avatar
 contract are documented in `MEDICAL_ASSISTANT.md`.
 
+## Experimental DEBUG CT forearm VRT spike
+
+A standalone, launch-argument-gated companion preview ray-marches a compact NLM Visible Human Male forearm CT subvolume. It provides Surface and Bone presets plus a continuous Reveal Anatomy value from 0 to 1. The feature is DEBUG-only and off by default; select the shared `UpperLimbCompanion-CT-Lab` Xcode scheme (or launch the companion with `--ct-forearm-vrt-preview`).
+
+This is true CT volume rendering, not the mesh fallback. The 112 × 160 × 21 R8 asset, deterministic builder, checksums, licence/provenance record, Metal renderer, visible-surface-depth abstraction, simulator evidence route, and limits are documented in `docs/CT_FOREARM_VRT_SPIKE.md`. The volume has an explicit transform into `GenericForearmCoordinateRoot` for future RealityKit integration, but it is not attached or registered to a wearer on this branch.
+
+NLM reference anatomy is cross-subject and not wearer-specific imaging. Physical Apple Vision Pro performance, pose, comfort, tracking, occlusion, and registration remain DEVICE-PENDING / NOT VERIFIED.
+
 ## Version 3: reference sectional imaging
 
 Version 3 adds a five-level axial forearm CT reference plane to the mixed-reality overlay:

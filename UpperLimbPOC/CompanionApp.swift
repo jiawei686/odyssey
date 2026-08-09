@@ -20,10 +20,20 @@ struct UpperLimbCompanionApp: App {
 
     var body: some Scene {
         WindowGroup {
-            CompanionContentView()
-                .environmentObject(overlay)
-                .environmentObject(peer)
-                .environmentObject(clinicianGuidance)
+            Group {
+#if DEBUG
+                if CTForearmVRTFeatureGate.isEnabled {
+                    CTForearmVRTPreview()
+                } else {
+                    CompanionContentView()
+                }
+#else
+                CompanionContentView()
+#endif
+            }
+            .environmentObject(overlay)
+            .environmentObject(peer)
+            .environmentObject(clinicianGuidance)
         }
     }
 }

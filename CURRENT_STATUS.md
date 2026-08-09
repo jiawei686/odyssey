@@ -2,6 +2,35 @@
 
 Last verified: 2026-08-09
 
+## Experimental CT forearm VRT spike (isolated branch)
+
+`codex/ct-forearm-vrt-spike` adds a DEBUG-only, explicit-launch companion preview for true Metal volume ray marching over a compact NLM Visible Human Male CT forearm subvolume. The normal companion/judge flow and Vision wearer renderer are unchanged, and the feature remains off by default.
+
+The spike is reference anatomy, not wearer-specific imaging. Surface/Bone presets and continuous Reveal Anatomy are simulator-testable. The volume pose and visible-surface-depth contract are compatible with a later RealityKit integration, but no wearer attachment or physical AVP verification is claimed. Physical performance, comfort, tracking, occlusion, annotations, and registration remain `[BLOCKED]` pending a headset run.
+
+- `[AUTO]` The deterministic asset and surface-depth checks pass, including exact
+  dimensions/spacing, SHA-256 integrity, same-size substitution rejection,
+  Surface-before-Bone depth ordering, ray miss, and default-off feature policy.
+- `[BUILD]` The shared `UpperLimbCompanion-CT-Lab` Debug scheme builds for the
+  iPad simulator with Xcode 27 beta and the installed Metal toolchain. A separate
+  Release companion build contains no CT Swift symbols, Metal shader, R8 volume,
+  or CT manifest.
+- `[KNOWN]` CT-focused sources compile with warnings as errors and complete
+  strict concurrency. An additional whole-companion strict-concurrency probe
+  stops in the pre-existing frontend-owned `AnatomicalAnnotationActionSet.inert`
+  declaration; normal warnings-as-errors builds and both repository analyzers
+  remain green, and this isolated CT branch does not modify that presentation file.
+- `[SIM]` Surface and Bone preset captures are visibly distinct. The two recorded
+  simulator launches reported renderer setup/load/upload of 433.1 ms and 2.7 ms,
+  with exponentially smoothed command-completion wall time of 2.9 ms and 4.5 ms.
+  The logical R8 payload is 376,320 bytes; a 752,640-byte two-copy peak is
+  inferred, while driver, view, and process allocations remain unmeasured.
+- `[SIM]` Evidence files are intentionally outside the repository at
+  `/private/tmp/odyssey-ct-vrt-evidence`; Surface SHA-256 is
+  `d1c34fbc37c525cc1131f8be3db5b47e8aaa9397abca546424ab7a223bb0a0b7`
+  and Bone SHA-256 is
+  `e2c9cdd6ac8ebcef07ac34a6d31fd1bf2fb35ca90fdb76fdb8f8349591fdd468`.
+
 ## Active feature
 
 `CLINICIAN-GUIDANCE-001` is the current Level-1 judge-build slice. It adds a

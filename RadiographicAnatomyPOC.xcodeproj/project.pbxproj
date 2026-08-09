@@ -90,6 +90,12 @@
 		00000000000000000000010F /* AnatomicalSurfaceProjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000108 /* AnatomicalSurfaceProjection.swift */; };
 		000000000000000000000111 /* GenericAnatomicalForearmPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000109 /* GenericAnatomicalForearmPreview.swift */; };
 		000000000000000000000113 /* AnatomicalLayerAnnotationScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000112 /* AnatomicalLayerAnnotationScreen.swift */; };
+		000000000000000000000120 /* CTForearmVolume.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000114 /* CTForearmVolume.swift */; };
+		000000000000000000000121 /* CTForearmVolumeRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000115 /* CTForearmVolumeRenderer.swift */; };
+		000000000000000000000122 /* CTForearmVolumeShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000116 /* CTForearmVolumeShaders.metal */; };
+		000000000000000000000123 /* CTForearmVRTPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000117 /* CTForearmVRTPreview.swift */; };
+		000000000000000000000124 /* visible-human-male-forearm-1680-1740.r8 in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000118 /* visible-human-male-forearm-1680-1740.r8 */; };
+		000000000000000000000125 /* visible-human-male-forearm-1680-1740.json in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000119 /* visible-human-male-forearm-1680-1740.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -166,6 +172,13 @@
 		000000000000000000000108 /* AnatomicalSurfaceProjection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnatomicalSurfaceProjection.swift; sourceTree = "<group>"; };
 		000000000000000000000109 /* GenericAnatomicalForearmPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericAnatomicalForearmPreview.swift; sourceTree = "<group>"; };
 		000000000000000000000112 /* AnatomicalLayerAnnotationScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnatomicalLayerAnnotationScreen.swift; sourceTree = "<group>"; };
+		000000000000000000000114 /* CTForearmVolume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CTForearmVolume.swift; sourceTree = "<group>"; };
+		000000000000000000000115 /* CTForearmVolumeRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CTForearmVolumeRenderer.swift; sourceTree = "<group>"; };
+		000000000000000000000116 /* CTForearmVolumeShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = CTForearmVolumeShaders.metal; sourceTree = "<group>"; };
+		000000000000000000000117 /* CTForearmVRTPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CTForearmVRTPreview.swift; sourceTree = "<group>"; };
+		000000000000000000000118 /* visible-human-male-forearm-1680-1740.r8 */ = {isa = PBXFileReference; lastKnownFileType = file; path = "visible-human-male-forearm-1680-1740.r8"; sourceTree = "<group>"; };
+		000000000000000000000119 /* visible-human-male-forearm-1680-1740.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "visible-human-male-forearm-1680-1740.json"; sourceTree = "<group>"; };
+		00000000000000000000011A /* PROVENANCE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = PROVENANCE.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -263,6 +276,7 @@
 				0000000000000000000000B5 /* handpose_estimation_mediapipe_2023feb.onnx */,
 				00000000000000000000001A /* Markers/elbow-marker.png */,
 				00000000000000000000001B /* Markers/wrist-marker.png */,
+				00000000000000000000011B /* CTVolume */,
 				000000000000000000000076 /* ReferenceSlices */,
 			);
 			path = UpperLimbPOC;
@@ -304,6 +318,20 @@
 				0000000000000000000000D8 /* MedicalAssistantKnowledge.json */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		00000000000000000000011B /* CTVolume */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000114 /* CTForearmVolume.swift */,
+				000000000000000000000115 /* CTForearmVolumeRenderer.swift */,
+				000000000000000000000116 /* CTForearmVolumeShaders.metal */,
+				000000000000000000000117 /* CTForearmVRTPreview.swift */,
+				000000000000000000000118 /* visible-human-male-forearm-1680-1740.r8 */,
+				000000000000000000000119 /* visible-human-male-forearm-1680-1740.json */,
+				00000000000000000000011A /* PROVENANCE.md */,
+			);
+			path = CTVolume;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -403,6 +431,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				00000000000000000000002C /* hand-to-elbow-overlay.usdz in Resources */,
+				000000000000000000000124 /* visible-human-male-forearm-1680-1740.r8 in Resources */,
+				000000000000000000000125 /* visible-human-male-forearm-1680-1740.json in Resources */,
 				000000000000000000000092 /* person_detection_mediapipe_2023mar.onnx in Resources */,
 				000000000000000000000093 /* pose_estimation_mediapipe_2023mar.onnx in Resources */,
 				000000000000000000000094 /* palm_detection_mediapipe_2023feb.onnx in Resources */,
@@ -461,6 +491,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				000000000000000000000027 /* CompanionApp.swift in Sources */,
+				000000000000000000000120 /* CTForearmVolume.swift in Sources */,
+				000000000000000000000121 /* CTForearmVolumeRenderer.swift in Sources */,
+				000000000000000000000122 /* CTForearmVolumeShaders.metal in Sources */,
+				000000000000000000000123 /* CTForearmVRTPreview.swift in Sources */,
 				000000000000000000000028 /* CompanionContentView.swift in Sources */,
 				000000000000000000000029 /* OverlayState.swift in Sources */,
 				00000000000000000000002A /* OverlaySnapshot.swift in Sources */,
@@ -633,6 +667,14 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = QLYUY93X5V;
 				ENABLE_PREVIEWS = YES;
+				EXCLUDED_SOURCE_FILE_NAMES = (
+					CTForearmVolume.swift,
+					CTForearmVolumeRenderer.swift,
+					CTForearmVolumeShaders.metal,
+					CTForearmVRTPreview.swift,
+					"visible-human-male-forearm-1680-1740.r8",
+					"visible-human-male-forearm-1680-1740.json",
+				);
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = UpperLimbPOC/InfoCompanion.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Radiographic Companion";

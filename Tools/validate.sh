@@ -169,6 +169,32 @@ if rg -qi 'freehand' \
     echo "Anatomical-layer foundation must remain point/circle only." >&2
     exit 1
 fi
+CT_VOLUME_DIR="$PROJECT_DIR/UpperLimbPOC/CTVolume"
+CT_VOLUME_ASSET="$CT_VOLUME_DIR/visible-human-male-forearm-1680-1740.r8"
+CT_VOLUME_MANIFEST="$CT_VOLUME_DIR/visible-human-male-forearm-1680-1740.json"
+test -f "$CT_VOLUME_ASSET"
+test -f "$CT_VOLUME_MANIFEST"
+test -f "$CT_VOLUME_DIR/PROVENANCE.md"
+test -f "$PROJECT_DIR/Tools/build_ct_forearm_volume.swift"
+test -x "$PROJECT_DIR/Tools/ct_vrt_simulator_evidence.sh"
+test -f "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/xcshareddata/xcschemes/UpperLimbCompanion-CT-Lab.xcscheme"
+test "$(wc -c < "$CT_VOLUME_ASSET" | tr -d ' ')" = "376320"
+test "$(shasum -a 256 "$CT_VOLUME_ASSET" | awk '{print $1}')" = \
+    "43244b476c3e409dc1b32d2f55982b4f3946c058063b4d187c617b8243ef3a2d"
+rg -Fq 'static let launchArgument = "--ct-forearm-vrt-preview"' "$CT_VOLUME_DIR/CTForearmVRTPreview.swift"
+rg -Fq 'NLM Visible Human reference anatomy — not wearer-specific imaging.' "$CT_VOLUME_DIR/CTForearmVRTPreview.swift"
+rg -Fq 'CTVisibleSurfaceDepthProviding' "$CT_VOLUME_DIR/CTForearmVolume.swift"
+rg -Fq 'invalidSHA256' "$CT_VOLUME_DIR/CTForearmVolume.swift"
+rg -Fq 'texture3d<float, access::sample>' "$CT_VOLUME_DIR/CTForearmVolumeShaders.metal"
+rg -Fq 'ctVolumeFragment' "$CT_VOLUME_DIR/CTForearmVolumeShaders.metal"
+rg -Fq 'Reveal Anatomy' "$CT_VOLUME_DIR/CTForearmVRTPreview.swift"
+rg -Fq 'Surface preset' "$CT_VOLUME_DIR/CTForearmVRTPreview.swift"
+rg -Fq 'Bone preset' "$CT_VOLUME_DIR/CTForearmVRTPreview.swift"
+rg -Fq 'static let isEnabledByDefault = false' "$PROJECT_DIR/UpperLimbPOC/AnatomicalAnnotationContract.swift"
+if find "$PROJECT_DIR" -type f \( -iname '*.dcm' -o -iname '*.dicom' -o -iname '*.ima' \) -print -quit | rg -q .; then
+    echo "Raw DICOM-like data must not be committed." >&2
+    exit 1
+fi
 rg -q 'avpRenderedGuidanceState' "$PROJECT_DIR/UpperLimbPOC/JointProbeImmersiveView.swift"
 test -f "$PROJECT_DIR/PRODUCT_DEVELOPMENT_DOCUMENT.md"
 test -f "$PROJECT_DIR/ML_ASSISTANT_ARCHITECTURE.md"
@@ -269,6 +295,18 @@ xcrun swiftc \
     "$PROJECT_DIR/Tools/AnatomicalSurfaceProjectionCheck.swift" \
     -o "$BUILD_ROOT/anatomical-surface-projection-check"
 "$BUILD_ROOT/anatomical-surface-projection-check"
+
+xcrun swiftc \
+    -D DEBUG \
+    -warnings-as-errors \
+    -strict-concurrency=complete \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/AnatomicalAnnotationContract.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/CTVolume/CTForearmVolume.swift" \
+    "$PROJECT_DIR/Tools/CTForearmVolumeCheck.swift" \
+    -o "$BUILD_ROOT/ct-forearm-volume-check"
+"$BUILD_ROOT/ct-forearm-volume-check" "$PROJECT_DIR"
 
 xcrun swiftc \
     -parse-as-library \
@@ -461,5 +499,8 @@ run_xcode_stage "$BUILD_ROOT/companion-analyze.log" \
 VISION_APP="$BUILD_ROOT/vision/Build/Products/Debug-xrsimulator/UpperLimbPOC.app"
 test -f "$VISION_APP/reference-forearm-01.png"
 test -f "$VISION_APP/reference-forearm-05.png"
+COMPANION_APP="$BUILD_ROOT/companion/Build/Products/Debug-iphonesimulator/UpperLimbCompanion.app"
+test -f "$COMPANION_APP/visible-human-male-forearm-1680-1740.r8"
+test -f "$COMPANION_APP/visible-human-male-forearm-1680-1740.json"
 
-echo "Validation passed: mixed reality, gaze/accessibility invariants, AVP self-forearm axis/stale state, hybrid landmark registration and index-finger kinematics logic, metric evaluator, five reference slices, clean builds, and static analysis."
+echo "Validation passed: mixed reality, gaze/accessibility invariants, AVP self-forearm axis/stale state, hybrid landmark registration and index-finger kinematics logic, CT VRT resource/surface-depth checks, metric evaluator, five reference slices, clean builds, and static analysis."

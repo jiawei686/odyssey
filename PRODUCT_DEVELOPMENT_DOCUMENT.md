@@ -95,7 +95,7 @@ Two visible landmarks, a rigid forearm root, reviewed index joint pivots, system
 - Authentication, encryption, clinical-system integration, or data persistence.
 - Market sizing or commercial validation.
 - Markerless body-region recognition or camera-frame inference in the original three-day build. A later text-only medical-education assistant remains a separate non-clinical slice.
-- Coronal, sagittal, or volume-rendered views until a geometrically coherent source volume is available.
+- Coronal and sagittal views remain out of scope. A DEBUG-only CT VRT research spike may use one coherent public reference subvolume, but wearer attachment and physical registration remain out of scope.
 
 ## 5. Functional requirements
 
@@ -130,6 +130,7 @@ Two visible landmarks, a rigid forearm root, reviewed index joint pivots, system
 | FR-27 | The assistant supports patient and clinician language modes, bounded current-session context, optional protected local persistence, clear/reset controls, cancellation, recoverable provider errors, and an explicit choice between on-device Apple Intelligence and GPT-5.4 Cloud. | Contract test, simulator interaction, persistence/relaunch check, provider-availability matrix, and forced error matrix. |
 | FR-28 | Apple Intelligence runs on-device without a credential. The optional cloud API credential is stored only in Keychain for the direct-connect POC, never committed or bundled; patient identifiers, records, images, DICOM, hand transforms, and world transforms are rejected or absent from either provider input. The app never silently falls back to cloud inference. | Secret scan, provider-routing and payload/source audit, identifier tests, Keychain device check, and offline on-device test. |
 | FR-29 | Assistant answers may cite only retrieved entries from a versioned corpus; source URL, verification date, and pending review state remain visible, and urgent phrases receive a local response without waiting for the model. | Retrieval/citation allow-list test, source review, urgent-input test, and simulator visual review. |
+| FR-30 | A DEBUG-only standalone preview ray-marches one coherent public CT forearm subvolume with Surface and Bone presets, a continuous Reveal Anatomy value, visible failure/reload, explicit reference-anatomy disclosure, and a visible-surface-depth abstraction; the flag remains off by default. | Asset/hash and sampler checks, companion simulator/device builds, paired preset screenshots, simulator telemetry, and physical AVP gap disclosure. |
 
 ## 6. Non-functional requirements
 
@@ -185,6 +186,7 @@ The next recommended region is upper arm + forearm with shoulder, elbow, and wri
 ### Prototype
 
 - Five public-domain NLM Visible Human Male `normalCT` crops.
+- One DEBUG-only NLM `normalCT` subvolume (112 × 160 × 21 at 0.8984375 × 0.8984375 × 3 mm) supports a true VRT feasibility route. It is reference anatomy, not participant registration.
 - Different source from the AnatomyTOOL model and participant.
 - Ordered as illustrative proximal-to-distal levels.
 - No orientation labels are inferred; the UI says A/P and R/L are not registered.
@@ -225,6 +227,7 @@ The current prototype supports one Vision Pro viewer and one companion controlle
 | Recovery | Operator can recover after marker occlusion without restarting the apps. | Physical Vision Pro required. |
 | Privacy | No patient pixels or identifiers sent over the POC connection. | Payload/source review passes. |
 | Medical assistant | Semantic anatomy context, bounded memory, Keychain configuration, local safety handling, and citation allow-listing work without renderer authority. | Contract and Vision simulator build pass; provider availability, physical UI, and named clinical source review pending. |
+| CT VRT spike | Surface-to-bone interpolation uses one trilinearly sampled 3D texture; no mesh fallback; flag off by default. | Asset/sampler automation and simulator evidence required; physical AVP remains blocked. |
 | Demo completion | A facilitator completes launch → connect → track/manual place → show/move slice → lose/recover tracking in under five minutes. | End-to-end physical rehearsal pending. |
 
 ## 11. Three-day delivery plan
