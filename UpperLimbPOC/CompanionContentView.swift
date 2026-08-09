@@ -290,6 +290,27 @@ private struct SetupDiagnosticsScreen: View {
                 Text("Axial orientation and laterality are illustrative only; A/P and R/L are not registered in this prototype.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+
+#if DEBUG
+                if AnatomicalLayerUIFeatureGate.isEnabled {
+                    Divider()
+
+                    NavigationLink {
+                        AnatomicalLayerExperimentalHost()
+                    } label: {
+                        Label(
+                            "Anatomical Layers (Experimental)",
+                            systemImage: "square.3.layers.3d"
+                        )
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+
+                    Text("Experimental anatomical-layer annotation. Off by default; enabled in this run by a debug launch argument. Not verified on any physical device.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+#endif
             }
         }
     }

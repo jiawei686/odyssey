@@ -89,6 +89,7 @@
 		00000000000000000000010E /* AnatomicalSurfaceProjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000108 /* AnatomicalSurfaceProjection.swift */; };
 		00000000000000000000010F /* AnatomicalSurfaceProjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000108 /* AnatomicalSurfaceProjection.swift */; };
 		000000000000000000000111 /* GenericAnatomicalForearmPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000109 /* GenericAnatomicalForearmPreview.swift */; };
+		000000000000000000000113 /* AnatomicalLayerAnnotationScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000112 /* AnatomicalLayerAnnotationScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -164,6 +165,7 @@
 		000000000000000000000107 /* AnatomicalAnnotationWireCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnatomicalAnnotationWireCodec.swift; sourceTree = "<group>"; };
 		000000000000000000000108 /* AnatomicalSurfaceProjection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnatomicalSurfaceProjection.swift; sourceTree = "<group>"; };
 		000000000000000000000109 /* GenericAnatomicalForearmPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericAnatomicalForearmPreview.swift; sourceTree = "<group>"; };
+		000000000000000000000112 /* AnatomicalLayerAnnotationScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnatomicalLayerAnnotationScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -240,6 +242,7 @@
 				000000000000000000000107 /* AnatomicalAnnotationWireCodec.swift */,
 				000000000000000000000108 /* AnatomicalSurfaceProjection.swift */,
 				000000000000000000000109 /* GenericAnatomicalForearmPreview.swift */,
+				000000000000000000000112 /* AnatomicalLayerAnnotationScreen.swift */,
 				0000000000000000000000A3 /* SpatialJointBridge.swift */,
 				0000000000000000000000A4 /* UpperLimbIntegrationState.swift */,
 				0000000000000000000000A5 /* BodyScannerModelManifest.swift */,
@@ -474,6 +477,7 @@
 				00000000000000000000010D /* AnatomicalAnnotationWireCodec.swift in Sources */,
 				00000000000000000000010F /* AnatomicalSurfaceProjection.swift in Sources */,
 				000000000000000000000111 /* GenericAnatomicalForearmPreview.swift in Sources */,
+				000000000000000000000113 /* AnatomicalLayerAnnotationScreen.swift in Sources */,
 				0000000000000000000000FA /* ClinicianConnectionStatusView.swift in Sources */,
 				0000000000000000000000FB /* ClinicianForearmCanvas.swift in Sources */,
 				0000000000000000000000FC /* ClinicianControlPanel.swift in Sources */,
