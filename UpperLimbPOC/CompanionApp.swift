@@ -73,25 +73,35 @@ private struct AnatomicalLayerLabHost: View {
     }
 
     var body: some View {
-        NavigationStack {
-            AnatomicalClinicianScreen(state: state, actions: .inert) {
-                AnatomicalLayerAnnotationScreen(state: state, actions: .inert)
+        TabView {
+            NavigationStack {
+                AnatomicalClinicianScreen(state: state, actions: .inert) {
+                    AnatomicalLayerAnnotationScreen(state: state, actions: .inert)
+                }
             }
-        }
-        .safeAreaInset(edge: .bottom) {
-            HStack(spacing: 10) {
-                Label(
-                    "Transport: \(peer.status)",
-                    systemImage: peer.isConnected ? "vision.pro" : "network"
-                )
-                Spacer(minLength: 8)
-                Text("Live AVP view and mark transport unavailable")
+            .safeAreaInset(edge: .bottom) {
+                HStack(spacing: 10) {
+                    Label(
+                        "Transport: \(peer.status)",
+                        systemImage: peer.isConnected ? "vision.pro" : "network"
+                    )
+                    Spacer(minLength: 8)
+                    Text("Live AVP view and mark transport unavailable")
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(.bar)
             }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(.bar)
+            .tabItem {
+                Label("Anatomy", systemImage: "vision.pro")
+            }
+
+            CTForearmVRTPreview()
+                .tabItem {
+                    Label("CT Reference", systemImage: "cube.transparent")
+                }
         }
         .onAppear(perform: peer.start)
     }
