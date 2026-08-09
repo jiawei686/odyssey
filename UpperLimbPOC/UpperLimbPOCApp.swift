@@ -3,18 +3,32 @@ import SwiftUI
 @main
 struct UpperLimbPOCApp: App {
     @StateObject private var overlay = OverlayState()
-    @StateObject private var peer = PeerSession(role: .client)
+    @StateObject private var peer: PeerSession
+    @StateObject private var clinicianGuidance: ClinicianGuidanceSession
     @StateObject private var tracking = LandmarkTrackingService()
     @StateObject private var medicalAssistant = MedicalAssistantStore()
     @StateObject private var assistantWindow = AssistantWindowCoordinator()
     @State private var immersionStyle: ImmersionStyle = .mixed
     @State private var probeImmersionStyle: ImmersionStyle = .mixed
 
+    init() {
+        let peer = PeerSession(role: .client)
+        _peer = StateObject(wrappedValue: peer)
+        _clinicianGuidance = StateObject(
+            wrappedValue: ClinicianGuidanceSession(
+                role: .visionPro,
+                peer: peer,
+                localDisplayName: "Apple Vision Pro"
+            )
+        )
+    }
+
     var body: some Scene {
         WindowGroup(id: "AnatomyLibrary") {
             ContentView()
                 .environmentObject(overlay)
                 .environmentObject(peer)
+                .environmentObject(clinicianGuidance)
                 .environmentObject(tracking)
                 .environmentObject(assistantWindow)
         }
@@ -24,6 +38,7 @@ struct UpperLimbPOCApp: App {
             TrackingStatusView()
                 .environmentObject(overlay)
                 .environmentObject(peer)
+                .environmentObject(clinicianGuidance)
                 .environmentObject(tracking)
                 .environmentObject(assistantWindow)
         }
@@ -33,6 +48,7 @@ struct UpperLimbPOCApp: App {
         WindowGroup(id: "JointProbe") {
             JointProbeView()
                 .environmentObject(tracking)
+                .environmentObject(clinicianGuidance)
         }
         .defaultSize(width: 980, height: 760)
         .windowStyle(.plain)
@@ -50,6 +66,7 @@ struct UpperLimbPOCApp: App {
             ImmersiveView()
                 .environmentObject(overlay)
                 .environmentObject(peer)
+                .environmentObject(clinicianGuidance)
                 .environmentObject(tracking)
         }
         .immersionStyle(selection: $immersionStyle, in: .mixed)
@@ -57,6 +74,7 @@ struct UpperLimbPOCApp: App {
         ImmersiveSpace(id: "JointProbeSpace") {
             JointProbeImmersiveView()
                 .environmentObject(tracking)
+                .environmentObject(clinicianGuidance)
         }
         .immersionStyle(selection: $probeImmersionStyle, in: .mixed)
     }

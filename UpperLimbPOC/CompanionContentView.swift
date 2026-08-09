@@ -5,37 +5,166 @@ import UIKit
 struct CompanionContentView: View {
     @EnvironmentObject private var overlay: OverlayState
     @EnvironmentObject private var peer: PeerSession
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @EnvironmentObject private var guidanceSession: ClinicianGuidanceSession
 
     var body: some View {
         NavigationStack {
-            Group {
-                if horizontalSizeClass == .compact {
-                    VStack(spacing: 16) {
-                        preview
-                            .frame(height: 220)
-                        controlPanel
+            ForearmGuidanceScreen(
+                state: guidanceSession.clinicianGuidanceState,
+                actions: guidanceSession.actionSet
+            )
+            .navigationTitle("Forearm Guidance")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink {
+                        SetupDiagnosticsScreen()
+                    } label: {
+                        Label(
+                            "Setup & Diagnostics",
+                            systemImage: "wrench.and.screwdriver"
+                        )
                     }
-                } else {
-                    HStack(spacing: 24) {
-                        preview
-                        controlPanel
-                            .frame(maxWidth: 480)
-                    }
+                    .accessibilityLabel("Setup and Diagnostics")
+                    .accessibilityHint(
+                        "Opens placement calibration, appearance, sectional imaging, and the arm scanner."
+                    )
                 }
             }
-            .padding(24)
-            .navigationTitle(
-                horizontalSizeClass == .compact
-                    ? "Companion"
-                    : "Radiographic Companion"
-            )
         }
         .onAppear(perform: peer.start)
         .onReceive(peer.$lastSnapshot.compactMap { $0 }) { snapshot in
             overlay.applyCalibration(snapshot)
             recordSmokeSnapshot(snapshot)
         }
+    }
+
+    private func recordSmokeSnapshot(_ snapshot: OverlaySnapshot) {
+#if DEBUG
+        let defaults = UserDefaults.standard
+        defaults.set(snapshot.tintID, forKey: "SmokeLastTintID")
+        defaults.set(snapshot.opacity, forKey: "SmokeLastOpacity")
+        defaults.set(snapshot.sectionVisible, forKey: "SmokeLastSectionVisible")
+        defaults.set(snapshot.normalizedSlicePosition, forKey: "SmokeLastSectionPosition")
+        defaults.set(snapshot.sectionOpacity, forKey: "SmokeLastSectionOpacity")
+        defaults.set(snapshot.selectedSliceIndex, forKey: "SmokeLastSliceIndex")
+#endif
+    }
+}
+
+// MARK: - Forearm Guidance (default judge-demo screen)
+
+/// The clinician's primary screen. The diagram shows the AVP-confirmed
+/// applied state; controls show the clinician's desired state; a pending
+/// acknowledgment appears as an explicit in-flight indication.
+struct ForearmGuidanceScreen: View {
+    let state: ClinicianGuidanceClientState
+    let actions: ClinicianGuidanceActionSet
+
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    var body: some View {
+        Group {
+            if horizontalSizeClass == .compact {
+                compactLayout
+            } else {
+                regularLayout
+            }
+        }
+        .sensoryFeedback(.success, trigger: state.lastAcknowledgedAt)
+        .onChange(of: state.lastAcknowledgedAt) { _, newValue in
+            guard newValue != nil else { return }
+            AccessibilityNotification.Announcement(
+                "Vision Pro confirmed the change."
+            ).post()
+        }
+    }
+
+    /// iPhone portrait: one Form, one natural scroll.
+    private var compactLayout: some View {
+        Form {
+            statusSection
+            canvasSection
+            ClinicianControlPanel(state: state, actions: actions)
+            demoNoticeSection
+        }
+    }
+
+    /// iPad landscape / resizable windows: diagram beside controls.
+    private var regularLayout: some View {
+        HStack(spacing: 0) {
+            Form {
+                canvasSection
+                demoNoticeSection
+            }
+
+            Form {
+                statusSection
+                ClinicianControlPanel(state: state, actions: actions)
+            }
+            .frame(maxWidth: 440)
+        }
+    }
+
+    private var statusSection: some View {
+        Section {
+            ClinicianConnectionStatusView(
+                status: state.connectionStatus,
+                peerDisplayName: state.peerDisplayName,
+                lastAcknowledgedAt: state.lastAcknowledgedAt,
+                lastError: state.lastError,
+                retry: actions.retry
+            )
+        }
+    }
+
+    private var canvasSection: some View {
+        Section {
+            ClinicianForearmCanvas(
+                appliedState: state.appliedGuidanceState,
+                connectionStatus: state.connectionStatus,
+                isPendingAcknowledgment: state.pendingMessageID != nil
+            )
+            .padding(.vertical, 4)
+        } header: {
+            Text("Patient's Confirmed View")
+        }
+    }
+
+    private var demoNoticeSection: some View {
+        Section {
+        } footer: {
+            Text("Prototype visualization — not for diagnosis.")
+        }
+    }
+}
+
+// MARK: - Setup & Diagnostics (preserved calibration console)
+
+/// Secondary destination preserving the pre-existing calibration, appearance,
+/// sectional-imaging, and scanner tooling unchanged.
+private struct SetupDiagnosticsScreen: View {
+    @EnvironmentObject private var overlay: OverlayState
+    @EnvironmentObject private var peer: PeerSession
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    var body: some View {
+        Group {
+            if horizontalSizeClass == .compact {
+                VStack(spacing: 16) {
+                    preview
+                        .frame(height: 220)
+                    controlPanel
+                }
+            } else {
+                HStack(spacing: 24) {
+                    preview
+                    controlPanel
+                        .frame(maxWidth: 480)
+                }
+            }
+        }
+        .padding(24)
+        .navigationTitle("Setup & Diagnostics")
     }
 
     private var preview: some View {
@@ -292,18 +421,6 @@ struct CompanionContentView: View {
         sendCurrentState()
     }
 
-    private func recordSmokeSnapshot(_ snapshot: OverlaySnapshot) {
-#if DEBUG
-        let defaults = UserDefaults.standard
-        defaults.set(snapshot.tintID, forKey: "SmokeLastTintID")
-        defaults.set(snapshot.opacity, forKey: "SmokeLastOpacity")
-        defaults.set(snapshot.sectionVisible, forKey: "SmokeLastSectionVisible")
-        defaults.set(snapshot.normalizedSlicePosition, forKey: "SmokeLastSectionPosition")
-        defaults.set(snapshot.sectionOpacity, forKey: "SmokeLastSectionOpacity")
-        defaults.set(snapshot.selectedSliceIndex, forKey: "SmokeLastSliceIndex")
-#endif
-    }
-
     private func swiftUIColor(for tint: OverlayTint) -> Color {
         let rgb = tint.rgb
         return Color(red: rgb.red, green: rgb.green, blue: rgb.blue)
@@ -363,5 +480,25 @@ private struct USDZPreview: UIViewRepresentable {
                 material.diffuse.contents = color
             }
         }
+    }
+}
+
+#Preview("Forearm Guidance — connected") {
+    NavigationStack {
+        ForearmGuidanceScreen(
+            state: .previewConnected,
+            actions: .previewInert
+        )
+        .navigationTitle("Forearm Guidance")
+    }
+}
+
+#Preview("Forearm Guidance — disconnected") {
+    NavigationStack {
+        ForearmGuidanceScreen(
+            state: .previewDisconnected,
+            actions: .previewInert
+        )
+        .navigationTitle("Forearm Guidance")
     }
 }

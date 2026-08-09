@@ -14,6 +14,7 @@ final class PeerSession: ObservableObject, @unchecked Sendable {
     @Published private(set) var lastSnapshot: OverlaySnapshot?
     @Published private(set) var lastJointFrame: UpperLimbJointFrame?
     @Published private(set) var lastJointFrameReceivedAtMonotonic: TimeInterval?
+    @Published private(set) var lastClinicianGuidanceMessage: ClinicianGuidanceMessage?
 
     private let role: Role
     private let queue = DispatchQueue(label: "com.marcel.upperlimbpoc.peer")
@@ -24,6 +25,7 @@ final class PeerSession: ObservableObject, @unchecked Sendable {
     private var reconnectWorkItem: DispatchWorkItem?
     private var receiveBuffer = Data()
     private var hasStarted = false
+    private weak var clinicianGuidanceDelegate: PeerSessionClinicianGuidanceDelegate?
 
     init(role: Role) {
         self.role = role
@@ -51,6 +53,22 @@ final class PeerSession: ObservableObject, @unchecked Sendable {
         queue.async { [weak self] in
             self?.stopOnQueue()
         }
+    }
+
+    func restart() {
+        queue.async { [weak self] in
+            guard let self else { return }
+            self.stopOnQueue()
+            self.startOnQueue()
+        }
+    }
+
+    @MainActor
+    func setClinicianGuidanceDelegate(
+        _ delegate: PeerSessionClinicianGuidanceDelegate?
+    ) {
+        clinicianGuidanceDelegate = delegate
+        delegate?.peerSession(self, connectionChanged: isConnected)
     }
 
     private func stopOnQueue() {
@@ -84,6 +102,14 @@ final class PeerSession: ObservableObject, @unchecked Sendable {
             sendPacket(try UpperLimbPeerWireCodec.encode(frame))
         } catch {
             publish(status: "Joint-frame encode failed", connected: false)
+        }
+    }
+
+    func send(_ message: ClinicianGuidanceMessage) {
+        do {
+            sendPacket(try UpperLimbPeerWireCodec.encode(message))
+        } catch {
+            publish(status: "Guidance encode failed", connected: isConnected)
         }
     }
 
@@ -278,6 +304,14 @@ final class PeerSession: ObservableObject, @unchecked Sendable {
                 case .jointFrame(let frame):
                     self?.lastJointFrame = frame
                     self?.lastJointFrameReceivedAtMonotonic = ProcessInfo.processInfo.systemUptime
+                case .clinicianGuidance(let message):
+                    self?.lastClinicianGuidanceMessage = message
+                    if let self {
+                        self.clinicianGuidanceDelegate?.peerSession(
+                            self,
+                            received: message
+                        )
+                    }
                 }
             }
         }
@@ -285,8 +319,16 @@ final class PeerSession: ObservableObject, @unchecked Sendable {
 
     private func publish(status: String, connected: Bool) {
         DispatchQueue.main.async { [weak self] in
-            self?.status = status
-            self?.isConnected = connected
+            guard let self else { return }
+            let connectionChanged = self.isConnected != connected
+            self.status = status
+            self.isConnected = connected
+            if connectionChanged {
+                self.clinicianGuidanceDelegate?.peerSession(
+                    self,
+                    connectionChanged: connected
+                )
+            }
         }
     }
 }
