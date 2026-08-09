@@ -62,6 +62,11 @@ rg -q 'Gaze-targeted interaction' "$PROJECT_DIR/UpperLimbPOC/ContentView.swift"
 rg -q 'AccessibilityComponent' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
 rg -q 'AccessibilityEvents.Activate' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
 rg -q 'NSHandsTrackingUsageDescription' "$PROJECT_DIR/UpperLimbPOC/InfoVision.plist"
+rg -q 'AppleFoundationModelClient.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -Fq '#available(visionOS 26.0, *)' "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/AppleFoundationModelClient.swift"
+rg -q 'SystemLanguageModel.default' "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/AppleFoundationModelClient.swift"
+rg -q 'supportsLocale' "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/AppleFoundationModelClient.swift"
+rg -q '\-\-assistant-on-device-smoke' "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/MedicalAssistantView.swift"
 test "$(plutil -extract UIApplicationSceneManifest.UIApplicationSupportsMultipleScenes raw "$PROJECT_DIR/UpperLimbPOC/InfoVision.plist")" = true
 rg -q 'HandTrackingProvider' "$PROJECT_DIR/UpperLimbPOC/LandmarkTrackingService.swift"
 rg -q 'func startHandJointProbe' "$PROJECT_DIR/UpperLimbPOC/LandmarkTrackingService.swift"
@@ -279,6 +284,17 @@ xcrun swiftc \
     "$PROJECT_DIR/Tools/PhysicalAcceptanceMetrics.swift" \
     -o "$BUILD_ROOT/physical-acceptance-metrics"
 "$BUILD_ROOT/physical-acceptance-metrics" --self-test
+
+echo "[8a/14] Checking medical-assistant safety and retrieval contracts"
+xcrun swiftc \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/MedicalAssistantModels.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/MedicalKnowledgeRepository.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/MedicalSafetyPolicy.swift" \
+    "$PROJECT_DIR/Tools/MedicalAssistantContractCheck.swift" \
+    -o "$BUILD_ROOT/medical-assistant-contract-check"
+"$BUILD_ROOT/medical-assistant-contract-check" "$PROJECT_DIR"
 
 echo "[9/14] Clean-building Vision Pro simulator target"
 run_xcode_stage "$BUILD_ROOT/vision-build.log" \

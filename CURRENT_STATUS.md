@@ -1,10 +1,33 @@
 # Current development status
 
-Last verified: 2026-08-08
+Last verified: 2026-08-09
 
 ## Feature
 
-The active vertical slice is `UL-SELF-ARM-001`: a wearer-only Apple Vision Pro
+The active vertical slice is `MED-ASSIST-001`: an independent, text-first
+medical-education assistant for the Vision Pro app. It supports patient and
+clinician language modes, bounded session context, optional protected local
+memory, deterministic anatomy context, locally retrieved public reference
+excerpts, citation allow-listing, and local privacy/emergency handling.
+
+The assistant is educational only. It cannot diagnose, prescribe, provide
+patient-specific treatment, inspect the wearer, receive images/DICOM/tracking
+coordinates, or mutate anatomy and tracking state. The direct provider
+connection is limited to this development POC; distribution requires a
+team-owned backend proxy.
+
+Apple Intelligence through Foundation Models is now the default provider for a
+new installation. It is explicit, device-local, and guarded to visionOS 26+;
+the user may explicitly select GPT-5.4 Cloud instead. A provider failure never
+silently changes the selected route.
+
+The previous `UL-SELF-ARM-001` wearer-only overlay remains implemented and its
+physical articulated-overlay retest remains open. The assistant work does not
+change that renderer or its tracking contracts.
+
+## Previous tracking slice
+
+`UL-SELF-ARM-001` is a wearer-only Apple Vision Pro
 overlay driven directly by ARKit `HandTrackingProvider` data. The primary flow
 is deliberately small:
 
@@ -26,8 +49,9 @@ GitHub feature branch baseline before this checkpoint:
 
 ## Environment
 
-- Xcode 27.0 beta (`27A5228h`)
-- Swift 6.4 compiler; project source mode Swift 5
+- Xcode 26.6 (`17F113`) currently used for assistant verification; the earlier
+  tracking checkpoint used Xcode 27.0 beta (`27A5228h`)
+- Swift 6.3.3 compiler in the current Xcode; project source mode Swift 5
 - visionOS deployment target 2.0 with guarded newer APIs
 - iOS deployment target 18.0
 - visionOS 27 and iPadOS 27 simulators installed
@@ -35,6 +59,33 @@ GitHub feature branch baseline before this checkpoint:
   trials; CoreDevice was unavailable for the latest articulated-build install
 
 ## Evidence
+
+- `[AUTO]` The medical-assistant contract checks pass for multilingual local
+  retrieval, identifier rejection, urgent local response, scope boundaries,
+  citation allow-listing, safe Markdown rendering, secret absence, and spatial
+  transform absence.
+- `[BUILD]` The medical assistant compiles for the Vision simulator with the
+  existing overlay app. Foundation Models weak-links correctly while the
+  project deployment target remains visionOS 2.0; the iOS companion remains
+  isolated from assistant code.
+- `[SIM]` The signed Vision simulator app automatically opened one assistant
+  window, stored its development credential in Keychain, and returned a
+  grounded Radius answer with `[S1]` using `gpt-5.4`.
+- `[SOURCE]` `gpt-5.4` returned a successful authenticated provider probe on
+  2026-08-09. `gpt-5.6-luna` was unavailable and is not the configured default.
+- `[SIM]` The visionOS 26.5 simulator does not contain Apple Intelligence
+  generation assets. The app now identifies the simulator before calling
+  Foundation Models, reports that a physical Vision Pro is required, and offers
+  an explicit provider-selection path without cloud fallback.
+- `[BLOCKED]` Physical Vision Pro comfort, window placement, dictation/text
+  entry, cancellation, persistence/relaunch, and error-recovery review remain
+  pending.
+- `[BLOCKED]` Current AHPedia excerpts and the adversarial prompt set still need
+  approval by a named clinical reviewer.
+- `[BLOCKED]` A physical Vision Pro running visionOS 26 or later must have Apple
+  Intelligence enabled and its local model downloaded before the on-device
+  generation, Chinese/English locale behavior, latency, cancellation, and
+  offline use can be accepted.
 
 - `[DEVICE][HUMAN]` Marcel confirmed that wearer hand, finger, wrist, and
   forearm markers appeared and followed movement on physical Vision Pro.
@@ -59,7 +110,21 @@ GitHub feature branch baseline before this checkpoint:
 
 ## Active next slice
 
-Complete the physical retest of the latest AVP build:
+Complete `MED-ASSIST-001` acceptance on a physical Vision Pro:
+
+1. open the app and confirm exactly one assistant window appears nearby;
+2. compare the same anatomy question in Patient and Clinician modes;
+3. ask a follow-up without repeating the anatomy name and confirm context;
+4. verify clear, optional persistence/relaunch, cancellation, and retry;
+5. force offline and provider-error states and verify recovery wording;
+6. review window placement, text entry, accessibility, comfort, and citations;
+7. enable Apple Intelligence on the headset, verify an on-device English and
+   Chinese anatomy response, then switch explicitly to GPT-5.4 Cloud and verify
+   the route does not change automatically;
+8. have a named clinical reviewer approve or revise the reference excerpts and
+   adversarial prompt set.
+
+Then complete the preserved articulated-overlay physical retest:
 
 1. reinstall when the Vision Pro is awake, unlocked, trusted, and connected;
 2. pinch **Open wearer arm overlay**;
@@ -73,7 +138,8 @@ No 30-second continuity run is required for this acceptance slice.
 
 ## Human gate
 
-The current commit may be published to the draft PR as an implementation
-checkpoint. It must not be merged to `main` until Marcel completes the physical
-articulated-overlay retest and no blocking registration or movement defect is
-observed.
+The assistant is an implementation checkpoint, not a medically reviewed
+feature. Do not present it externally as clinical advice or ship the direct
+provider credential architecture. Merge remains gated on Marcel's physical UI
+review, the preserved articulated-overlay retest, and named clinical approval
+of the assistant corpus and safety evaluation.

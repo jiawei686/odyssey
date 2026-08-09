@@ -3,6 +3,7 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject private var overlay: OverlayState
     @EnvironmentObject private var peer: PeerSession
+    @EnvironmentObject private var assistantWindow: AssistantWindowCoordinator
     @Environment(\.openImmersiveSpace) private var openImmersiveSpace
     @Environment(\.openWindow) private var openWindow
     @Environment(\.dismissWindow) private var dismissWindow
@@ -97,6 +98,16 @@ struct ContentView: View {
                 .padding(28)
             }
             .navigationTitle("Wearer Arm Overlay")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        openMedicalAssistant()
+                    } label: {
+                        Image(systemName: "message.fill")
+                    }
+                    .help("Open medical education assistant")
+                }
+            }
             .navigationDestination(
                 isPresented: Binding(
                     get: { jointProbeRoute.isPresented },
@@ -108,6 +119,10 @@ struct ContentView: View {
         }
         .onAppear(perform: peer.start)
         .task {
+            if !ProcessInfo.processInfo.arguments.contains("--automated-demo"),
+               assistantWindow.claimAutomaticPresentation() {
+                openWindow(id: "MedicalAssistant", value: AssistantWindowRoute.primary)
+            }
             await runAutomatedDemoIfRequested()
         }
         .onReceive(peer.$lastSnapshot.compactMap { $0 }) { snapshot in
@@ -117,6 +132,11 @@ struct ContentView: View {
             guard isConnected else { return }
             peer.send(overlay.snapshot)
         }
+    }
+
+    private func openMedicalAssistant() {
+        guard !assistantWindow.isPresented else { return }
+        openWindow(id: "MedicalAssistant", value: AssistantWindowRoute.primary)
     }
 
     private var introduction: some View {
@@ -266,6 +286,7 @@ struct TrackingStatusView: View {
     @EnvironmentObject private var overlay: OverlayState
     @EnvironmentObject private var peer: PeerSession
     @EnvironmentObject private var tracking: LandmarkTrackingService
+    @EnvironmentObject private var assistantWindow: AssistantWindowCoordinator
     @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
     @Environment(\.openWindow) private var openWindow
     @Environment(\.dismissWindow) private var dismissWindow
@@ -478,6 +499,12 @@ struct TrackingStatusView: View {
                     }
                     .buttonStyle(.bordered)
                 }
+
+                Button("Open medical assistant", systemImage: "message.fill") {
+                    guard !assistantWindow.isPresented else { return }
+                    openWindow(id: "MedicalAssistant", value: AssistantWindowRoute.primary)
+                }
+                .buttonStyle(.bordered)
 
                 Button("Return to anatomy library", systemImage: "rectangle.portrait.and.arrow.forward") {
                     Task {

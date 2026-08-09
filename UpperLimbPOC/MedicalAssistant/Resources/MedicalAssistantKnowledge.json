@@ -1,0 +1,75 @@
+{
+  "version": "2026-08-09-prototype-1",
+  "entries": [
+    {
+      "id": "odyssey-radius",
+      "title": "Radius anatomy in the bundled educational model",
+      "publisher": "Odyssey project anatomy metadata",
+      "urlString": null,
+      "lastVerified": "2026-08-09",
+      "reviewStatus": "Existing project metadata; clinical review pending",
+      "keywords": ["radius", "forearm", "thumb side", "pronation", "supination", "桡骨", "前臂"],
+      "excerpt": "The radius is the lateral forearm bone on the thumb side. In the bundled educational description, it rotates around the ulna during pronation and supination."
+    },
+    {
+      "id": "odyssey-ulna",
+      "title": "Ulna anatomy in the bundled educational model",
+      "publisher": "Odyssey project anatomy metadata",
+      "urlString": null,
+      "lastVerified": "2026-08-09",
+      "reviewStatus": "Existing project metadata; clinical review pending",
+      "keywords": ["ulna", "forearm", "little finger side", "elbow", "尺骨", "肘", "前臂"],
+      "excerpt": "The ulna is the medial forearm bone on the little-finger side. Its proximal end forms the main hinge of the elbow in the bundled educational description."
+    },
+    {
+      "id": "odyssey-hand-bones",
+      "title": "Hand and wrist structures in the bundled model",
+      "publisher": "Odyssey project anatomy metadata",
+      "urlString": null,
+      "lastVerified": "2026-08-09",
+      "reviewStatus": "Existing project metadata; clinical review pending",
+      "keywords": ["carpal", "metacarpal", "phalanx", "hand", "wrist", "腕骨", "掌骨", "指骨", "手腕"],
+      "excerpt": "The educational model contains eight carpal bones, five metacarpals, and finger phalanges. Most fingers have proximal, middle, and distal phalanges; the thumb has two phalanges."
+    },
+    {
+      "id": "odyssey-scaphoid",
+      "title": "Scaphoid anatomy in the bundled educational model",
+      "publisher": "Odyssey project anatomy metadata",
+      "urlString": null,
+      "lastVerified": "2026-08-09",
+      "reviewStatus": "Existing project metadata; clinical review pending",
+      "keywords": ["scaphoid", "carpal", "wrist fracture", "thumb side", "舟骨", "腕部骨折"],
+      "excerpt": "The scaphoid is a proximal-row carpal bone on the thumb side and is a common site of wrist fracture. This statement is educational and does not assess an individual injury."
+    },
+    {
+      "id": "ahpedia-physiotherapy-scope",
+      "title": "Do physiotherapists only treat injuries?",
+      "publisher": "SGH AHPedia on AskGov",
+      "urlString": "https://ask.gov.sg/sgh-ahpedia/questions/cmq5xguds00fs4f01g7ny8yxa",
+      "lastVerified": "2026-08-09",
+      "reviewStatus": "Public AHPedia answer; app clinical review pending",
+      "keywords": ["physiotherapist", "physiotherapy", "injury", "mobility", "rehabilitation", "物理治疗", "康复", "损伤"],
+      "excerpt": "AHPedia explains that physiotherapists do more than treat injuries: they can help manage long-term conditions, improve mobility, prevent future problems, and support physical performance and independence."
+    },
+    {
+      "id": "ahpedia-dysphagia",
+      "title": "Do I have a swallowing problem?",
+      "publisher": "SGH AHPedia on AskGov",
+      "urlString": "https://ask.gov.sg/sgh-ahpedia/questions/cmeqy6tq900n5f2j167ord4do",
+      "lastVerified": "2026-08-09",
+      "reviewStatus": "Public AHPedia answer; app clinical review pending",
+      "keywords": ["swallowing", "dysphagia", "aspiration", "food", "fluid", "吞咽", "吞咽困难", "误吸"],
+      "excerpt": "AHPedia defines dysphagia as difficulty swallowing. It notes that food or fluid entering the airway can cause aspiration and may lead to chest infection, so an individual concern needs professional assessment."
+    },
+    {
+      "id": "ahpedia-psychology-session",
+      "title": "What do I do during my psychology session?",
+      "publisher": "SGH AHPedia on AskGov",
+      "urlString": "https://ask.gov.sg/sgh-ahpedia/questions/cmiimraal000kgg807izjubnu",
+      "lastVerified": "2026-08-09",
+      "reviewStatus": "Public AHPedia answer; app clinical review pending",
+      "keywords": ["psychologist", "psychology", "therapy session", "mental health", "心理咨询", "心理治疗"],
+      "excerpt": "AHPedia advises that it is acceptable not to have every answer prepared for a psychology session and encourages honest, open discussion with the psychologist, including thoughts or feelings that may be uncomfortable."
+    }
+  ]
+}

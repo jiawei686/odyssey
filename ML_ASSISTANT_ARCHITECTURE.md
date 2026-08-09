@@ -4,6 +4,21 @@
 
 Keep the current elbow/wrist markers for the prototype. Add markerless recognition only as a separately measured research track. The headset cannot optically identify a bone beneath intact skin; it can estimate surface landmarks or a body region and then register a known anatomical model. Patient-specific bone identity and geometry must come from registered CT/MRI segmentation, not an RGB inference or an LLM.
 
+As of 2026-08-09, the first text assistant is implemented as an independent
+visionOS window. It consumes a read-only semantic anatomy context, uses bounded
+conversation history, retrieves versioned local reference excerpts, and
+allow-lists citations. Current SGH AHPedia summaries and anatomy descriptions
+are prototype sources pending named clinical review. The assistant has no tool
+or state path that can mutate tracking, registration, or rendering.
+
+The assistant now supports two explicit inference providers. Apple Intelligence
+uses the visionOS 26 Foundation Models framework on-device and is the default
+for a new installation when the device, Apple Intelligence setting, downloaded
+model, and current locale are eligible. GPT-5.4 remains a manually selected
+cloud option. Provider unavailability never triggers a silent cloud fallback.
+Both paths receive the same local safety policy, semantic anatomy context, and
+retrieved excerpts; neither receives spatial tracking or patient data.
+
 ## Platform constraint
 
 Apple documents that ARKit whole-body tracking is not available on visionOS. Standard visionOS apps can use world, hand, image, plane, scene-reconstruction, and object tracking. Processing forward-camera frames requires the business-only Main Camera Access enterprise entitlement. Therefore a general consumer build cannot assume continuous camera-frame access for a custom body-pose model.

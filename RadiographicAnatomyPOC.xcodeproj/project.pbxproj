@@ -59,6 +59,16 @@
 		000000000000000000000093 /* pose_estimation_mediapipe_2023mar.onnx in Resources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000B3 /* pose_estimation_mediapipe_2023mar.onnx */; };
 		000000000000000000000094 /* palm_detection_mediapipe_2023feb.onnx in Resources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000B4 /* palm_detection_mediapipe_2023feb.onnx */; };
 		000000000000000000000095 /* handpose_estimation_mediapipe_2023feb.onnx in Resources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000B5 /* handpose_estimation_mediapipe_2023feb.onnx */; };
+		0000000000000000000000C0 /* MedicalAssistantModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000D0 /* MedicalAssistantModels.swift */; };
+		0000000000000000000000C1 /* MedicalAssistantConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000D1 /* MedicalAssistantConfiguration.swift */; };
+		0000000000000000000000C2 /* OpenAICompatibleClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000D2 /* OpenAICompatibleClient.swift */; };
+		0000000000000000000000C3 /* AssistantConversationRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000D3 /* AssistantConversationRepository.swift */; };
+		0000000000000000000000C4 /* MedicalKnowledgeRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000D4 /* MedicalKnowledgeRepository.swift */; };
+		0000000000000000000000C5 /* MedicalSafetyPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000D5 /* MedicalSafetyPolicy.swift */; };
+		0000000000000000000000C6 /* MedicalAssistantStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000D6 /* MedicalAssistantStore.swift */; };
+		0000000000000000000000C7 /* MedicalAssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000D7 /* MedicalAssistantView.swift */; };
+		0000000000000000000000C8 /* MedicalAssistantKnowledge.json in Resources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000D8 /* MedicalAssistantKnowledge.json */; };
+		0000000000000000000000C9 /* AppleFoundationModelClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000D9 /* AppleFoundationModelClient.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -111,6 +121,16 @@
 		0000000000000000000000B3 /* pose_estimation_mediapipe_2023mar.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; path = BodyScannerModels/pose_estimation_mediapipe_2023mar.onnx; sourceTree = "<group>"; };
 		0000000000000000000000B4 /* palm_detection_mediapipe_2023feb.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; path = BodyScannerModels/palm_detection_mediapipe_2023feb.onnx; sourceTree = "<group>"; };
 		0000000000000000000000B5 /* handpose_estimation_mediapipe_2023feb.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; path = BodyScannerModels/handpose_estimation_mediapipe_2023feb.onnx; sourceTree = "<group>"; };
+		0000000000000000000000D0 /* MedicalAssistantModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicalAssistantModels.swift; sourceTree = "<group>"; };
+		0000000000000000000000D1 /* MedicalAssistantConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicalAssistantConfiguration.swift; sourceTree = "<group>"; };
+		0000000000000000000000D2 /* OpenAICompatibleClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAICompatibleClient.swift; sourceTree = "<group>"; };
+		0000000000000000000000D3 /* AssistantConversationRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantConversationRepository.swift; sourceTree = "<group>"; };
+		0000000000000000000000D4 /* MedicalKnowledgeRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicalKnowledgeRepository.swift; sourceTree = "<group>"; };
+		0000000000000000000000D5 /* MedicalSafetyPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicalSafetyPolicy.swift; sourceTree = "<group>"; };
+		0000000000000000000000D6 /* MedicalAssistantStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicalAssistantStore.swift; sourceTree = "<group>"; };
+		0000000000000000000000D7 /* MedicalAssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicalAssistantView.swift; sourceTree = "<group>"; };
+		0000000000000000000000D8 /* MedicalAssistantKnowledge.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = MedicalAssistantKnowledge.json; sourceTree = "<group>"; };
+		0000000000000000000000D9 /* AppleFoundationModelClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleFoundationModelClient.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -154,6 +174,7 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000010 /* UpperLimbPOCApp.swift */,
+				0000000000000000000000E0 /* MedicalAssistant */,
 				000000000000000000000011 /* ContentView.swift */,
 				000000000000000000000012 /* ImmersiveView.swift */,
 				000000000000000000000013 /* OverlayState.swift */,
@@ -209,6 +230,31 @@
 				000000000000000000000075 /* README.md */,
 			);
 			path = ReferenceSlices;
+			sourceTree = "<group>";
+		};
+		0000000000000000000000E0 /* MedicalAssistant */ = {
+			isa = PBXGroup;
+			children = (
+				0000000000000000000000D0 /* MedicalAssistantModels.swift */,
+				0000000000000000000000D1 /* MedicalAssistantConfiguration.swift */,
+				0000000000000000000000D2 /* OpenAICompatibleClient.swift */,
+				0000000000000000000000D3 /* AssistantConversationRepository.swift */,
+				0000000000000000000000D4 /* MedicalKnowledgeRepository.swift */,
+				0000000000000000000000D5 /* MedicalSafetyPolicy.swift */,
+				0000000000000000000000D6 /* MedicalAssistantStore.swift */,
+				0000000000000000000000D7 /* MedicalAssistantView.swift */,
+				0000000000000000000000D9 /* AppleFoundationModelClient.swift */,
+				0000000000000000000000E1 /* Resources */,
+			);
+			path = MedicalAssistant;
+			sourceTree = "<group>";
+		};
+		0000000000000000000000E1 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				0000000000000000000000D8 /* MedicalAssistantKnowledge.json */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -291,6 +337,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				000000000000000000000024 /* hand-to-elbow-overlay.usdz in Resources */,
+				0000000000000000000000C8 /* MedicalAssistantKnowledge.json in Resources */,
 				00000000000000000000002E /* Markers/elbow-marker.png in Resources */,
 				00000000000000000000002F /* Markers/wrist-marker.png in Resources */,
 				000000000000000000000060 /* reference-forearm-01.png in Resources */,
@@ -322,6 +369,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				000000000000000000000020 /* UpperLimbPOCApp.swift in Sources */,
+				0000000000000000000000C0 /* MedicalAssistantModels.swift in Sources */,
+				0000000000000000000000C1 /* MedicalAssistantConfiguration.swift in Sources */,
+				0000000000000000000000C2 /* OpenAICompatibleClient.swift in Sources */,
+				0000000000000000000000C3 /* AssistantConversationRepository.swift in Sources */,
+				0000000000000000000000C4 /* MedicalKnowledgeRepository.swift in Sources */,
+				0000000000000000000000C5 /* MedicalSafetyPolicy.swift in Sources */,
+				0000000000000000000000C6 /* MedicalAssistantStore.swift in Sources */,
+				0000000000000000000000C7 /* MedicalAssistantView.swift in Sources */,
+				0000000000000000000000C9 /* AppleFoundationModelClient.swift in Sources */,
 				000000000000000000000021 /* ContentView.swift in Sources */,
 				000000000000000000000022 /* ImmersiveView.swift in Sources */,
 				000000000000000000000023 /* OverlayState.swift in Sources */,

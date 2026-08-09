@@ -15,6 +15,33 @@ this repository. Together these files keep product scope, evidence,
 physical-device gates, coordinate contracts, and safety claims consistent
 across development sessions.
 
+## Version 4: medical education assistant
+
+- Opening the Vision app requests a separate medical-education chat window that
+  remains independent of the mixed-reality renderer.
+- Patient and clinician modes share bounded conversational context while using
+  different reading levels. Optional cross-launch memory is local and off by
+  default.
+- The default provider is Apple Intelligence through the Foundation Models
+  framework on eligible visionOS 26+ devices. It runs on-device without an API
+  key or network request and checks model and locale availability at runtime.
+- GPT-5.4 remains an explicit cloud option. The app never silently falls back
+  from Apple Intelligence to the cloud; the user must select the cloud provider.
+- The assistant receives only the selected region, laterality, and semantic
+  anatomy name. It cannot access tracking transforms, images, DICOM, or overlay
+  controls and cannot provide diagnosis or patient-specific treatment.
+- The OpenAI-compatible cloud client uses `https://api.xcode.best/v1/` with
+  `gpt-5.4`. Its API key is entered in-app and stored in Keychain; no key is
+  committed or bundled.
+- A versioned local corpus retrieves existing anatomy metadata and selected SGH
+  AHPedia summaries. Citations are allow-listed and every current entry remains
+  visibly marked as pending app clinical review.
+- Privacy screening rejects common identifiers, and urgent phrases produce a
+  local emergency response without waiting for the external model.
+
+Architecture, setup, provider status, safety limitations, and the future avatar
+contract are documented in `MEDICAL_ASSISTANT.md`.
+
 ## Version 3: reference sectional imaging
 
 Version 3 adds a five-level axial forearm CT reference plane to the mixed-reality overlay:
@@ -36,7 +63,7 @@ The CT slices, AnatomyTOOL 3D mesh, and live participant come from different ana
 - On visionOS 26 or later, turn marker following and transform lock off to pinch-drag and uniformly resize the overlay. Released placement is clamped to the companion ranges and sent back to it.
 - Single-pinch a bone to identify its semantic anatomy entity. Double-pinch the overlay to switch between the available 3D-bone and 3D-plus-axial modes.
 - In axial mode, a vertical WRIST-to-ELBOW level bar appears in the side status panel; dragging it moves the plane continuously, selects the nearest of five slices, and synchronizes the companion.
-- The status window provides curated anatomy guidance from model metadata. It is not yet a generative LLM or markerless bone detector.
+- The status window continues to provide deterministic anatomy guidance. A separate medical-education window can explain that semantic selection through a bounded LLM interface; it remains non-diagnostic and is not a markerless detector.
 
 The markerless ML and LLM design, data boundaries, and verification gates are in `ML_ASSISTANT_ARCHITECTURE.md`.
 
@@ -161,6 +188,12 @@ Xcode 27 build patch.
 3. Select the `UpperLimbPOC` scheme and an Apple Vision Pro simulator, then press Run.
 4. Wait for both apps to show **Connected**.
 5. In the Vision Pro region library, select **Left Forearm & Hand** or **Right Forearm & Hand**, then choose **Open overlay**. The library window closes so only the bone remains in mixed reality.
+
+Apple Intelligence generation is unavailable in the Vision Pro Simulator because
+the simulator does not contain the on-device model. For simulator chat testing,
+open the assistant settings and explicitly select **GPT-5.4 Cloud**. Test the
+Apple Intelligence provider only on a physical Vision Pro with Apple
+Intelligence enabled and its model download complete.
    A compact tracking-status window remains visible alongside the overlay.
 6. Enable **Reference sectional-imaging plane** before opening the overlay, or control it later from the companion. Move the slice from elbow to wrist and adjust its opacity.
 7. Use the companion sliders to align the centred 0.42 m hand-to-elbow model, select a bone colour, and set opacity with the slider or 5% minus/plus controls, then press **Lock placement**. If the model is out of view or too faint, press **Centre & brighten** on the companion.
