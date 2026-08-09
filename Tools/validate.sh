@@ -134,6 +134,11 @@ test -f "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceWireCodec.swift"
 test -f "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceSyncEngine.swift"
 test -f "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceSession.swift"
 test -f "$PROJECT_DIR/UpperLimbPOC/AVPClinicianGuidanceSpatialMapper.swift"
+test -f "$PROJECT_DIR/UpperLimbPOC/AnatomicalAnnotationContract.swift"
+test -f "$PROJECT_DIR/UpperLimbPOC/AnatomicalAnnotationWireCodec.swift"
+test -f "$PROJECT_DIR/UpperLimbPOC/AnatomicalSurfaceProjection.swift"
+test -f "$PROJECT_DIR/UpperLimbPOC/GenericAnatomicalForearmPreview.swift"
+test -f "$PROJECT_DIR/docs/ANATOMICAL_LAYER_ANNOTATION.md"
 test -f "$PROJECT_DIR/docs/CLINICIAN_GUIDANCE_CONTRACT.md"
 test -f "$PROJECT_DIR/docs/CLAUDE_CODEX_WORKFLOW.md"
 rg -q 'ClinicianGuidanceProtocol.staleAfterSeconds' "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceContract.swift" "$PROJECT_DIR/Tools/ClinicianGuidanceContractCheck.swift"
@@ -145,6 +150,25 @@ rg -q 'ClinicianGuidancePreviewSupport.swift' "$PROJECT_DIR/RadiographicAnatomyP
 rg -q 'ClinicianGuidanceSyncEngine.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
 rg -q 'ClinicianGuidanceSession.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
 rg -q 'AVPClinicianGuidanceSpatialMapper.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -q 'AnatomicalAnnotationContract.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -q 'AnatomicalSurfaceProjection.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -Fq 'static let isEnabledByDefault = false' "$PROJECT_DIR/UpperLimbPOC/AnatomicalAnnotationContract.swift"
+rg -Fq 'Illustrative anatomical model — not patient-specific imaging.' \
+    "$PROJECT_DIR/UpperLimbPOC/AnatomicalAnnotationContract.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/GenericAnatomicalForearmPreview.swift" \
+    "$PROJECT_DIR/docs/ANATOMICAL_LAYER_ANNOTATION.md"
+rg -q 'case skin' "$PROJECT_DIR/UpperLimbPOC/AnatomicalAnnotationContract.swift"
+rg -q 'case subcutaneousFat' "$PROJECT_DIR/UpperLimbPOC/AnatomicalAnnotationContract.swift"
+rg -q 'case muscle' "$PROJECT_DIR/UpperLimbPOC/AnatomicalAnnotationContract.swift"
+rg -q 'case bone' "$PROJECT_DIR/UpperLimbPOC/AnatomicalAnnotationContract.swift"
+rg -q 'case floating' "$PROJECT_DIR/UpperLimbPOC/AnatomicalAnnotationContract.swift"
+if rg -qi 'freehand' \
+    "$PROJECT_DIR/UpperLimbPOC/AnatomicalAnnotationContract.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/AnatomicalSurfaceProjection.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/GenericAnatomicalForearmPreview.swift"; then
+    echo "Anatomical-layer foundation must remain point/circle only." >&2
+    exit 1
+fi
 rg -q 'avpRenderedGuidanceState' "$PROJECT_DIR/UpperLimbPOC/JointProbeImmersiveView.swift"
 test -f "$PROJECT_DIR/PRODUCT_DEVELOPMENT_DOCUMENT.md"
 test -f "$PROJECT_DIR/ML_ASSISTANT_ARCHITECTURE.md"
@@ -220,6 +244,31 @@ xcrun swiftc \
     "$PROJECT_DIR/Tools/ClinicianGuidanceSpatialCheck.swift" \
     -o "$BUILD_ROOT/clinician-guidance-spatial-check"
 "$BUILD_ROOT/clinician-guidance-spatial-check"
+
+xcrun swiftc \
+    -warnings-as-errors \
+    -strict-concurrency=complete \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceContract.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceWireCodec.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/AnatomicalAnnotationContract.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/AnatomicalAnnotationWireCodec.swift" \
+    "$PROJECT_DIR/Tools/AnatomicalAnnotationContractCheck.swift" \
+    -o "$BUILD_ROOT/anatomical-annotation-contract-check"
+"$BUILD_ROOT/anatomical-annotation-contract-check"
+
+xcrun swiftc \
+    -D DEBUG \
+    -warnings-as-errors \
+    -strict-concurrency=complete \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/AnatomicalAnnotationContract.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/AnatomicalSurfaceProjection.swift" \
+    "$PROJECT_DIR/Tools/AnatomicalSurfaceProjectionCheck.swift" \
+    -o "$BUILD_ROOT/anatomical-surface-projection-check"
+"$BUILD_ROOT/anatomical-surface-projection-check"
 
 xcrun swiftc \
     -parse-as-library \
