@@ -107,6 +107,7 @@ struct CTForearmVolumeRendererView: UIViewRepresentable {
 
         init(telemetry: CTVolumeRendererTelemetry) { self.telemetry = telemetry }
 
+        @MainActor
         func configure(_ view: MTKView) {
             let loadStart = CFAbsoluteTimeGetCurrent()
             do {
@@ -200,10 +201,10 @@ struct CTForearmVolumeRendererView: UIViewRepresentable {
 
             let submittedAt = CFAbsoluteTimeGetCurrent()
             let telemetry = self.telemetry
-            commandBuffer.addCompletedHandler { [weak telemetry] _ in
+            commandBuffer.addCompletedHandler { [telemetry] _ in
                 let milliseconds = (CFAbsoluteTimeGetCurrent() - submittedAt) * 1_000
-                DispatchQueue.main.async {
-                    telemetry?.recordCompletedFrame(milliseconds: milliseconds)
+                Task { @MainActor [telemetry] in
+                    telemetry.recordCompletedFrame(milliseconds: milliseconds)
                 }
             }
             commandBuffer.commit()
