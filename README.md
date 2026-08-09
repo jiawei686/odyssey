@@ -15,6 +15,24 @@ this repository. Together these files keep product scope, evidence,
 physical-device gates, coordinate contracts, and safety claims consistent
 across development sessions.
 
+## Clinician-guidance judge build (in progress)
+
+The current development branch freezes a versioned, semantic companion-to-AVP
+contract before the new companion presentation and spatial renderer are
+integrated. Judge controls are limited to bone visibility, one bounded
+proximal-to-distal fracture-marker position, one preset educational incision
+guide, clear guidance, and truthful desired/applied connection feedback.
+
+The contract preserves the raw `OverlaySnapshot` wire format for existing
+builds. It adds handshake/capability negotiation, typed desired and applied
+states, ACK, heartbeat/stale status, recoverable errors, and sequence/replay
+protection without transmitting pixels or ARKit transforms. See
+`docs/CLINICIAN_GUIDANCE_CONTRACT.md` and
+`docs/CLAUDE_CODEX_WORKFLOW.md`.
+
+Physical AVP behavior is DEVICE-PENDING / NOT VERIFIED. This generic educational
+POC is not patient-specific and is not procedural guidance.
+
 ## Version 4: medical education assistant
 
 - Opening the Vision app requests a separate medical-education chat window that

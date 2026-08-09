@@ -5,6 +5,7 @@ struct UpperLimbPeerWireCheck {
     static func main() throws {
         try legacySnapshotRemainsRawAndDecodable()
         try jointFrameUsesTaggedEnvelope()
+        try clinicianGuidanceUsesVersionedEnvelope()
         try unsupportedPayloadIsRejected()
         print("Upper-limb peer wire checks passed")
     }
@@ -49,6 +50,22 @@ struct UpperLimbPeerWireCheck {
             throw CheckFailure(message: "joint frame packet lost its type")
         }
         try require(decoded == frame, "joint frame must round-trip")
+    }
+
+    private static func clinicianGuidanceUsesVersionedEnvelope() throws {
+        let message = ClinicianGuidanceMessage(
+            sessionID: UUID(),
+            sequence: 1,
+            sentAt: Date(timeIntervalSince1970: 1_786_257_600),
+            payload: .desiredGuidance(
+                .set(.initial.settingFracturePosition(0.35))
+            )
+        )
+        let packet = try UpperLimbPeerWireCodec.encode(message)
+        guard case .clinicianGuidance(let decoded) = try UpperLimbPeerWireCodec.decode(packet) else {
+            throw CheckFailure(message: "clinician guidance lost its wire type")
+        }
+        try require(decoded == message, "clinician guidance must round-trip")
     }
 
     private static func unsupportedPayloadIsRejected() throws {

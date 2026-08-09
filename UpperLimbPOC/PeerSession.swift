@@ -14,6 +14,7 @@ final class PeerSession: ObservableObject, @unchecked Sendable {
     @Published private(set) var lastSnapshot: OverlaySnapshot?
     @Published private(set) var lastJointFrame: UpperLimbJointFrame?
     @Published private(set) var lastJointFrameReceivedAtMonotonic: TimeInterval?
+    @Published private(set) var lastClinicianGuidanceMessage: ClinicianGuidanceMessage?
 
     private let role: Role
     private let queue = DispatchQueue(label: "com.marcel.upperlimbpoc.peer")
@@ -278,6 +279,8 @@ final class PeerSession: ObservableObject, @unchecked Sendable {
                 case .jointFrame(let frame):
                     self?.lastJointFrame = frame
                     self?.lastJointFrameReceivedAtMonotonic = ProcessInfo.processInfo.systemUptime
+                case .clinicianGuidance(let message):
+                    self?.lastClinicianGuidanceMessage = message
                 }
             }
         }

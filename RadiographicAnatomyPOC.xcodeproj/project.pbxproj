@@ -69,6 +69,14 @@
 		0000000000000000000000C7 /* MedicalAssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000D7 /* MedicalAssistantView.swift */; };
 		0000000000000000000000C8 /* MedicalAssistantKnowledge.json in Resources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000D8 /* MedicalAssistantKnowledge.json */; };
 		0000000000000000000000C9 /* AppleFoundationModelClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000D9 /* AppleFoundationModelClient.swift */; };
+		0000000000000000000000F6 /* ClinicianGuidanceContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000F0 /* ClinicianGuidanceContract.swift */; };
+		0000000000000000000000F7 /* ClinicianGuidanceContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000F0 /* ClinicianGuidanceContract.swift */; };
+		0000000000000000000000F8 /* ClinicianGuidanceWireCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000F1 /* ClinicianGuidanceWireCodec.swift */; };
+		0000000000000000000000F9 /* ClinicianGuidanceWireCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000F1 /* ClinicianGuidanceWireCodec.swift */; };
+		0000000000000000000000FA /* ClinicianConnectionStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000F2 /* ClinicianConnectionStatusView.swift */; };
+		0000000000000000000000FB /* ClinicianForearmCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000F3 /* ClinicianForearmCanvas.swift */; };
+		0000000000000000000000FC /* ClinicianControlPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000F4 /* ClinicianControlPanel.swift */; };
+		0000000000000000000000FD /* ClinicianGuidancePreviewSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000F5 /* ClinicianGuidancePreviewSupport.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -131,6 +139,12 @@
 		0000000000000000000000D7 /* MedicalAssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicalAssistantView.swift; sourceTree = "<group>"; };
 		0000000000000000000000D8 /* MedicalAssistantKnowledge.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = MedicalAssistantKnowledge.json; sourceTree = "<group>"; };
 		0000000000000000000000D9 /* AppleFoundationModelClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleFoundationModelClient.swift; sourceTree = "<group>"; };
+		0000000000000000000000F0 /* ClinicianGuidanceContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicianGuidanceContract.swift; sourceTree = "<group>"; };
+		0000000000000000000000F1 /* ClinicianGuidanceWireCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicianGuidanceWireCodec.swift; sourceTree = "<group>"; };
+		0000000000000000000000F2 /* ClinicianConnectionStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicianConnectionStatusView.swift; sourceTree = "<group>"; };
+		0000000000000000000000F3 /* ClinicianForearmCanvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicianForearmCanvas.swift; sourceTree = "<group>"; };
+		0000000000000000000000F4 /* ClinicianControlPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicianControlPanel.swift; sourceTree = "<group>"; };
+		0000000000000000000000F5 /* ClinicianGuidancePreviewSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicianGuidancePreviewSupport.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -194,6 +208,12 @@
 				0000000000000000000000A0 /* UpperLimbJointFrame.swift */,
 				0000000000000000000000A1 /* UpperLimbPeerEnvelope.swift */,
 				0000000000000000000000A2 /* UpperLimbPeerWireCodec.swift */,
+				0000000000000000000000F0 /* ClinicianGuidanceContract.swift */,
+				0000000000000000000000F1 /* ClinicianGuidanceWireCodec.swift */,
+				0000000000000000000000F2 /* ClinicianConnectionStatusView.swift */,
+				0000000000000000000000F3 /* ClinicianForearmCanvas.swift */,
+				0000000000000000000000F4 /* ClinicianControlPanel.swift */,
+				0000000000000000000000F5 /* ClinicianGuidancePreviewSupport.swift */,
 				0000000000000000000000A3 /* SpatialJointBridge.swift */,
 				0000000000000000000000A4 /* UpperLimbIntegrationState.swift */,
 				0000000000000000000000A5 /* BodyScannerModelManifest.swift */,
@@ -394,6 +414,8 @@
 				000000000000000000000080 /* UpperLimbJointFrame.swift in Sources */,
 				000000000000000000000082 /* UpperLimbPeerEnvelope.swift in Sources */,
 				000000000000000000000084 /* UpperLimbPeerWireCodec.swift in Sources */,
+				0000000000000000000000F6 /* ClinicianGuidanceContract.swift in Sources */,
+				0000000000000000000000F8 /* ClinicianGuidanceWireCodec.swift in Sources */,
 				000000000000000000000086 /* SpatialJointBridge.swift in Sources */,
 				000000000000000000000087 /* UpperLimbIntegrationState.swift in Sources */,
 			);
@@ -412,6 +434,12 @@
 				000000000000000000000081 /* UpperLimbJointFrame.swift in Sources */,
 				000000000000000000000083 /* UpperLimbPeerEnvelope.swift in Sources */,
 				000000000000000000000085 /* UpperLimbPeerWireCodec.swift in Sources */,
+				0000000000000000000000F7 /* ClinicianGuidanceContract.swift in Sources */,
+				0000000000000000000000F9 /* ClinicianGuidanceWireCodec.swift in Sources */,
+				0000000000000000000000FA /* ClinicianConnectionStatusView.swift in Sources */,
+				0000000000000000000000FB /* ClinicianForearmCanvas.swift in Sources */,
+				0000000000000000000000FC /* ClinicianControlPanel.swift in Sources */,
+				0000000000000000000000FD /* ClinicianGuidancePreviewSupport.swift in Sources */,
 				000000000000000000000088 /* BodyScannerModelManifest.swift in Sources */,
 				000000000000000000000089 /* BodyScannerResourceInspector.swift in Sources */,
 				00000000000000000000008A /* BodyScannerUpperLimbPoseMapper.swift in Sources */,

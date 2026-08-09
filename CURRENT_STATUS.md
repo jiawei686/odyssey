@@ -2,9 +2,34 @@
 
 Last verified: 2026-08-09
 
-## Feature
+## Active feature
 
-The active vertical slice is `MED-ASSIST-001`: an independent, text-first
+`CLINICIAN-GUIDANCE-001` is the current Level-1 judge-build slice. It adds a
+versioned semantic contract for one companion controller and one Vision Pro:
+show/hide the generic bone, set a bounded proximal-to-distal fracture-marker
+position, show/hide a preset educational incision guide, clear guidance, and
+distinguish desired from AVP-applied state. The wire carries no camera pixels,
+patient data, DICOM, gaze coordinates, or raw hand transforms.
+
+The contract and Claude/Codex ownership workflow live in
+`docs/CLINICIAN_GUIDANCE_CONTRACT.md` and
+`docs/CLAUDE_CODEX_WORKFLOW.md`. Claude-owned presentation files are registered
+as compile-safe placeholders; their UI implementation is deliberately absent
+from the Codex contract checkpoint.
+
+- `[BUILD]` Clean baseline visionOS simulator and generic device-SDK builds
+  passed with Xcode 27 and warnings treated as errors.
+- `[AUTO]` The frozen contract check covers codec round trips, bounds,
+  clear/bone independence, capability negotiation, malformed values,
+  versioning, sequence/replay rejection, stale messages, and safe disconnected
+  UI state.
+- `[BLOCKED]` The physical Vision Pro is unavailable. The articulated wearer
+  overlay and future remote guidance rendering are DEVICE-PENDING / NOT
+  VERIFIED, never passed by simulator evidence.
+
+## Preserved medical-assistant slice
+
+`MED-ASSIST-001` remains an independent, text-first
 medical-education assistant for the Vision Pro app. It supports patient and
 clinician language modes, bounded session context, optional protected local
 memory, deterministic anatomy context, locally retrieved public reference

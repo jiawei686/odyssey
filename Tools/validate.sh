@@ -129,6 +129,16 @@ fi
 rg -q 'onChange\(of: peer\.isConnected\)' "$PROJECT_DIR/UpperLimbPOC/ContentView.swift"
 rg -q 'onChange\(of: peer\.isConnected\)' "$PROJECT_DIR/UpperLimbPOC/ImmersiveView.swift"
 rg -q 'scheduleReconnect' "$PROJECT_DIR/UpperLimbPOC/PeerSession.swift"
+test -f "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceContract.swift"
+test -f "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceWireCodec.swift"
+test -f "$PROJECT_DIR/docs/CLINICIAN_GUIDANCE_CONTRACT.md"
+test -f "$PROJECT_DIR/docs/CLAUDE_CODEX_WORKFLOW.md"
+rg -q 'ClinicianGuidanceProtocol.staleAfterSeconds' "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceContract.swift" "$PROJECT_DIR/Tools/ClinicianGuidanceContractCheck.swift"
+rg -q 'ClinicianGuidanceContract.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -q 'ClinicianConnectionStatusView.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -q 'ClinicianForearmCanvas.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -q 'ClinicianControlPanel.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -q 'ClinicianGuidancePreviewSupport.swift' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
 test -f "$PROJECT_DIR/PRODUCT_DEVELOPMENT_DOCUMENT.md"
 test -f "$PROJECT_DIR/ML_ASSISTANT_ARCHITECTURE.md"
 test -f "$PROJECT_DIR/JOINT_CAPABILITY_PROBE.md"
@@ -179,9 +189,20 @@ xcrun swiftc \
 xcrun swiftc \
     -parse-as-library \
     -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceContract.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceWireCodec.swift" \
+    "$PROJECT_DIR/Tools/ClinicianGuidanceContractCheck.swift" \
+    -o "$BUILD_ROOT/clinician-guidance-contract-check"
+"$BUILD_ROOT/clinician-guidance-contract-check"
+
+xcrun swiftc \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
     "$PROJECT_DIR/UpperLimbPOC/OverlaySnapshot.swift" \
     "$PROJECT_DIR/UpperLimbPOC/UpperLimbJointFrame.swift" \
     "$PROJECT_DIR/UpperLimbPOC/UpperLimbPeerEnvelope.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceContract.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceWireCodec.swift" \
     "$PROJECT_DIR/UpperLimbPOC/UpperLimbPeerWireCodec.swift" \
     "$PROJECT_DIR/Tools/UpperLimbPeerWireCheck.swift" \
     -o "$BUILD_ROOT/upper-limb-peer-wire-check"
