@@ -234,7 +234,7 @@ extension AnatomicalAnnotationActionSet {
         )
     }
 
-    static let inert = AnatomicalAnnotationActionSet(
+    @MainActor static let inert = AnatomicalAnnotationActionSet(
         submitAnnotation: { _ in },
         clearAnnotation: {}
     )
