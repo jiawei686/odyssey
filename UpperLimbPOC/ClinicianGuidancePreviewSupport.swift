@@ -34,6 +34,7 @@ extension ClinicianGuidanceActionSet {
     }
 
     /// No-op actions for static SwiftUI previews.
+    @MainActor
     static let previewInert = ClinicianGuidanceActionSet(
         setBoneVisible: { _ in },
         setFracturePosition: { _ in },

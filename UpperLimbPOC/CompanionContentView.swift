@@ -5,17 +5,13 @@ import UIKit
 struct CompanionContentView: View {
     @EnvironmentObject private var overlay: OverlayState
     @EnvironmentObject private var peer: PeerSession
-
-    // Frontend-only preview session. Codex replaces this with the production
-    // ClinicianGuidanceSession during integration; the guidance screen only
-    // sees ClinicianGuidanceClientState values and action closures.
-    @StateObject private var guidanceSession = ClinicianGuidancePreviewSession()
+    @EnvironmentObject private var guidanceSession: ClinicianGuidanceSession
 
     var body: some View {
         NavigationStack {
             ForearmGuidanceScreen(
                 state: guidanceSession.clinicianGuidanceState,
-                actions: .forwarding(to: guidanceSession)
+                actions: guidanceSession.actionSet
             )
             .navigationTitle("Forearm Guidance")
             .toolbar {

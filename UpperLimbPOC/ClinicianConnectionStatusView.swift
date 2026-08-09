@@ -76,45 +76,50 @@ struct ClinicianConnectionStatusView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 12) {
-                Image(systemName: status.displaySymbol)
-                    .font(.title3)
-                    .foregroundStyle(status.displayColor)
-                    .frame(width: 28)
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 12) {
+                    Image(systemName: status.displaySymbol)
+                        .font(.title3)
+                        .foregroundStyle(status.displayColor)
+                        .frame(width: 28)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(status.displayTitle)
-                        .font(.headline)
-                    Text(subtitle)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(status.displayTitle)
+                            .font(.headline)
+                        Text(subtitle)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer(minLength: 0)
+
+                    if showsActivityIndicator {
+                        ProgressView()
+                            .controlSize(.small)
+                    }
                 }
 
-                Spacer(minLength: 0)
-
-                if showsActivityIndicator {
-                    ProgressView()
-                        .controlSize(.small)
-                }
-            }
-
-            if let lastAcknowledgedAt {
-                HStack(spacing: 6) {
-                    Image(systemName: "checkmark.circle")
-                        .foregroundStyle(.secondary)
-                    (Text("Last change confirmed ")
-                        + Text(lastAcknowledgedAt, style: .relative)
-                        + Text(" ago"))
-                }
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-            }
-
-            if let lastError {
-                Label(lastError.displayMessage, systemImage: "exclamationmark.triangle.fill")
+                if let lastAcknowledgedAt {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle")
+                            .foregroundStyle(.secondary)
+                        (Text("Last change confirmed ")
+                            + Text(lastAcknowledgedAt, style: .relative)
+                            + Text(" ago"))
+                    }
                     .font(.footnote)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(.secondary)
+                }
+
+                if let lastError {
+                    Label(lastError.displayMessage, systemImage: "exclamationmark.triangle.fill")
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                }
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Vision Pro connection")
+            .accessibilityValue(accessibilitySummary)
 
             if let retry, status.offersRetry {
                 Button("Retry Connection", action: retry)
@@ -122,9 +127,6 @@ struct ClinicianConnectionStatusView: View {
                     .controlSize(.small)
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Vision Pro connection")
-        .accessibilityValue(accessibilitySummary)
     }
 
     private var showsActivityIndicator: Bool {

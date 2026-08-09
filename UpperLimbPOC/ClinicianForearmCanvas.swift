@@ -17,6 +17,11 @@ enum ClinicianForearmZone {
     static func percentText(for position: Double) -> String {
         "\(Int((position * 100).rounded()))%"
     }
+
+    static func displayName(for position: Double) -> String {
+        let zoneName = name(for: position)
+        return zoneName.prefix(1).uppercased() + zoneName.dropFirst()
+    }
 }
 
 /// Simplified, illustrative forearm diagram. It is driven exclusively by the
@@ -45,7 +50,10 @@ struct ClinicianForearmCanvas: View {
             .font(.caption)
             .foregroundStyle(.secondary)
 
-            Text("Diagram is illustrative — positions are approximate, not spatially exact.")
+            Text(
+                "Generic teaching model — not the patient's anatomy or imaging. "
+                    + "Positions are approximate."
+            )
                 .font(.caption2)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)

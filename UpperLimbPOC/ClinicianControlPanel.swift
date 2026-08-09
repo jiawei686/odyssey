@@ -68,7 +68,7 @@ struct ClinicianControlPanel: View {
         } footer: {
             VStack(alignment: .leading, spacing: 4) {
                 Text(
-                    "The incision guide is a preset marker at the fracture position. "
+                    "The incision guide is a preset educational marker, not a surgical plan. "
                         + "Turning it on without a fracture marker places the marker mid-shaft."
                 )
                 if let disabledExplanation {
@@ -86,7 +86,7 @@ struct ClinicianControlPanel: View {
                 value: $fractureSliderValue,
                 in: 0...1,
                 label: {
-                    Text("Fracture position")
+                    Text("Fracture Marker (Illustrative)")
                 },
                 minimumValueLabel: {
                     Text("Elbow")
@@ -118,10 +118,10 @@ struct ClinicianControlPanel: View {
             }
             .accessibilityElement(children: .combine)
         } header: {
-            Text("Fracture Position")
+            Text("Fracture Marker (Illustrative)")
         } footer: {
             Text(
-                "Measured from the elbow toward the wrist. "
+                "Illustrative — not a radiological finding. Measured from the elbow toward the wrist. "
                     + "The position is sent when you release the slider."
             )
         }
@@ -171,13 +171,13 @@ struct ClinicianControlPanel: View {
     private var fractureValueDescription: String {
         if isEditingFractureSlider {
             return "\(ClinicianForearmZone.percentText(for: fractureSliderValue)) · "
-                + "\(ClinicianForearmZone.name(for: fractureSliderValue).capitalized)"
+                + ClinicianForearmZone.displayName(for: fractureSliderValue)
         }
         guard let desired = state.desiredGuidanceState.fracturePosition else {
             return "Not set"
         }
         return "\(ClinicianForearmZone.percentText(for: desired.value)) · "
-            + "\(ClinicianForearmZone.name(for: desired.value).capitalized)"
+            + ClinicianForearmZone.displayName(for: desired.value)
     }
 
     private var sliderAccessibilityValue: String {
