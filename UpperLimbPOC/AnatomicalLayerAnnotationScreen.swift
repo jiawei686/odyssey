@@ -3,6 +3,11 @@ import SwiftUI
 // Claude-owned experimental frontend for anatomical-layer annotation.
 // Consumes the frozen AnatomicalAnnotation* contract types only; child views
 // never touch PeerSession. Feature-gated OFF in normal runtime.
+//
+// Normal clinician experience: AnatomicalClinicianScreen
+//   Connect → See AVP View → Reveal Anatomy → Mark → Undo
+// Detailed technical experience: AnatomicalLayerAnnotationScreen
+//   Reached only from the clinician screen's Diagnostics toolbar item.
 
 // MARK: - Feature gate
 
@@ -18,15 +23,18 @@ enum AnatomicalLayerUIFeatureGate {
     }
 }
 
-// MARK: - View depth (what anatomical layer the patient would see)
+// MARK: - Reveal depth
 
-enum AnatomicalViewDepth: String, CaseIterable, Identifiable {
-    case surface
-    case fat
-    case muscle
-    case bone
+/// How deep into the generic model the clinician has revealed. On the
+/// clinician screen this single choice also determines which anatomical
+/// surface a mark lands on, so what is shown is what is marked.
+enum AnatomicalViewDepth: Int, CaseIterable, Identifiable {
+    case surface = 0
+    case fat = 1
+    case muscle = 2
+    case bone = 3
 
-    var id: String { rawValue }
+    var id: Int { rawValue }
 
     var displayName: String {
         switch self {
@@ -34,6 +42,17 @@ enum AnatomicalViewDepth: String, CaseIterable, Identifiable {
         case .fat: "Fat"
         case .muscle: "Muscle"
         case .bone: "Bone"
+        }
+    }
+
+    /// The anatomical surface that receives a mark at this depth.
+    /// `floating` is never reachable: projection rejects it by design.
+    var annotationTarget: AnatomicalLayerTarget {
+        switch self {
+        case .surface: .skin
+        case .fat: .subcutaneousFat
+        case .muscle: .muscle
+        case .bone: .bone
         }
     }
 }
@@ -64,32 +83,83 @@ extension AnatomicalProjectionFailureReason {
         case .featureDisabled:
             "Anatomical-layer annotation is turned off in this build."
         case .invalidRequest:
-            "The annotation request was malformed, so nothing was placed."
+            "The mark request was malformed, so nothing was placed."
         case .frameMismatch:
-            "The view changed before the annotation arrived. Tap again on the current view."
+            "The view changed before the mark arrived. Try again on the current view."
         case .staleFrame:
-            "The tapped view was too old to place safely. Tap again."
+            "The tapped view was too old to place safely. Try again."
         case .trackingUnavailable:
             "Vision Pro tracking is unavailable, so nothing was placed."
         case .trackingNotLive:
             "Vision Pro tracking is not live, so nothing was placed."
         case .insufficientTrackingConfidence:
-            "Tracking confidence is too low to place an annotation safely."
+            "Tracking confidence is too low to place a mark safely."
         case .invalidRay:
             "The tap could not be converted into a valid line of sight."
         case .unsupportedTargetLayer:
-            "The selected target layer cannot receive annotations."
+            "The selected target layer cannot receive marks."
         case .surfaceUnavailable:
             "The selected anatomical surface is unavailable right now."
         case .missedSurface:
-            "The tap did not land on the selected anatomical layer."
+            "The tap did not land on the revealed anatomical layer."
         case .insufficientProjectionConfidence:
             "The placement was not confident enough to show. Nothing was placed."
+        }
+    }
+
+    /// Short form for the clinician screen's single-line feedback.
+    var shortDisplayMessage: String {
+        switch self {
+        case .featureDisabled: "Feature is off"
+        case .invalidRequest: "Malformed request"
+        case .frameMismatch: "View changed — try again"
+        case .staleFrame: "View too old — try again"
+        case .trackingUnavailable: "Tracking unavailable"
+        case .trackingNotLive: "Tracking not live"
+        case .insufficientTrackingConfidence: "Tracking confidence too low"
+        case .invalidRay: "Line of sight invalid"
+        case .unsupportedTargetLayer: "Layer cannot be marked"
+        case .surfaceUnavailable: "Surface unavailable"
+        case .missedSurface: "Missed the revealed layer"
+        case .insufficientProjectionConfidence: "Placement not confident enough"
         }
     }
 }
 
 // MARK: - Frontend state and actions (mockable adapter boundary)
+
+/// Truthful session state for the connect step. `isSimulated` must be true
+/// whenever no physical Apple Vision Pro is involved, so the UI can never
+/// imply a device connection that does not exist.
+enum AnatomicalSessionStatus: Equatable {
+    case notConnected
+    case connecting
+    case connected
+
+    var displayTitle: String {
+        switch self {
+        case .notConnected: "Not Connected"
+        case .connecting: "Connecting…"
+        case .connected: "Connected"
+        }
+    }
+
+    var displaySymbol: String {
+        switch self {
+        case .notConnected: "wifi.slash"
+        case .connecting: "arrow.triangle.2.circlepath"
+        case .connected: "checkmark.circle.fill"
+        }
+    }
+
+    var displayColor: Color {
+        switch self {
+        case .notConnected: .secondary
+        case .connecting: .secondary
+        case .connected: .green
+        }
+    }
+}
 
 struct AnatomicalDisplayedFrame: Equatable {
     let reference: AnatomicalAnnotationFrameReference
@@ -113,12 +183,31 @@ enum AnatomicalAnnotationPhase: Equatable {
 }
 
 struct AnatomicalAnnotationViewState: Equatable {
+    let sessionStatus: AnatomicalSessionStatus
+    let peerDisplayName: String?
+    let isSimulatedSession: Bool
     let displayedFrame: AnatomicalDisplayedFrame?
     let phase: AnatomicalAnnotationPhase
+
+    init(
+        sessionStatus: AnatomicalSessionStatus = .notConnected,
+        peerDisplayName: String? = nil,
+        isSimulatedSession: Bool = false,
+        displayedFrame: AnatomicalDisplayedFrame? = nil,
+        phase: AnatomicalAnnotationPhase = .idle
+    ) {
+        self.sessionStatus = sessionStatus
+        self.peerDisplayName = peerDisplayName
+        self.isSimulatedSession = isSimulatedSession
+        self.displayedFrame = displayedFrame
+        self.phase = phase
+    }
 }
 
 struct AnatomicalAnnotationActionSet {
     let submitAnnotation: (AnatomicalAnnotationRequest) -> Void
+    /// Removes the current mark. Version 1 holds one mark at a time, so undo
+    /// and clear are the same operation.
     let clearAnnotation: () -> Void
 }
 
@@ -151,8 +240,6 @@ extension AnatomicalAnnotationActionSet {
     )
 }
 
-// MARK: - Screen
-
 enum AnatomicalAnnotationTool: String, CaseIterable, Identifiable {
     case point
     case circle
@@ -167,10 +254,377 @@ enum AnatomicalAnnotationTool: String, CaseIterable, Identifiable {
     }
 }
 
-/// Experimental clinician screen for placing one point or one circle on a
-/// selected anatomical target layer. The canvas marker for a pending request
-/// is explicitly tentative; a snapped placement is only reported after an
-/// applied projection result arrives.
+// MARK: - Clinician screen (normal experience)
+
+/// The normal clinician flow: Connect → See AVP View → Reveal Anatomy →
+/// Mark → Undo. Marks land on whichever layer is currently revealed, so no
+/// separate target picker is needed. Technical controls live in Diagnostics.
+struct AnatomicalClinicianScreen<DiagnosticsContent: View>: View {
+    let state: AnatomicalAnnotationViewState
+    let actions: AnatomicalAnnotationActionSet
+    @ViewBuilder var diagnosticsContent: () -> DiagnosticsContent
+
+    @State private var revealDepth: AnatomicalViewDepth = .surface
+    @State private var outsideImageMessageVisible = false
+
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    init(
+        state: AnatomicalAnnotationViewState,
+        actions: AnatomicalAnnotationActionSet,
+        @ViewBuilder diagnosticsContent: @escaping () -> DiagnosticsContent
+    ) {
+        self.state = state
+        self.actions = actions
+        self.diagnosticsContent = diagnosticsContent
+    }
+
+    var body: some View {
+        Group {
+            if horizontalSizeClass == .compact {
+                ScrollView {
+                    VStack(spacing: 16) {
+                        statusBar
+                        viewArea
+                            .frame(height: 320)
+                        disclosure
+                        controlsCard
+                    }
+                    .padding(16)
+                }
+            } else {
+                HStack(spacing: 20) {
+                    VStack(spacing: 12) {
+                        viewArea
+                        disclosure
+                    }
+
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            statusBar
+                            controlsCard
+                        }
+                    }
+                    .frame(maxWidth: 400)
+                }
+                .padding(20)
+            }
+        }
+        .navigationTitle("Anatomy")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink {
+                    diagnosticsContent()
+                } label: {
+                    Label("Diagnostics", systemImage: "stethoscope")
+                }
+                .accessibilityLabel("Diagnostics")
+                .accessibilityHint(
+                    "Opens detailed layer, tool, and simulation controls."
+                )
+            }
+        }
+        .sensoryFeedback(.success, trigger: appliedTrigger)
+        .sensoryFeedback(.error, trigger: rejectedTrigger)
+        .onChange(of: state.phase) { _, newPhase in
+            announce(newPhase)
+        }
+    }
+
+    // MARK: Connect
+
+    private var statusBar: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            // At accessibility sizes the title and device name need their own
+            // lines; sharing one row forces mid-word hyphenation.
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 4) {
+                    Label {
+                        Text(state.sessionStatus.displayTitle)
+                            .font(.headline)
+                    } icon: {
+                        Image(systemName: state.sessionStatus.displaySymbol)
+                            .foregroundStyle(state.sessionStatus.displayColor)
+                    }
+                    if let name = state.peerDisplayName {
+                        Text(name)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack(spacing: 10) {
+                    Image(systemName: state.sessionStatus.displaySymbol)
+                        .foregroundStyle(state.sessionStatus.displayColor)
+                    Text(state.sessionStatus.displayTitle)
+                        .font(.headline)
+                    if let name = state.peerDisplayName {
+                        Text(name)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer(minLength: 0)
+                }
+            }
+
+            if state.isSimulatedSession {
+                Label(
+                    "Simulated session — no Apple Vision Pro connected",
+                    systemImage: "flask"
+                )
+                .font(.footnote)
+                .foregroundStyle(.orange)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Session status")
+        .accessibilityValue(statusAccessibilityValue)
+    }
+
+    private var statusAccessibilityValue: String {
+        var parts = [state.sessionStatus.displayTitle]
+        if let name = state.peerDisplayName { parts.append(name) }
+        if state.isSimulatedSession {
+            parts.append("Simulated session, no Apple Vision Pro connected")
+        }
+        return parts.joined(separator: ". ")
+    }
+
+    // MARK: See AVP view
+
+    private var viewArea: some View {
+        VStack(spacing: 6) {
+            AnatomicalAnnotationCanvas(
+                frame: state.displayedFrame,
+                viewDepth: revealDepth,
+                phase: state.phase,
+                onTap: handleTap,
+                onOutsideImageTouch: handleOutsideImageTouch
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14))
+
+            if outsideImageMessageVisible {
+                Label(
+                    "That tap was outside the view and was ignored.",
+                    systemImage: "hand.raised"
+                )
+                .font(.caption)
+                .foregroundStyle(.orange)
+            }
+        }
+    }
+
+    private var disclosure: some View {
+        Text(AnatomicalLayerProjectionFeature.disclosure)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    // MARK: Reveal, Mark, Undo
+
+    private var controlsCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            revealControl
+            Divider()
+            actionButtons
+            feedbackLine
+        }
+        .padding(16)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    private var revealControl: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Reveal Anatomy")
+                .font(.headline)
+
+            Slider(
+                value: revealBinding,
+                in: 0...3,
+                step: 1
+            ) {
+                Text("Reveal anatomy")
+            } minimumValueLabel: {
+                Text("Surface")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            } maximumValueLabel: {
+                Text("Bone")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+            .accessibilityLabel("Reveal anatomy depth")
+            .accessibilityValue(
+                "\(revealDepth.displayName). Marks land on \(revealDepth.annotationTarget.displayName)."
+            )
+
+            Text("Showing \(revealDepth.displayName) — marks land on \(revealDepth.annotationTarget.displayName)")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var actionButtons: some View {
+        VStack(spacing: 10) {
+            Button {
+                submit(at: AnatomicalNormalizedScreenPoint(x: 0.5, y: 0.5))
+            } label: {
+                Label("Mark", systemImage: "smallcircle.filled.circle")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .disabled(!canSubmit)
+            .accessibilityHint(
+                "Marks the centre of the view on the revealed layer. You can also tap the view directly."
+            )
+
+            Button(role: .destructive) {
+                outsideImageMessageVisible = false
+                actions.clearAnnotation()
+            } label: {
+                Label("Undo Mark", systemImage: "arrow.uturn.backward")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+            .disabled(state.phase == .idle)
+            .accessibilityHint("Removes the current mark from the patient's view.")
+        }
+    }
+
+    private var feedbackLine: some View {
+        Group {
+            switch state.phase {
+            case .idle:
+                Label(
+                    state.displayedFrame == nil
+                        ? "Marking needs a live view."
+                        : "Tap the view or press Mark.",
+                    systemImage: "hand.tap"
+                )
+                .foregroundStyle(.secondary)
+
+            case .pending:
+                HStack(spacing: 8) {
+                    if reduceMotion {
+                        Image(systemName: "hourglass")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ProgressView().controlSize(.small)
+                    }
+                    Text("Placing…")
+                        .foregroundStyle(.secondary)
+                }
+
+            case .applied(let result):
+                Label(
+                    "Marked on \(result.targetLayer.displayName)",
+                    systemImage: "checkmark.circle.fill"
+                )
+                .foregroundStyle(.green)
+
+            case .rejected(let result):
+                Label(
+                    "Not placed — \(result.failureReason?.shortDisplayMessage ?? "rejected")",
+                    systemImage: "xmark.octagon.fill"
+                )
+                .foregroundStyle(.red)
+            }
+        }
+        .font(.subheadline)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+
+    // MARK: Interaction
+
+    private var revealBinding: Binding<Double> {
+        Binding(
+            get: { Double(revealDepth.rawValue) },
+            set: { newValue in
+                let index = Int(newValue.rounded())
+                revealDepth = AnatomicalViewDepth(rawValue: index) ?? .surface
+            }
+        )
+    }
+
+    private var canSubmit: Bool {
+        state.displayedFrame != nil && !state.phase.isPending
+    }
+
+    private func handleTap(_ point: AnatomicalNormalizedScreenPoint) {
+        outsideImageMessageVisible = false
+        submit(at: point)
+    }
+
+    private func handleOutsideImageTouch() {
+        outsideImageMessageVisible = true
+        AccessibilityNotification.Announcement(
+            "Tap ignored: outside the view."
+        ).post()
+    }
+
+    private func submit(at point: AnatomicalNormalizedScreenPoint) {
+        guard canSubmit, let frame = state.displayedFrame else { return }
+        actions.submitAnnotation(
+            AnatomicalAnnotationRequest(
+                annotationIdentifier: UUID(),
+                frame: frame.reference,
+                targetLayer: revealDepth.annotationTarget,
+                geometry: .point(at: point)
+            )
+        )
+    }
+
+    private var appliedTrigger: UUID? {
+        if case .applied(let result) = state.phase { return result.annotationIdentifier }
+        return nil
+    }
+
+    private var rejectedTrigger: UUID? {
+        if case .rejected(let result) = state.phase { return result.annotationIdentifier }
+        return nil
+    }
+
+    private func announce(_ phase: AnatomicalAnnotationPhase) {
+        switch phase {
+        case .idle, .pending:
+            break
+        case .applied(let result):
+            AccessibilityNotification.Announcement(
+                "Marked on \(result.targetLayer.displayName)."
+            ).post()
+        case .rejected(let result):
+            AccessibilityNotification.Announcement(
+                result.failureReason?.displayMessage ?? "Mark rejected."
+            ).post()
+        }
+    }
+}
+
+extension AnatomicalClinicianScreen where DiagnosticsContent == EmptyView {
+    init(
+        state: AnatomicalAnnotationViewState,
+        actions: AnatomicalAnnotationActionSet
+    ) {
+        self.init(state: state, actions: actions, diagnosticsContent: { EmptyView() })
+    }
+}
+
+// MARK: - Detailed screen (Setup & Diagnostics)
+
+/// Detailed technical surface: independent view depth and annotate-on layer,
+/// point and circle tools, full placement readout, and (in DEBUG) simulation
+/// controls. Reached only from the clinician screen's Diagnostics item.
 struct AnatomicalLayerAnnotationScreen<DebugContent: View>: View {
     let state: AnatomicalAnnotationViewState
     let actions: AnatomicalAnnotationActionSet
@@ -203,7 +657,7 @@ struct AnatomicalLayerAnnotationScreen<DebugContent: View>: View {
             debugContent()
             disclosureSection
         }
-        .navigationTitle("Anatomical Layers")
+        .navigationTitle("Layer Diagnostics")
         .sensoryFeedback(.success, trigger: appliedTrigger)
         .sensoryFeedback(.error, trigger: rejectedTrigger)
         .onChange(of: state.phase) { _, newPhase in
@@ -550,13 +1004,13 @@ struct AnatomicalAnnotationCanvas: View {
                 .accessibilityLabel("Anatomical view")
                 .accessibilityValue(accessibilitySummary)
                 .accessibilityHint(
-                    "Shows an illustrative anatomical model. Use the Place at Center button to annotate without tapping."
+                    "Shows an illustrative anatomical model. Use the Mark button to place a mark without tapping."
                 )
             } else {
                 ContentUnavailableView {
                     Label("Live Apple Vision Pro view unavailable.", systemImage: "video.slash")
                 } description: {
-                    Text("Annotation requires a displayed view bound to a frame.")
+                    Text("Marking requires a displayed view bound to a frame.")
                 }
             }
         }
@@ -775,13 +1229,13 @@ struct AnatomicalAnnotationCanvas: View {
         var parts = ["Illustrative anatomical model, \(viewDepth.displayName) depth"]
         switch phase {
         case .idle:
-            parts.append("No annotation")
+            parts.append("No mark")
         case .pending:
-            parts.append("Annotation pending projection")
+            parts.append("Mark pending projection")
         case .applied(let result):
-            parts.append("Annotation applied to \(result.targetLayer.displayName)")
+            parts.append("Mark applied to \(result.targetLayer.displayName)")
         case .rejected:
-            parts.append("Annotation rejected")
+            parts.append("Mark rejected")
         }
         return parts.joined(separator: ". ")
     }
@@ -873,10 +1327,7 @@ final class AnatomicalAnnotationPreviewSession: ObservableObject, AnatomicalAnno
         resultDelaySeconds: Double = 0.5
     ) {
         self.resultDelaySeconds = resultDelaySeconds
-        annotationViewState = AnatomicalAnnotationViewState(
-            displayedFrame: nil,
-            phase: .idle
-        )
+        annotationViewState = AnatomicalAnnotationViewState()
         self.frameMode = frameMode
         refreshFrame()
         startFrameLoop()
@@ -889,10 +1340,7 @@ final class AnatomicalAnnotationPreviewSession: ObservableObject, AnatomicalAnno
               annotationViewState.displayedFrame != nil
         else { return }
 
-        annotationViewState = AnatomicalAnnotationViewState(
-            displayedFrame: annotationViewState.displayedFrame,
-            phase: .pending(request)
-        )
+        annotationViewState = makeState(phase: .pending(request))
 
         let delay = resultDelaySeconds
         resolutionTask?.cancel()
@@ -905,10 +1353,7 @@ final class AnatomicalAnnotationPreviewSession: ObservableObject, AnatomicalAnno
 
     func clearAnnotation() {
         resolutionTask?.cancel()
-        annotationViewState = AnatomicalAnnotationViewState(
-            displayedFrame: annotationViewState.displayedFrame,
-            phase: .idle
-        )
+        annotationViewState = makeState(phase: .idle)
     }
 
     // MARK: Resolution
@@ -952,8 +1397,7 @@ final class AnatomicalAnnotationPreviewSession: ObservableObject, AnatomicalAnno
             )
         }
 
-        annotationViewState = AnatomicalAnnotationViewState(
-            displayedFrame: annotationViewState.displayedFrame,
+        annotationViewState = makeState(
             phase: result.state == .applied ? .applied(result) : .rejected(result)
         )
     }
@@ -979,10 +1423,7 @@ final class AnatomicalAnnotationPreviewSession: ObservableObject, AnatomicalAnno
     private func refreshFrame() {
         switch frameMode {
         case .unavailable:
-            annotationViewState = AnatomicalAnnotationViewState(
-                displayedFrame: nil,
-                phase: .idle
-            )
+            annotationViewState = AnatomicalAnnotationViewState()
         case .synthetic:
             frameCounter += 1
             let frame = AnatomicalDisplayedFrame(
@@ -993,45 +1434,67 @@ final class AnatomicalAnnotationPreviewSession: ObservableObject, AnatomicalAnno
                 pixelSize: CGSize(width: 120, height: 280),
                 sourceDescription: "Synthetic test frame — not a live Apple Vision Pro view"
             )
-            annotationViewState = AnatomicalAnnotationViewState(
-                displayedFrame: frame,
-                phase: annotationViewState.phase
+            annotationViewState = makeState(
+                phase: annotationViewState.phase,
+                frame: frame
             )
         }
     }
+
+    /// Session status is derived from what actually exists. The mock never
+    /// claims a physical device: `isSimulatedSession` stays true whenever a
+    /// synthetic frame is driving the UI.
+    private func makeState(
+        phase: AnatomicalAnnotationPhase,
+        frame: AnatomicalDisplayedFrame? = nil
+    ) -> AnatomicalAnnotationViewState {
+        let displayedFrame = frame ?? annotationViewState.displayedFrame
+        return AnatomicalAnnotationViewState(
+            sessionStatus: displayedFrame == nil ? .notConnected : .connected,
+            peerDisplayName: displayedFrame == nil ? nil : "Synthetic source",
+            isSimulatedSession: displayedFrame != nil,
+            displayedFrame: displayedFrame,
+            phase: phase
+        )
+    }
 }
 
-/// DEBUG-only host wiring the experimental screen to the preview session,
-/// plus simulation controls for exercising rejected flows.
+/// DEBUG-only host. Presents the simplified clinician flow and keeps the
+/// detailed screen plus simulation controls behind its Diagnostics item.
 struct AnatomicalLayerExperimentalHost: View {
     @StateObject private var session = AnatomicalAnnotationPreviewSession()
 
     var body: some View {
-        AnatomicalLayerAnnotationScreen(
+        AnatomicalClinicianScreen(
             state: session.annotationViewState,
             actions: .forwarding(to: session)
         ) {
-            Section {
-                Picker("Frame source", selection: $session.frameMode) {
-                    ForEach(AnatomicalAnnotationPreviewSession.FrameMode.allCases) { mode in
-                        Text(mode.displayName).tag(mode)
+            AnatomicalLayerAnnotationScreen(
+                state: session.annotationViewState,
+                actions: .forwarding(to: session)
+            ) {
+                Section {
+                    Picker("Frame source", selection: $session.frameMode) {
+                        ForEach(AnatomicalAnnotationPreviewSession.FrameMode.allCases) { mode in
+                            Text(mode.displayName).tag(mode)
+                        }
                     }
-                }
 
-                Toggle("Freeze frame (forces stale rejection)", isOn: $session.freezeFrame)
+                    Toggle("Freeze frame (forces stale rejection)", isOn: $session.freezeFrame)
 
-                Picker("Outcome", selection: $session.forcedOutcome) {
-                    ForEach(AnatomicalAnnotationPreviewSession.ForcedOutcome.allChoices) { choice in
-                        Text(choice.displayName).tag(choice)
+                    Picker("Outcome", selection: $session.forcedOutcome) {
+                        ForEach(AnatomicalAnnotationPreviewSession.ForcedOutcome.allChoices) { choice in
+                            Text(choice.displayName).tag(choice)
+                        }
                     }
+                } header: {
+                    Text("Simulation (Debug Build Only)")
+                } footer: {
+                    Text(
+                        "These controls drive the frontend mock. They do not "
+                            + "communicate with any device."
+                    )
                 }
-            } header: {
-                Text("Simulation (Debug Build Only)")
-            } footer: {
-                Text(
-                    "These controls drive the frontend mock. They do not "
-                        + "communicate with any device."
-                )
             }
         }
     }
@@ -1039,22 +1502,22 @@ struct AnatomicalLayerExperimentalHost: View {
 
 // MARK: - Previews
 
-#Preview("Unavailable") {
+#Preview("Clinician — not connected") {
     NavigationStack {
-        AnatomicalLayerAnnotationScreen(
-            state: AnatomicalAnnotationViewState(displayedFrame: nil, phase: .idle),
+        AnatomicalClinicianScreen(
+            state: AnatomicalAnnotationViewState(),
             actions: .inert
         )
     }
 }
 
-#Preview("Interactive host") {
+#Preview("Clinician — interactive host") {
     NavigationStack {
         AnatomicalLayerExperimentalHost()
     }
 }
 
-#Preview("Rejected — missed surface") {
+#Preview("Clinician — marked") {
     let frame = AnatomicalDisplayedFrame(
         reference: AnatomicalAnnotationFrameReference(
             identifier: "preview-frame",
@@ -1063,22 +1526,63 @@ struct AnatomicalLayerExperimentalHost: View {
         pixelSize: CGSize(width: 120, height: 280),
         sourceDescription: "Synthetic test frame — not a live Apple Vision Pro view"
     )
-    let request = AnatomicalAnnotationRequest(
-        annotationIdentifier: UUID(),
-        frame: frame.reference,
-        targetLayer: .bone,
-        geometry: .point(at: AnatomicalNormalizedScreenPoint(x: 0.08, y: 0.4))
+    let geometry = AnatomicalAnnotationGeometry.point(
+        at: AnatomicalNormalizedScreenPoint(x: 0.5, y: 0.5)
+    )
+    return NavigationStack {
+        AnatomicalClinicianScreen(
+            state: AnatomicalAnnotationViewState(
+                sessionStatus: .connected,
+                peerDisplayName: "Synthetic source",
+                isSimulatedSession: true,
+                displayedFrame: frame,
+                phase: .applied(
+                    AnatomicalAnnotationProjectionResult(
+                        annotationIdentifier: UUID(),
+                        frame: frame.reference,
+                        targetLayer: .muscle,
+                        sourceGeometry: geometry,
+                        state: .applied,
+                        projectionConfidence: 1,
+                        failureReason: nil,
+                        placement: AnatomicalAnnotationLocalPlacement(
+                            forearmLocalPosition: AnatomicalProjectionVector3(x: 0, y: 0, z: 0.037),
+                            forearmLocalSurfaceNormal: AnatomicalProjectionVector3(x: 0, y: 0, z: 1),
+                            forearmLocalRadiusMetres: nil
+                        )
+                    )
+                )
+            ),
+            actions: .inert
+        )
+    }
+}
+
+#Preview("Diagnostics — rejected") {
+    let frame = AnatomicalDisplayedFrame(
+        reference: AnatomicalAnnotationFrameReference(
+            identifier: "preview-frame",
+            capturedAt: Date()
+        ),
+        pixelSize: CGSize(width: 120, height: 280),
+        sourceDescription: "Synthetic test frame — not a live Apple Vision Pro view"
+    )
+    let geometry = AnatomicalAnnotationGeometry.point(
+        at: AnatomicalNormalizedScreenPoint(x: 0.08, y: 0.4)
     )
     return NavigationStack {
         AnatomicalLayerAnnotationScreen(
             state: AnatomicalAnnotationViewState(
+                sessionStatus: .connected,
+                peerDisplayName: "Synthetic source",
+                isSimulatedSession: true,
                 displayedFrame: frame,
                 phase: .rejected(
                     AnatomicalAnnotationProjectionResult(
-                        annotationIdentifier: request.annotationIdentifier,
+                        annotationIdentifier: UUID(),
                         frame: frame.reference,
                         targetLayer: .bone,
-                        sourceGeometry: request.geometry,
+                        sourceGeometry: geometry,
                         state: .rejected,
                         projectionConfidence: 0,
                         failureReason: .missedSurface,
