@@ -277,6 +277,11 @@ public struct OdysseyExperienceViewState: Equatable, Sendable {
     public var wearerView: OdysseyWearerViewAvailability
     public var recoverableError: OdysseyRecoverableError?
     public var canResumeSession: Bool
+    /// Capability truth supplied by the production coordinator. These remain
+    /// false unless the connected AVP has negotiated and can apply them.
+    public var supportsAnatomyVisibilityControl: Bool
+    public var supportsRevealControl: Bool
+    public var supportsMarking: Bool
 
     public init(
         phase: OdysseySessionPhase = .home,
@@ -296,7 +301,10 @@ public struct OdysseyExperienceViewState: Equatable, Sendable {
         assistantAvailability: OdysseyAssistantAvailability = .unavailable,
         wearerView: OdysseyWearerViewAvailability = .unavailable,
         recoverableError: OdysseyRecoverableError? = nil,
-        canResumeSession: Bool = false
+        canResumeSession: Bool = false,
+        supportsAnatomyVisibilityControl: Bool = false,
+        supportsRevealControl: Bool = false,
+        supportsMarking: Bool = false
     ) {
         self.phase = phase
         self.patient = patient
@@ -316,6 +324,9 @@ public struct OdysseyExperienceViewState: Equatable, Sendable {
         self.wearerView = wearerView
         self.recoverableError = recoverableError
         self.canResumeSession = canResumeSession
+        self.supportsAnatomyVisibilityControl = supportsAnatomyVisibilityControl
+        self.supportsRevealControl = supportsRevealControl
+        self.supportsMarking = supportsMarking
     }
 
     // MARK: Derived presentation rules
@@ -343,6 +354,18 @@ public struct OdysseyExperienceViewState: Equatable, Sendable {
             && !hasPendingAcknowledgment
     }
 
+    public var canSetAnatomyVisibility: Bool {
+        canSendGuidance && supportsAnatomyVisibilityControl
+    }
+
+    public var canSetReveal: Bool {
+        canSendGuidance && supportsRevealControl
+    }
+
+    public var canMark: Bool {
+        canSendGuidance && supportsMarking
+    }
+
     /// The patient may begin a local demonstration even with no clinician
     /// device, so the headset is never a dead end.
     public var canStartExperience: Bool {
@@ -357,11 +380,11 @@ public struct OdysseyExperienceViewState: Equatable, Sendable {
     }
 
     public var canUndo: Bool {
-        canSendGuidance && !appliedMarkers.isEmpty
+        canMark && !appliedMarkers.isEmpty
     }
 
     public var canClearGuidance: Bool {
-        canSendGuidance && !appliedMarkers.isEmpty
+        canMark && !appliedMarkers.isEmpty
     }
 
     /// Patient-facing summary of what the clinician is doing.

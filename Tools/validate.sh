@@ -257,6 +257,15 @@ rg -qi 'continuity' "$PROJECT_DIR/JOINT_CAPABILITY_PROBE.md"
 rg -qi 'accuracy' "$PROJECT_DIR/JOINT_CAPABILITY_PROBE.md"
 rg -qi 'kill criterion' "$PROJECT_DIR/JOINT_CAPABILITY_PROBE.md"
 test -x "$PROJECT_DIR/Tools/simulator_smoke.sh"
+test -f "$PROJECT_DIR/UpperLimbPOC/OdysseyClinicalSessionService.swift"
+test -f "$PROJECT_DIR/UpperLimbPOC/OdysseyIntegratedDemo.swift"
+test -f "$PROJECT_DIR/UpperLimbPOC/OdysseyIntegratedRoots.swift"
+test -f "$PROJECT_DIR/docs/ODYSSEY_INTEGRATED_DEMO.md"
+test -f "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/xcshareddata/xcschemes/UpperLimbPOC-Odyssey-Integrated-Demo.xcscheme"
+test -f "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/xcshareddata/xcschemes/UpperLimbCompanion-Odyssey-Integrated-Demo.xcscheme"
+rg -Fq 'static let launchArgument = "--odyssey-integrated-demo"' "$PROJECT_DIR/UpperLimbPOC/OdysseyIntegratedDemo.swift"
+rg -Fq 'case ctDerivedMeshFallback' "$PROJECT_DIR/UpperLimbPOC/OdysseyClinicalSessionContract.swift"
+rg -Fq 'wearerView: .unavailable' "$PROJECT_DIR/UpperLimbPOC/OdysseyIntegratedDemo.swift"
 
 echo "[3/14] Checking snapshot compatibility"
 xcrun swiftc \
@@ -299,6 +308,8 @@ xcrun swiftc \
     -module-cache-path "$BUILD_ROOT/swift-module-cache" \
     "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceContract.swift" \
     "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceWireCodec.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/OdysseyClinicalSessionContract.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/OdysseyClinicalSessionWireCodec.swift" \
     "$PROJECT_DIR/Tools/ClinicianGuidanceContractCheck.swift" \
     -o "$BUILD_ROOT/clinician-guidance-contract-check"
 "$BUILD_ROOT/clinician-guidance-contract-check"
@@ -360,6 +371,8 @@ xcrun swiftc \
 "$BUILD_ROOT/ct-forearm-volume-check" "$PROJECT_DIR"
 
 xcrun swiftc \
+    -warnings-as-errors \
+    -strict-concurrency=complete \
     -parse-as-library \
     -module-cache-path "$BUILD_ROOT/swift-module-cache" \
     "$PROJECT_DIR/UpperLimbPOC/OverlaySnapshot.swift" \
@@ -367,12 +380,40 @@ xcrun swiftc \
     "$PROJECT_DIR/UpperLimbPOC/UpperLimbPeerEnvelope.swift" \
     "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceContract.swift" \
     "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceWireCodec.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/OdysseyClinicalSessionContract.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/OdysseyClinicalSessionWireCodec.swift" \
     "$PROJECT_DIR/UpperLimbPOC/UpperLimbPeerWireCodec.swift" \
     "$PROJECT_DIR/Tools/UpperLimbPeerWireCheck.swift" \
     -o "$BUILD_ROOT/upper-limb-peer-wire-check"
 "$BUILD_ROOT/upper-limb-peer-wire-check"
 
 xcrun swiftc \
+    -warnings-as-errors \
+    -strict-concurrency=complete \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceContract.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/ClinicianGuidanceWireCodec.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/OdysseyClinicalSessionContract.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/OdysseyClinicalSessionWireCodec.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/OdysseyClinicalSessionAdapter.swift" \
+    "$PROJECT_DIR/Tools/OdysseyClinicalSessionContractCheck.swift" \
+    -o "$BUILD_ROOT/odyssey-clinical-session-contract-check"
+"$BUILD_ROOT/odyssey-clinical-session-contract-check"
+
+xcrun swiftc \
+    -warnings-as-errors \
+    -strict-concurrency=complete \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/OdysseyExperienceViewState.swift" \
+    "$PROJECT_DIR/Tools/OdysseyIntegratedDemoCheck.swift" \
+    -o "$BUILD_ROOT/odyssey-integrated-demo-check"
+"$BUILD_ROOT/odyssey-integrated-demo-check"
+
+xcrun swiftc \
+    -warnings-as-errors \
+    -strict-concurrency=complete \
     -parse-as-library \
     -module-cache-path "$BUILD_ROOT/swift-module-cache" \
     "$PROJECT_DIR/UpperLimbPOC/UpperLimbJointFrame.swift" \
@@ -538,6 +579,8 @@ xcrun swiftc \
 
 echo "[8b/14] Checking push-to-talk voice-assistant contracts"
 xcrun swiftc \
+    -warnings-as-errors \
+    -strict-concurrency=complete \
     -parse-as-library \
     -module-cache-path "$BUILD_ROOT/swift-module-cache" \
     "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/MedicalAssistantModels.swift" \

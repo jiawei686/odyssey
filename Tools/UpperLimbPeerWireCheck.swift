@@ -6,8 +6,31 @@ struct UpperLimbPeerWireCheck {
         try legacySnapshotRemainsRawAndDecodable()
         try jointFrameUsesTaggedEnvelope()
         try clinicianGuidanceUsesVersionedEnvelope()
+        try odysseyClinicalSessionUsesDistinctVersionedEnvelope()
         try unsupportedPayloadIsRejected()
         print("Upper-limb peer wire checks passed")
+    }
+
+    private static func odysseyClinicalSessionUsesDistinctVersionedEnvelope() throws {
+        let message = OdysseyClinicalSessionMessage(
+            sessionID: UUID(),
+            sequence: 1,
+            sentAt: Date(timeIntervalSince1970: 1_786_257_600),
+            payload: .handshake(OdysseyClinicalSessionHandshake(
+                endpointRole: .visionPro,
+                supportedProtocolVersions: [1],
+                capabilities: OdysseyClinicalSessionCapability.requiredList,
+                descriptor: .odysseyRightForearmReference,
+                availableRendererRoutes: [.ctDerivedMeshFallback],
+                peerDisplayName: "Apple Vision Pro"
+            ))
+        )
+        let packet = try UpperLimbPeerWireCodec.encode(message)
+        guard case .odysseyClinicalSession(let decoded) =
+            try UpperLimbPeerWireCodec.decode(packet) else {
+            throw CheckFailure(message: "Odyssey clinical session lost its wire type")
+        }
+        try require(decoded == message, "Odyssey clinical session must round-trip")
     }
 
     private static func legacySnapshotRemainsRawAndDecodable() throws {

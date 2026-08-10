@@ -111,13 +111,13 @@ public struct OdysseyClinicianSessionScreen: View {
     private var controls: some View {
         VStack(alignment: .leading, spacing: 18) {
             Toggle("Show Anatomy", isOn: anatomyVisibleBinding)
-                .disabled(!state.canSendGuidance)
+                .disabled(!state.canSetAnatomyVisibility)
                 .accessibilityHint("Shows or hides the reference anatomy in the patient's view.")
 
             OdysseyRevealControl(
                 desired: state.desiredReveal,
                 applied: state.appliedReveal,
-                isEnabled: state.canSendGuidance,
+                isEnabled: state.canSetReveal,
                 onCommit: actions.setRevealAmount
             )
 
@@ -130,7 +130,7 @@ public struct OdysseyClinicianSessionScreen: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .disabled(!state.canSendGuidance)
+                .disabled(!state.canMark)
                 .accessibilityHint(
                     "Places an illustrative educational marker on the reference anatomy."
                 )
@@ -186,7 +186,12 @@ public struct OdysseyClinicianSessionScreen: View {
     }
 
     private var disabledExplanation: String? {
-        guard !state.canSendGuidance else { return nil }
+        guard !state.canSendGuidance else {
+            if !state.supportsMarking {
+                return "Surface-to-Bone reveal is available. On-model marking is unavailable until the AVP negotiates projection and annotation support."
+            }
+            return nil
+        }
         if state.hasPendingAcknowledgment {
             return "Controls are paused until Vision Pro confirms the last change."
         }

@@ -69,12 +69,12 @@
 		0000000000000000000000C7 /* MedicalAssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000D7 /* MedicalAssistantView.swift */; };
 		0000000000000000000000C8 /* MedicalAssistantKnowledge.json in Resources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000D8 /* MedicalAssistantKnowledge.json */; };
 		0000000000000000000000C9 /* AppleFoundationModelClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000D9 /* AppleFoundationModelClient.swift */; };
-		000000000000000000000130 /* VoiceAssistantModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000140 /* VoiceAssistantModels.swift */; };
-		000000000000000000000131 /* VoiceAssistantController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000141 /* VoiceAssistantController.swift */; };
-		000000000000000000000132 /* AppleSpeechTranscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000142 /* AppleSpeechTranscriber.swift */; };
-		000000000000000000000133 /* AppleSpeechOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000143 /* AppleSpeechOutput.swift */; };
-		000000000000000000000134 /* MedicalAssistantVoiceResponder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000144 /* MedicalAssistantVoiceResponder.swift */; };
-		000000000000000000000135 /* VoiceAssistantLiveFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000145 /* VoiceAssistantLiveFactory.swift */; };
+		000000000000000000000200 /* VoiceAssistantModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000210 /* VoiceAssistantModels.swift */; };
+		000000000000000000000201 /* VoiceAssistantController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000211 /* VoiceAssistantController.swift */; };
+		000000000000000000000202 /* AppleSpeechTranscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000212 /* AppleSpeechTranscriber.swift */; };
+		000000000000000000000203 /* AppleSpeechOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000213 /* AppleSpeechOutput.swift */; };
+		000000000000000000000204 /* MedicalAssistantVoiceResponder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000214 /* MedicalAssistantVoiceResponder.swift */; };
+		000000000000000000000205 /* VoiceAssistantLiveFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000215 /* VoiceAssistantLiveFactory.swift */; };
 		0000000000000000000000F6 /* ClinicianGuidanceContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000F0 /* ClinicianGuidanceContract.swift */; };
 		0000000000000000000000F7 /* ClinicianGuidanceContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000F0 /* ClinicianGuidanceContract.swift */; };
 		0000000000000000000000F8 /* ClinicianGuidanceWireCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000F1 /* ClinicianGuidanceWireCodec.swift */; };
@@ -117,6 +117,34 @@
 		000000000000000000000153 /* OnArmAnatomyLabState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000163 /* OnArmAnatomyLabState.swift */; };
 		000000000000000000000154 /* OnArmAnatomyImmersiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000164 /* OnArmAnatomyImmersiveView.swift */; };
 		000000000000000000000155 /* OnArmAnatomyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000165 /* OnArmAnatomyView.swift */; };
+		000000000000000000000320 /* OdysseyExperienceActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000300 /* OdysseyExperienceActions.swift */; };
+		000000000000000000000321 /* OdysseyExperienceViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000301 /* OdysseyExperienceViewState.swift */; };
+		000000000000000000000322 /* OdysseySessionUIComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000302 /* OdysseySessionUIComponents.swift */; };
+		000000000000000000000323 /* OdysseyAVPLandingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000303 /* OdysseyAVPLandingScreen.swift */; };
+		000000000000000000000324 /* OdysseyAVPSessionScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000304 /* OdysseyAVPSessionScreen.swift */; };
+		000000000000000000000325 /* OdysseyClinicianLandingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000305 /* OdysseyClinicianLandingScreen.swift */; };
+		000000000000000000000326 /* OdysseyClinicianSessionScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000306 /* OdysseyClinicianSessionScreen.swift */; };
+		000000000000000000000327 /* OdysseySessionPreviewSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000307 /* OdysseySessionPreviewSupport.swift */; };
+		000000000000000000000328 /* OdysseyClinicalSessionContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000308 /* OdysseyClinicalSessionContract.swift */; };
+		000000000000000000000329 /* OdysseyClinicalSessionWireCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000309 /* OdysseyClinicalSessionWireCodec.swift */; };
+		00000000000000000000032A /* OdysseyClinicalSessionAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000030A /* OdysseyClinicalSessionAdapter.swift */; };
+		00000000000000000000032B /* OdysseyClinicalSessionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000030B /* OdysseyClinicalSessionService.swift */; };
+		00000000000000000000032C /* OdysseyIntegratedDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000030C /* OdysseyIntegratedDemo.swift */; };
+		00000000000000000000032D /* OdysseyIntegratedRoots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000030D /* OdysseyIntegratedRoots.swift */; };
+		000000000000000000000340 /* OdysseyExperienceActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000300 /* OdysseyExperienceActions.swift */; };
+		000000000000000000000341 /* OdysseyExperienceViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000301 /* OdysseyExperienceViewState.swift */; };
+		000000000000000000000342 /* OdysseySessionUIComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000302 /* OdysseySessionUIComponents.swift */; };
+		000000000000000000000343 /* OdysseyAVPLandingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000303 /* OdysseyAVPLandingScreen.swift */; };
+		000000000000000000000344 /* OdysseyAVPSessionScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000304 /* OdysseyAVPSessionScreen.swift */; };
+		000000000000000000000345 /* OdysseyClinicianLandingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000305 /* OdysseyClinicianLandingScreen.swift */; };
+		000000000000000000000346 /* OdysseyClinicianSessionScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000306 /* OdysseyClinicianSessionScreen.swift */; };
+		000000000000000000000347 /* OdysseySessionPreviewSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000307 /* OdysseySessionPreviewSupport.swift */; };
+		000000000000000000000348 /* OdysseyClinicalSessionContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000308 /* OdysseyClinicalSessionContract.swift */; };
+		000000000000000000000349 /* OdysseyClinicalSessionWireCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000309 /* OdysseyClinicalSessionWireCodec.swift */; };
+		00000000000000000000034A /* OdysseyClinicalSessionAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000030A /* OdysseyClinicalSessionAdapter.swift */; };
+		00000000000000000000034B /* OdysseyClinicalSessionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000030B /* OdysseyClinicalSessionService.swift */; };
+		00000000000000000000034C /* OdysseyIntegratedDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000030C /* OdysseyIntegratedDemo.swift */; };
+		00000000000000000000034D /* OdysseyIntegratedRoots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000030D /* OdysseyIntegratedRoots.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -179,12 +207,12 @@
 		0000000000000000000000D7 /* MedicalAssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicalAssistantView.swift; sourceTree = "<group>"; };
 		0000000000000000000000D8 /* MedicalAssistantKnowledge.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = MedicalAssistantKnowledge.json; sourceTree = "<group>"; };
 		0000000000000000000000D9 /* AppleFoundationModelClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleFoundationModelClient.swift; sourceTree = "<group>"; };
-		000000000000000000000140 /* VoiceAssistantModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAssistantModels.swift; sourceTree = "<group>"; };
-		000000000000000000000141 /* VoiceAssistantController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAssistantController.swift; sourceTree = "<group>"; };
-		000000000000000000000142 /* AppleSpeechTranscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSpeechTranscriber.swift; sourceTree = "<group>"; };
-		000000000000000000000143 /* AppleSpeechOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSpeechOutput.swift; sourceTree = "<group>"; };
-		000000000000000000000144 /* MedicalAssistantVoiceResponder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicalAssistantVoiceResponder.swift; sourceTree = "<group>"; };
-		000000000000000000000145 /* VoiceAssistantLiveFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAssistantLiveFactory.swift; sourceTree = "<group>"; };
+		000000000000000000000210 /* VoiceAssistantModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAssistantModels.swift; sourceTree = "<group>"; };
+		000000000000000000000211 /* VoiceAssistantController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAssistantController.swift; sourceTree = "<group>"; };
+		000000000000000000000212 /* AppleSpeechTranscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSpeechTranscriber.swift; sourceTree = "<group>"; };
+		000000000000000000000213 /* AppleSpeechOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSpeechOutput.swift; sourceTree = "<group>"; };
+		000000000000000000000214 /* MedicalAssistantVoiceResponder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicalAssistantVoiceResponder.swift; sourceTree = "<group>"; };
+		000000000000000000000215 /* VoiceAssistantLiveFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAssistantLiveFactory.swift; sourceTree = "<group>"; };
 		0000000000000000000000F0 /* ClinicianGuidanceContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicianGuidanceContract.swift; sourceTree = "<group>"; };
 		0000000000000000000000F1 /* ClinicianGuidanceWireCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicianGuidanceWireCodec.swift; sourceTree = "<group>"; };
 		0000000000000000000000F2 /* ClinicianConnectionStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicianConnectionStatusView.swift; sourceTree = "<group>"; };
@@ -218,6 +246,20 @@
 		000000000000000000000163 /* OnArmAnatomyLabState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnArmAnatomyLabState.swift; sourceTree = "<group>"; };
 		000000000000000000000164 /* OnArmAnatomyImmersiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnArmAnatomyImmersiveView.swift; sourceTree = "<group>"; };
 		000000000000000000000165 /* OnArmAnatomyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnArmAnatomyView.swift; sourceTree = "<group>"; };
+		000000000000000000000300 /* OdysseyExperienceActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OdysseyExperienceActions.swift; sourceTree = "<group>"; };
+		000000000000000000000301 /* OdysseyExperienceViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OdysseyExperienceViewState.swift; sourceTree = "<group>"; };
+		000000000000000000000302 /* OdysseySessionUIComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OdysseySessionUIComponents.swift; sourceTree = "<group>"; };
+		000000000000000000000303 /* OdysseyAVPLandingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OdysseyAVPLandingScreen.swift; sourceTree = "<group>"; };
+		000000000000000000000304 /* OdysseyAVPSessionScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OdysseyAVPSessionScreen.swift; sourceTree = "<group>"; };
+		000000000000000000000305 /* OdysseyClinicianLandingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OdysseyClinicianLandingScreen.swift; sourceTree = "<group>"; };
+		000000000000000000000306 /* OdysseyClinicianSessionScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OdysseyClinicianSessionScreen.swift; sourceTree = "<group>"; };
+		000000000000000000000307 /* OdysseySessionPreviewSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OdysseySessionPreviewSupport.swift; sourceTree = "<group>"; };
+		000000000000000000000308 /* OdysseyClinicalSessionContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OdysseyClinicalSessionContract.swift; sourceTree = "<group>"; };
+		000000000000000000000309 /* OdysseyClinicalSessionWireCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OdysseyClinicalSessionWireCodec.swift; sourceTree = "<group>"; };
+		00000000000000000000030A /* OdysseyClinicalSessionAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OdysseyClinicalSessionAdapter.swift; sourceTree = "<group>"; };
+		00000000000000000000030B /* OdysseyClinicalSessionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OdysseyClinicalSessionService.swift; sourceTree = "<group>"; };
+		00000000000000000000030C /* OdysseyIntegratedDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OdysseyIntegratedDemo.swift; sourceTree = "<group>"; };
+		00000000000000000000030D /* OdysseyIntegratedRoots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OdysseyIntegratedRoots.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -270,6 +312,20 @@
 				000000000000000000000016 /* PeerSession.swift */,
 				000000000000000000000017 /* CompanionApp.swift */,
 				000000000000000000000018 /* CompanionContentView.swift */,
+				000000000000000000000300 /* OdysseyExperienceActions.swift */,
+				000000000000000000000301 /* OdysseyExperienceViewState.swift */,
+				000000000000000000000302 /* OdysseySessionUIComponents.swift */,
+				000000000000000000000303 /* OdysseyAVPLandingScreen.swift */,
+				000000000000000000000304 /* OdysseyAVPSessionScreen.swift */,
+				000000000000000000000305 /* OdysseyClinicianLandingScreen.swift */,
+				000000000000000000000306 /* OdysseyClinicianSessionScreen.swift */,
+				000000000000000000000307 /* OdysseySessionPreviewSupport.swift */,
+				000000000000000000000308 /* OdysseyClinicalSessionContract.swift */,
+				000000000000000000000309 /* OdysseyClinicalSessionWireCodec.swift */,
+				00000000000000000000030A /* OdysseyClinicalSessionAdapter.swift */,
+				00000000000000000000030B /* OdysseyClinicalSessionService.swift */,
+				00000000000000000000030C /* OdysseyIntegratedDemo.swift */,
+				00000000000000000000030D /* OdysseyIntegratedRoots.swift */,
 				000000000000000000000019 /* LandmarkTrackingService.swift */,
 				000000000000000000000077 /* IndexFingerKinematics.swift */,
 				000000000000000000000078 /* HybridLandmarkRegistration.swift */,
@@ -348,12 +404,12 @@
 				0000000000000000000000D6 /* MedicalAssistantStore.swift */,
 				0000000000000000000000D7 /* MedicalAssistantView.swift */,
 				0000000000000000000000D9 /* AppleFoundationModelClient.swift */,
-				000000000000000000000140 /* VoiceAssistantModels.swift */,
-				000000000000000000000141 /* VoiceAssistantController.swift */,
-				000000000000000000000142 /* AppleSpeechTranscriber.swift */,
-				000000000000000000000143 /* AppleSpeechOutput.swift */,
-				000000000000000000000144 /* MedicalAssistantVoiceResponder.swift */,
-				000000000000000000000145 /* VoiceAssistantLiveFactory.swift */,
+				000000000000000000000210 /* VoiceAssistantModels.swift */,
+				000000000000000000000211 /* VoiceAssistantController.swift */,
+				000000000000000000000212 /* AppleSpeechTranscriber.swift */,
+				000000000000000000000213 /* AppleSpeechOutput.swift */,
+				000000000000000000000214 /* MedicalAssistantVoiceResponder.swift */,
+				000000000000000000000215 /* VoiceAssistantLiveFactory.swift */,
 				0000000000000000000000E1 /* Resources */,
 			);
 			path = MedicalAssistant;
@@ -523,6 +579,20 @@
 			buildActionMask = 2147483647;
 			files = (
 				000000000000000000000020 /* UpperLimbPOCApp.swift in Sources */,
+				000000000000000000000320 /* OdysseyExperienceActions.swift in Sources */,
+				000000000000000000000321 /* OdysseyExperienceViewState.swift in Sources */,
+				000000000000000000000322 /* OdysseySessionUIComponents.swift in Sources */,
+				000000000000000000000323 /* OdysseyAVPLandingScreen.swift in Sources */,
+				000000000000000000000324 /* OdysseyAVPSessionScreen.swift in Sources */,
+				000000000000000000000325 /* OdysseyClinicianLandingScreen.swift in Sources */,
+				000000000000000000000326 /* OdysseyClinicianSessionScreen.swift in Sources */,
+				000000000000000000000327 /* OdysseySessionPreviewSupport.swift in Sources */,
+				000000000000000000000328 /* OdysseyClinicalSessionContract.swift in Sources */,
+				000000000000000000000329 /* OdysseyClinicalSessionWireCodec.swift in Sources */,
+				00000000000000000000032A /* OdysseyClinicalSessionAdapter.swift in Sources */,
+				00000000000000000000032B /* OdysseyClinicalSessionService.swift in Sources */,
+				00000000000000000000032C /* OdysseyIntegratedDemo.swift in Sources */,
+				00000000000000000000032D /* OdysseyIntegratedRoots.swift in Sources */,
 				000000000000000000000150 /* OnArmAnatomyAssetContract.swift in Sources */,
 				000000000000000000000151 /* OnArmAnatomyPose.swift in Sources */,
 				000000000000000000000152 /* OnArmAnatomyRealityKit.swift in Sources */,
@@ -545,12 +615,12 @@
 				0000000000000000000000C6 /* MedicalAssistantStore.swift in Sources */,
 				0000000000000000000000C7 /* MedicalAssistantView.swift in Sources */,
 				0000000000000000000000C9 /* AppleFoundationModelClient.swift in Sources */,
-				000000000000000000000130 /* VoiceAssistantModels.swift in Sources */,
-				000000000000000000000131 /* VoiceAssistantController.swift in Sources */,
-				000000000000000000000132 /* AppleSpeechTranscriber.swift in Sources */,
-				000000000000000000000133 /* AppleSpeechOutput.swift in Sources */,
-				000000000000000000000134 /* MedicalAssistantVoiceResponder.swift in Sources */,
-				000000000000000000000135 /* VoiceAssistantLiveFactory.swift in Sources */,
+				000000000000000000000200 /* VoiceAssistantModels.swift in Sources */,
+				000000000000000000000201 /* VoiceAssistantController.swift in Sources */,
+				000000000000000000000202 /* AppleSpeechTranscriber.swift in Sources */,
+				000000000000000000000203 /* AppleSpeechOutput.swift in Sources */,
+				000000000000000000000204 /* MedicalAssistantVoiceResponder.swift in Sources */,
+				000000000000000000000205 /* VoiceAssistantLiveFactory.swift in Sources */,
 				000000000000000000000021 /* ContentView.swift in Sources */,
 				000000000000000000000022 /* ImmersiveView.swift in Sources */,
 				000000000000000000000023 /* OverlayState.swift in Sources */,
@@ -585,6 +655,20 @@
 			buildActionMask = 2147483647;
 			files = (
 				000000000000000000000027 /* CompanionApp.swift in Sources */,
+				000000000000000000000340 /* OdysseyExperienceActions.swift in Sources */,
+				000000000000000000000341 /* OdysseyExperienceViewState.swift in Sources */,
+				000000000000000000000342 /* OdysseySessionUIComponents.swift in Sources */,
+				000000000000000000000343 /* OdysseyAVPLandingScreen.swift in Sources */,
+				000000000000000000000344 /* OdysseyAVPSessionScreen.swift in Sources */,
+				000000000000000000000345 /* OdysseyClinicianLandingScreen.swift in Sources */,
+				000000000000000000000346 /* OdysseyClinicianSessionScreen.swift in Sources */,
+				000000000000000000000347 /* OdysseySessionPreviewSupport.swift in Sources */,
+				000000000000000000000348 /* OdysseyClinicalSessionContract.swift in Sources */,
+				000000000000000000000349 /* OdysseyClinicalSessionWireCodec.swift in Sources */,
+				00000000000000000000034A /* OdysseyClinicalSessionAdapter.swift in Sources */,
+				00000000000000000000034B /* OdysseyClinicalSessionService.swift in Sources */,
+				00000000000000000000034C /* OdysseyIntegratedDemo.swift in Sources */,
+				00000000000000000000034D /* OdysseyIntegratedRoots.swift in Sources */,
 				000000000000000000000120 /* CTForearmVolume.swift in Sources */,
 				000000000000000000000121 /* CTForearmVolumeRenderer.swift in Sources */,
 				000000000000000000000122 /* CTForearmVolumeShaders.metal in Sources */,

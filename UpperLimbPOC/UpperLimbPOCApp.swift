@@ -5,12 +5,14 @@ struct UpperLimbPOCApp: App {
     @StateObject private var overlay = OverlayState()
     @StateObject private var peer: PeerSession
     @StateObject private var clinicianGuidance: ClinicianGuidanceSession
-    @StateObject private var tracking = LandmarkTrackingService()
+    @StateObject private var tracking: LandmarkTrackingService
     @StateObject private var medicalAssistant = MedicalAssistantStore()
     @StateObject private var assistantWindow = AssistantWindowCoordinator()
 #if DEBUG
-    @StateObject private var clinicalTwin = ClinicalTwinLabState()
+    @StateObject private var clinicalTwin: ClinicalTwinLabState
     @StateObject private var onArmAnatomy = OnArmAnatomyLabState()
+    @StateObject private var odysseySession: OdysseyClinicalSessionService
+    @StateObject private var odysseyCoordinator: OdysseyAVPCoordinator
 #endif
     @State private var immersionStyle: ImmersionStyle = .mixed
     @State private var probeImmersionStyle: ImmersionStyle = .mixed
@@ -22,7 +24,9 @@ struct UpperLimbPOCApp: App {
 
     init() {
         let peer = PeerSession(role: .client)
+        let tracking = LandmarkTrackingService()
         _peer = StateObject(wrappedValue: peer)
+        _tracking = StateObject(wrappedValue: tracking)
         _clinicianGuidance = StateObject(
             wrappedValue: ClinicianGuidanceSession(
                 role: .visionPro,
@@ -30,13 +34,33 @@ struct UpperLimbPOCApp: App {
                 localDisplayName: "Apple Vision Pro"
             )
         )
+#if DEBUG
+        let clinicalTwin = ClinicalTwinLabState()
+        let odysseySession = OdysseyClinicalSessionService(
+            role: .visionPro,
+            peer: peer,
+            localDisplayName: "Apple Vision Pro"
+        )
+        _clinicalTwin = StateObject(wrappedValue: clinicalTwin)
+        _odysseySession = StateObject(wrappedValue: odysseySession)
+        _odysseyCoordinator = StateObject(
+            wrappedValue: OdysseyAVPCoordinator(
+                peer: peer,
+                session: odysseySession,
+                tracking: tracking,
+                clinicalTwin: clinicalTwin
+            )
+        )
+#endif
     }
 
     var body: some Scene {
         WindowGroup(id: "AnatomyLibrary") {
             Group {
 #if DEBUG
-                if OnArmAnatomyFeatureGate.isEnabled {
+                if OdysseyIntegratedDemoFeatureGate.isEnabled {
+                    OdysseyIntegratedAVPRoot()
+                } else if OnArmAnatomyFeatureGate.isEnabled {
                     OnArmAnatomyView()
                 } else if ClinicalTwinLabFeatureGate.isEnabled {
                     ClinicalTwinView()
@@ -55,6 +79,8 @@ struct UpperLimbPOCApp: App {
 #if DEBUG
                 .environmentObject(clinicalTwin)
                 .environmentObject(onArmAnatomy)
+                .environmentObject(odysseySession)
+                .environmentObject(odysseyCoordinator)
 #endif
         }
         .defaultSize(width: 960, height: 720)

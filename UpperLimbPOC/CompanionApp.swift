@@ -5,6 +5,10 @@ struct UpperLimbCompanionApp: App {
     @StateObject private var overlay = OverlayState()
     @StateObject private var peer: PeerSession
     @StateObject private var clinicianGuidance: ClinicianGuidanceSession
+#if DEBUG
+    @StateObject private var odysseySession: OdysseyClinicalSessionService
+    @StateObject private var odysseyCoordinator: OdysseyCompanionCoordinator
+#endif
 
     init() {
         let peer = PeerSession(role: .host)
@@ -16,13 +20,29 @@ struct UpperLimbCompanionApp: App {
                 localDisplayName: "Clinician Companion"
             )
         )
+#if DEBUG
+        let odysseySession = OdysseyClinicalSessionService(
+            role: .companion,
+            peer: peer,
+            localDisplayName: "Clinician Companion"
+        )
+        _odysseySession = StateObject(wrappedValue: odysseySession)
+        _odysseyCoordinator = StateObject(
+            wrappedValue: OdysseyCompanionCoordinator(
+                peer: peer,
+                session: odysseySession
+            )
+        )
+#endif
     }
 
     var body: some Scene {
         WindowGroup {
             Group {
 #if DEBUG
-                if CTForearmVRTFeatureGate.isEnabled {
+                if OdysseyIntegratedDemoFeatureGate.isEnabled {
+                    OdysseyIntegratedCompanionRoot()
+                } else if CTForearmVRTFeatureGate.isEnabled {
                     CTForearmVRTPreview()
                 } else if AnatomicalLayerUIFeatureGate.isEnabled {
                     AnatomicalLayerLabHost()
@@ -36,6 +56,10 @@ struct UpperLimbCompanionApp: App {
             .environmentObject(overlay)
             .environmentObject(peer)
             .environmentObject(clinicianGuidance)
+#if DEBUG
+            .environmentObject(odysseySession)
+            .environmentObject(odysseyCoordinator)
+#endif
         }
     }
 }

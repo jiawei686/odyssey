@@ -1,6 +1,12 @@
 import Foundation
 import Network
 
+@MainActor
+protocol PeerSessionOdysseyClinicalSessionDelegate: AnyObject {
+    func peerSession(_ peer: PeerSession, odysseyConnectionChanged isConnected: Bool)
+    func peerSession(_ peer: PeerSession, received message: OdysseyClinicalSessionMessage)
+}
+
 final class PeerSession: ObservableObject, @unchecked Sendable {
     enum Role {
         case host
@@ -15,6 +21,7 @@ final class PeerSession: ObservableObject, @unchecked Sendable {
     @Published private(set) var lastJointFrame: UpperLimbJointFrame?
     @Published private(set) var lastJointFrameReceivedAtMonotonic: TimeInterval?
     @Published private(set) var lastClinicianGuidanceMessage: ClinicianGuidanceMessage?
+    @Published private(set) var lastOdysseyClinicalSessionMessage: OdysseyClinicalSessionMessage?
 
     private let role: Role
     private let queue = DispatchQueue(label: "com.marcel.upperlimbpoc.peer")
@@ -26,6 +33,7 @@ final class PeerSession: ObservableObject, @unchecked Sendable {
     private var receiveBuffer = Data()
     private var hasStarted = false
     private weak var clinicianGuidanceDelegate: PeerSessionClinicianGuidanceDelegate?
+    private weak var odysseyClinicalSessionDelegate: PeerSessionOdysseyClinicalSessionDelegate?
 
     init(role: Role) {
         self.role = role
@@ -71,6 +79,14 @@ final class PeerSession: ObservableObject, @unchecked Sendable {
         delegate?.peerSession(self, connectionChanged: isConnected)
     }
 
+    @MainActor
+    func setOdysseyClinicalSessionDelegate(
+        _ delegate: PeerSessionOdysseyClinicalSessionDelegate?
+    ) {
+        odysseyClinicalSessionDelegate = delegate
+        delegate?.peerSession(self, odysseyConnectionChanged: isConnected)
+    }
+
     private func stopOnQueue() {
         hasStarted = false
         reconnectWorkItem?.cancel()
@@ -110,6 +126,14 @@ final class PeerSession: ObservableObject, @unchecked Sendable {
             sendPacket(try UpperLimbPeerWireCodec.encode(message))
         } catch {
             publish(status: "Guidance encode failed", connected: isConnected)
+        }
+    }
+
+    func send(_ message: OdysseyClinicalSessionMessage) {
+        do {
+            sendPacket(try UpperLimbPeerWireCodec.encode(message))
+        } catch {
+            publish(status: "Odyssey session encode failed", connected: isConnected)
         }
     }
 
@@ -312,6 +336,14 @@ final class PeerSession: ObservableObject, @unchecked Sendable {
                             received: message
                         )
                     }
+                case .odysseyClinicalSession(let message):
+                    self?.lastOdysseyClinicalSessionMessage = message
+                    if let self {
+                        self.odysseyClinicalSessionDelegate?.peerSession(
+                            self,
+                            received: message
+                        )
+                    }
                 }
             }
         }
@@ -327,6 +359,10 @@ final class PeerSession: ObservableObject, @unchecked Sendable {
                 self.clinicianGuidanceDelegate?.peerSession(
                     self,
                     connectionChanged: connected
+                )
+                self.odysseyClinicalSessionDelegate?.peerSession(
+                    self,
+                    odysseyConnectionChanged: connected
                 )
             }
         }

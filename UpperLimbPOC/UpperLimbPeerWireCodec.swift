@@ -4,6 +4,7 @@ enum UpperLimbPeerWirePayload {
     case overlaySnapshot(OverlaySnapshot)
     case jointFrame(UpperLimbJointFrame)
     case clinicianGuidance(ClinicianGuidanceMessage)
+    case odysseyClinicalSession(OdysseyClinicalSessionMessage)
 }
 
 enum UpperLimbPeerWireError: Error, Equatable {
@@ -25,7 +26,15 @@ enum UpperLimbPeerWireCodec {
         try ClinicianGuidanceWireCodec.encode(message)
     }
 
+    static func encode(_ message: OdysseyClinicalSessionMessage) throws -> Data {
+        try OdysseyClinicalSessionWireCodec().encode(message)
+    }
+
     static func decode(_ packet: Data) throws -> UpperLimbPeerWirePayload {
+        if let message = try OdysseyClinicalSessionWireCodec()
+            .decodeIfOdysseyClinicalSession(packet) {
+            return .odysseyClinicalSession(message)
+        }
         if let message = try? ClinicianGuidanceWireCodec.decode(packet) {
             return .clinicianGuidance(message)
         }
