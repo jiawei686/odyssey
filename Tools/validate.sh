@@ -267,11 +267,19 @@ test -x "$PROJECT_DIR/Tools/simulator_smoke.sh"
 test -f "$PROJECT_DIR/UpperLimbPOC/OdysseyClinicalSessionService.swift"
 test -f "$PROJECT_DIR/UpperLimbPOC/OdysseyIntegratedDemo.swift"
 test -f "$PROJECT_DIR/UpperLimbPOC/OdysseyIntegratedRoots.swift"
+test -f "$PROJECT_DIR/UpperLimbPOC/PeerEndpointFailover.swift"
+test -f "$PROJECT_DIR/Tools/PeerEndpointFailoverCheck.swift"
 test -f "$PROJECT_DIR/docs/ODYSSEY_INTEGRATED_DEMO.md"
 test -f "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/xcshareddata/xcschemes/UpperLimbPOC-Odyssey-Integrated-Demo.xcscheme"
 test -f "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/xcshareddata/xcschemes/UpperLimbCompanion-Odyssey-Integrated-Demo.xcscheme"
 rg -Fq 'static let launchArgument = "--odyssey-integrated-demo"' "$PROJECT_DIR/UpperLimbPOC/OdysseyIntegratedDemo.swift"
 rg -Fq '#if ODYSSEY_INTEGRATED_DEMO' "$PROJECT_DIR/UpperLimbPOC/OdysseyIntegratedDemo.swift"
+rg -Fq 'Odyssey Clinician Companion' "$PROJECT_DIR/UpperLimbPOC/PeerSession.swift"
+rg -Fq 'isValidClinicianHandshake' "$PROJECT_DIR/UpperLimbPOC/PeerSession.swift"
+rg -Fq 'startNextDiscoveredEndpoint' "$PROJECT_DIR/UpperLimbPOC/PeerSession.swift"
+rg -Fq 'Verifying clinician companion…' "$PROJECT_DIR/UpperLimbPOC/PeerSession.swift"
+rg -Fq 'Connected to clinician companion' "$PROJECT_DIR/UpperLimbPOC/PeerSession.swift"
+rg -Fq 'PeerEndpointFailover.swift in Sources' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
 rg -Fq 'SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG ODYSSEY_INTEGRATED_DEMO $(inherited)";' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
 test "$(rg -o 'buildConfiguration="Debug-OdysseyIntegratedDemo"' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/xcshareddata/xcschemes/UpperLimbPOC-Odyssey-Integrated-Demo.xcscheme" | wc -l | tr -d ' ')" = "3"
 test "$(rg -o 'buildConfiguration="Debug-OdysseyIntegratedDemo"' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/xcshareddata/xcschemes/UpperLimbCompanion-Odyssey-Integrated-Demo.xcscheme" | wc -l | tr -d ' ')" = "3"
@@ -417,6 +425,16 @@ xcrun swiftc \
     "$PROJECT_DIR/Tools/OdysseyClinicalSessionContractCheck.swift" \
     -o "$BUILD_ROOT/odyssey-clinical-session-contract-check"
 "$BUILD_ROOT/odyssey-clinical-session-contract-check"
+
+xcrun swiftc \
+    -warnings-as-errors \
+    -strict-concurrency=complete \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/PeerEndpointFailover.swift" \
+    "$PROJECT_DIR/Tools/PeerEndpointFailoverCheck.swift" \
+    -o "$BUILD_ROOT/peer-endpoint-failover-check"
+"$BUILD_ROOT/peer-endpoint-failover-check"
 
 xcrun swiftc \
     -warnings-as-errors \

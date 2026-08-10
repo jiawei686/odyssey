@@ -142,6 +142,8 @@
 		000000000000000000000400 /* AssistantAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000410 /* AssistantAvatarView.swift */; };
 		000000000000000000000401 /* AssistantVoiceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000411 /* AssistantVoiceController.swift */; };
 		000000000000000000000402 /* assistant-avatar.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000412 /* assistant-avatar.usdz */; };
+		000000000000000000000500 /* PeerEndpointFailover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000502 /* PeerEndpointFailover.swift */; };
+		000000000000000000000501 /* PeerEndpointFailover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000502 /* PeerEndpointFailover.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -254,6 +256,7 @@
 		000000000000000000000410 /* AssistantAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantAvatarView.swift; sourceTree = "<group>"; };
 		000000000000000000000411 /* AssistantVoiceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantVoiceController.swift; sourceTree = "<group>"; };
 		000000000000000000000412 /* assistant-avatar.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = "assistant-avatar.usdz"; sourceTree = "<group>"; };
+		000000000000000000000502 /* PeerEndpointFailover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeerEndpointFailover.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -304,6 +307,7 @@
 				000000000000000000000014 /* hand-to-elbow-overlay.usdz */,
 				000000000000000000000015 /* OverlaySnapshot.swift */,
 				000000000000000000000016 /* PeerSession.swift */,
+				000000000000000000000502 /* PeerEndpointFailover.swift */,
 				000000000000000000000017 /* CompanionApp.swift */,
 				000000000000000000000018 /* CompanionContentView.swift */,
 				000000000000000000000300 /* OdysseyExperienceActions.swift */,
@@ -614,6 +618,7 @@
 				000000000000000000000023 /* OverlayState.swift in Sources */,
 				000000000000000000000025 /* OverlaySnapshot.swift in Sources */,
 				000000000000000000000026 /* PeerSession.swift in Sources */,
+				000000000000000000000500 /* PeerEndpointFailover.swift in Sources */,
 				00000000000000000000002D /* LandmarkTrackingService.swift in Sources */,
 				000000000000000000000066 /* IndexFingerKinematics.swift in Sources */,
 				000000000000000000000067 /* HybridLandmarkRegistration.swift in Sources */,
@@ -665,6 +670,7 @@
 				000000000000000000000029 /* OverlayState.swift in Sources */,
 				00000000000000000000002A /* OverlaySnapshot.swift in Sources */,
 				00000000000000000000002B /* PeerSession.swift in Sources */,
+				000000000000000000000501 /* PeerEndpointFailover.swift in Sources */,
 				000000000000000000000068 /* HybridLandmarkRegistration.swift in Sources */,
 				000000000000000000000081 /* UpperLimbJointFrame.swift in Sources */,
 				000000000000000000000083 /* UpperLimbPeerEnvelope.swift in Sources */,
