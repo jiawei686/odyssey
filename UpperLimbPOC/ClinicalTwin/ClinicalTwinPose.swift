@@ -3,9 +3,13 @@ import simd
 
 enum ClinicalTwinRendererRoute: String, Codable, Equatable, Sendable {
     case ctDerivedMeshFallback
+    case anatomyToolBlenderUSDZ
 
     var label: String {
-        "CT-derived mesh fallback"
+        switch self {
+        case .ctDerivedMeshFallback: "CT-derived mesh fallback"
+        case .anatomyToolBlenderUSDZ: "AnatomyTOOL Blender USDZ"
+        }
     }
 }
 
@@ -73,7 +77,7 @@ struct ClinicalTwinPresentationResolver: Sendable {
                 transform: transform,
                 opacity: 1,
                 isAttachedToWearer: true,
-                rendererRoute: .ctDerivedMeshFallback,
+                rendererRoute: .anatomyToolBlenderUSDZ,
                 statusTitle: "Right forearm twin attached",
                 statusDetail: "Live — following Odyssey's tracked right forearm"
             )
@@ -91,7 +95,7 @@ struct ClinicalTwinPresentationResolver: Sendable {
                 return frozen
             }
             return staticPresentation(
-                title: "Static CT-derived twin",
+                title: "Static AnatomyTOOL skeletal twin",
                 detail: "Static reference only — show Odyssey's right forearm to attach"
             )
 
@@ -194,7 +198,7 @@ struct ClinicalTwinPresentationResolver: Sendable {
             transform: lastSafeTransform,
             opacity: Self.staleOpacity,
             isAttachedToWearer: false,
-            rendererRoute: .ctDerivedMeshFallback,
+            rendererRoute: .anatomyToolBlenderUSDZ,
             statusTitle: "Tracking stale — twin frozen",
             statusDetail: "Last safe pose held for up to 3 seconds; the twin will not drift"
         )
@@ -238,7 +242,7 @@ struct ClinicalTwinPresentationResolver: Sendable {
             transform: Self.staticTransform,
             opacity: opacity,
             isAttachedToWearer: false,
-            rendererRoute: .ctDerivedMeshFallback,
+            rendererRoute: .anatomyToolBlenderUSDZ,
             statusTitle: title,
             statusDetail: detail
         )

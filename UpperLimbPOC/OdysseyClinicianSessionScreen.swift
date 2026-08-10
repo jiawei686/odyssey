@@ -188,7 +188,7 @@ public struct OdysseyClinicianSessionScreen: View {
     private var disabledExplanation: String? {
         guard !state.canSendGuidance else {
             if !state.supportsMarking {
-                return "Surface-to-Bone reveal is available. On-model marking is unavailable until the AVP negotiates projection and annotation support."
+                return "Bone model visibility is available. On-model marking is unavailable until the AVP negotiates projection and annotation support."
             }
             return nil
         }

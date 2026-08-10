@@ -171,6 +171,7 @@ struct OdysseyClinicalRevealValue: Codable, Equatable, Sendable {
 enum OdysseyTwinRendererRoute: String, Codable, Equatable, Sendable {
     case spatialVRT
     case ctDerivedMeshFallback
+    case anatomyToolBlenderUSDZ
 }
 
 enum OdysseyTwinTrackingState: String, Codable, Equatable, Sendable {
@@ -217,7 +218,7 @@ struct OdysseyClinicalDesiredState: Codable, Equatable, Sendable {
     let reveal: OdysseyClinicalRevealValue
     let presentation: OdysseyTwinPresentationState
 
-    static let initial = Self(reveal: .surface, presentation: .followArm)
+    static let initial = Self(reveal: .bone, presentation: .followArm)
 
     func settingReveal(_ value: Double) -> Self {
         Self(

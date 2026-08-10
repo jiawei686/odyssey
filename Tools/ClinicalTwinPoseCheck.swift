@@ -28,7 +28,7 @@ enum ClinicalTwinPoseCheck {
         try expect(result.mode == .staticReference, "searching must use the labelled static reference")
         try expect(!result.isAttachedToWearer, "static reference must not claim attachment")
         try expect(result.opacity == 1, "static reference must remain visible")
-        try expect(result.rendererRoute == .ctDerivedMeshFallback, "renderer route must be truthful")
+        try expect(result.rendererRoute == .anatomyToolBlenderUSDZ, "renderer route must be truthful")
     }
 
     private static func livePoseScalesAndOffsetsBesideRightForearm() throws {

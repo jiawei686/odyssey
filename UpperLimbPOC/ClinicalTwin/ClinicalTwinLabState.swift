@@ -19,10 +19,9 @@ enum ClinicalTwinRendererPhase: Equatable {
 }
 
 struct ClinicalTwinRenderEvidence: Equatable {
-    let softTissueTriangles: Int
-    let pairedBoneATriangles: Int
-    let pairedBoneBTriangles: Int
-    let buildMilliseconds: Double
+    let assetByteCount: Int
+    let radiusLengthMetres: Float
+    let ulnaLengthMetres: Float
 }
 
 @MainActor
@@ -30,8 +29,8 @@ final class ClinicalTwinLabState: ObservableObject {
     @Published private(set) var rendererPhase: ClinicalTwinRendererPhase = .idle
     @Published private(set) var currentPresentation: ClinicalTwinPresentation?
     @Published private(set) var trackingRequested = false
-    // The integrated self-guided route must reveal the actual paired-bone
-    // geometry without depending on a connected companion control.
+    // Self-guided sessions start with the full Blender asset visible. A
+    // negotiated companion reveal request may fade its opacity toward zero.
     @Published var revealAnatomy = 1.0
 
     private var presentationResolver = ClinicalTwinPresentationResolver()
@@ -48,20 +47,20 @@ final class ClinicalTwinLabState: ObservableObject {
     func beginStaticSession() {
         guard rendererPhase == .idle else { return }
         rendererPhase = .loading
-        logger.notice("route=ctDerivedMeshFallback state=loading-static-reference")
+        logger.notice("route=anatomyToolBlenderUSDZ state=loading-static-reference")
     }
 
     func markStaticReady(_ evidence: ClinicalTwinRenderEvidence) {
         rendererPhase = .staticReady(evidence)
         logger.notice(
-            "route=ctDerivedMeshFallback state=static-ready softTriangles=\(evidence.softTissueTriangles) boneATriangles=\(evidence.pairedBoneATriangles) boneBTriangles=\(evidence.pairedBoneBTriangles) buildMs=\(evidence.buildMilliseconds, format: .fixed(precision: 1))"
+            "route=anatomyToolBlenderUSDZ state=static-ready bytes=\(evidence.assetByteCount) radiusMetres=\(evidence.radiusLengthMetres, format: .fixed(precision: 4)) ulnaMetres=\(evidence.ulnaLengthMetres, format: .fixed(precision: 4))"
         )
     }
 
     func markRendererFailed(_ detail: String) {
         rendererPhase = .failed(detail)
         currentPresentation = nil
-        logger.error("route=ctDerivedMeshFallback state=failed detail=\(detail, privacy: .public)")
+        logger.error("route=anatomyToolBlenderUSDZ state=failed detail=\(detail, privacy: .public)")
     }
 
     func requestRightForearmTracking() {

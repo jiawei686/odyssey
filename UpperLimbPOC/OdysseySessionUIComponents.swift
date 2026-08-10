@@ -242,7 +242,7 @@ public struct OdysseyIdentityCard: View {
 
 // MARK: - Reveal control
 
-/// Surface-to-Bone reveal presented as a clinical visualisation control.
+/// Bone-model opacity presented as a clinical visualisation control.
 /// The value is sent once on release, never streamed while dragging.
 public struct OdysseyRevealControl: View {
     public let desired: OdysseyRevealAmount
@@ -268,20 +268,20 @@ public struct OdysseyRevealControl: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Reveal Depth")
+            Text("Bone Model Visibility")
                 .font(.headline)
 
             Slider(
                 value: $draft,
                 in: 0...1,
                 label: {
-                    Text("Reveal depth from surface to bone")
+                    Text("Bone model visibility")
                 },
                 minimumValueLabel: {
-                    Text("Surface").font(.caption2).foregroundStyle(.secondary)
+                    Text("Hidden").font(.caption2).foregroundStyle(.secondary)
                 },
                 maximumValueLabel: {
-                    Text("Bone").font(.caption2).foregroundStyle(.secondary)
+                    Text("Full").font(.caption2).foregroundStyle(.secondary)
                 },
                 onEditingChanged: { editing in
                     isEditing = editing
@@ -292,7 +292,7 @@ public struct OdysseyRevealControl: View {
                 }
             )
             .disabled(!isEnabled)
-            .accessibilityLabel("Reveal depth, surface to bone")
+            .accessibilityLabel("Bone model visibility")
             .accessibilityValue(accessibilityValue)
 
             HStack(spacing: 6) {
@@ -317,7 +317,7 @@ public struct OdysseyRevealControl: View {
         let current = OdysseyRevealAmount(clamping: draft)
         var text = "\(current.layerName), \(current.percentText)"
         if applied != current {
-            text += ". Confirmed depth \(applied.layerName)"
+            text += ". Confirmed visibility \(applied.layerName)"
         }
         return text
     }
@@ -471,7 +471,7 @@ public struct OdysseyReferenceAnatomyView: View {
         var parts: [String] = [OdysseyCopy.liveWearerViewUnavailable]
         parts.append(isAnatomyVisible ? "Anatomy visible" : "Anatomy hidden")
         if isAnatomyVisible {
-            parts.append("Revealed to \(reveal.layerName)")
+            parts.append("Bone model visibility \(reveal.layerName)")
         }
         parts.append(
             markers.isEmpty

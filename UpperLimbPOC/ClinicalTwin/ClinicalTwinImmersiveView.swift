@@ -2,6 +2,7 @@
 import ARKit
 import RealityKit
 import SwiftUI
+import UIKit
 
 struct ClinicalTwinImmersiveView: View {
     @EnvironmentObject private var tracking: LandmarkTrackingService
@@ -10,23 +11,14 @@ struct ClinicalTwinImmersiveView: View {
     var body: some View {
         RealityView { content in
             labState.beginStaticSession()
+            content.add(ClinicalTwinTrackedJointOverlay.makeRoot())
             do {
-                let volume = try CTForearmVolumeData.load()
-                let startedAt = ContinuousClock.now
-                let geometry = try await Task.detached(priority: .userInitiated) {
-                    try CTForearmTwinGeometryBuilder.build(
-                        volume: volume,
-                        spacingMetres: CTForearmVolumeAsset.spacingMetres
-                    )
-                }.value
-                let elapsed = startedAt.duration(to: .now)
-                let root = try ClinicalTwinRealityKitFactory.makeRoot(from: geometry)
-                content.add(root)
+                let loaded = try await ClinicalTwinRealityKitFactory.loadRoot()
+                content.add(loaded.root)
                 labState.markStaticReady(ClinicalTwinRenderEvidence(
-                    softTissueTriangles: geometry.softTissue.triangleCount,
-                    pairedBoneATriangles: geometry.pairedBoneA.triangleCount,
-                    pairedBoneBTriangles: geometry.pairedBoneB.triangleCount,
-                    buildMilliseconds: elapsed.milliseconds
+                    assetByteCount: loaded.evidence.assetByteCount,
+                    radiusLengthMetres: loaded.evidence.radiusExtentsMetres.z,
+                    ulnaLengthMetres: loaded.evidence.ulnaExtentsMetres.z
                 ))
             } catch {
                 labState.markRendererFailed(error.localizedDescription)
@@ -54,38 +46,117 @@ struct ClinicalTwinImmersiveView: View {
                 rotation: presentation.transform.rotation,
                 translation: presentation.transform.translation
             )
-            applyReveal(
-                to: root,
-                reveal: Float(labState.revealAnatomy),
-                presentationOpacity: presentation.opacity
+            ClinicalTwinRealityKitFactory.setPresentationOpacity(
+                on: root,
+                opacity: Float(labState.revealAnatomy) * presentation.opacity
+            )
+            ClinicalTwinTrackedJointOverlay.update(
+                in: content,
+                transforms: tracking.rightHandJointTransforms,
+                visible: labState.trackingRequested
+                    && tracking.handPhase == .running
+                    && tracking.rightForearmResolution.state == .live
             )
         }
     }
-
-    private func applyReveal(
-        to root: Entity,
-        reveal: Float,
-        presentationOpacity: Float
-    ) {
-        let clampedReveal = min(max(reveal, 0), 1)
-        let surfaceOpacity = max(0.035, 0.88 * (1 - clampedReveal))
-            * presentationOpacity
-        let boneOpacity = (0.035 + 0.965 * clampedReveal)
-            * presentationOpacity
-        root.findEntity(named: ClinicalTwinRealityKitFactory.softTissueName)?
-            .components.set(OpacityComponent(opacity: surfaceOpacity))
-        root.findEntity(named: ClinicalTwinRealityKitFactory.pairedBoneAName)?
-            .components.set(OpacityComponent(opacity: boneOpacity))
-        root.findEntity(named: ClinicalTwinRealityKitFactory.pairedBoneBName)?
-            .components.set(OpacityComponent(opacity: boneOpacity))
-    }
 }
 
-private extension Duration {
-    var milliseconds: Double {
-        let parts = components
-        return Double(parts.seconds) * 1_000
-            + Double(parts.attoseconds) / 1_000_000_000_000_000
+@MainActor
+private enum ClinicalTwinTrackedJointOverlay {
+    private struct JointLabel {
+        let joint: HandSkeleton.JointName
+        let text: String
+        let color: UIColor
+    }
+
+    private static let rootName = "ClinicalTwinTrackedRightJointLabels"
+    private static let labels = [
+        JointLabel(joint: .forearmArm, text: "NEAR ELBOW", color: .systemBlue),
+        JointLabel(joint: .wrist, text: "WRIST", color: .systemGreen),
+        JointLabel(joint: .indexFingerKnuckle, text: "INDEX MCP", color: .systemOrange),
+        JointLabel(joint: .indexFingerIntermediateBase, text: "INDEX PIP", color: .systemYellow),
+        JointLabel(joint: .indexFingerIntermediateTip, text: "INDEX DIP", color: .systemPink)
+    ]
+
+    static func makeRoot() -> Entity {
+        let root = Entity()
+        root.name = rootName
+        root.isEnabled = false
+
+        for (index, label) in labels.enumerated() {
+            let anchor = Entity()
+            anchor.name = labelName(index: index)
+            anchor.isEnabled = false
+
+            let marker = ModelEntity(
+                mesh: .generateSphere(radius: 0.005),
+                materials: [UnlitMaterial(color: label.color)]
+            )
+            marker.name = "Marker"
+            anchor.addChild(marker)
+
+            let text = ModelEntity(
+                mesh: .generateText(
+                    label.text,
+                    extrusionDepth: 0.0003,
+                    font: .systemFont(ofSize: 0.012, weight: .semibold)
+                ),
+                materials: [UnlitMaterial(color: label.color)]
+            )
+            text.name = "Label"
+            text.position = SIMD3<Float>(0.008, 0.008, 0)
+            anchor.addChild(text)
+            root.addChild(anchor)
+        }
+        return root
+    }
+
+    static func update(
+        in content: RealityViewContent,
+        transforms: [HandSkeleton.JointName: simd_float4x4],
+        visible: Bool
+    ) {
+        guard let root = content.entities.first(where: { $0.name == rootName }) else {
+            return
+        }
+        guard visible else {
+            root.isEnabled = false
+            return
+        }
+
+        var hasVisibleJoint = false
+        for (index, label) in labels.enumerated() {
+            guard let anchor = root.findEntity(named: labelName(index: index)) else {
+                continue
+            }
+            guard let transform = transforms[label.joint],
+                  let position = finitePosition(of: transform) else {
+                anchor.isEnabled = false
+                continue
+            }
+            anchor.position = position
+            anchor.isEnabled = true
+            hasVisibleJoint = true
+        }
+        root.isEnabled = hasVisibleJoint
+    }
+
+    private static func finitePosition(
+        of transform: simd_float4x4
+    ) -> SIMD3<Float>? {
+        let position = SIMD3<Float>(
+            transform.columns.3.x,
+            transform.columns.3.y,
+            transform.columns.3.z
+        )
+        guard position.x.isFinite,
+              position.y.isFinite,
+              position.z.isFinite else { return nil }
+        return position
+    }
+
+    private static func labelName(index: Int) -> String {
+        "ClinicalTwinTrackedJointLabel-\(index)"
     }
 }
 #endif

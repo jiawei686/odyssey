@@ -208,16 +208,20 @@ test -f "$CLINICAL_TWIN_DIR/ClinicalTwinView.swift"
 test -f "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/xcshareddata/xcschemes/UpperLimbPOC.xcscheme"
 test -f "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/xcshareddata/xcschemes/UpperLimbPOC-Clinical-Twin-Lab.xcscheme"
 rg -Fq 'static let launchArgument = "--odyssey-clinical-twin"' "$CLINICAL_TWIN_DIR/ClinicalTwinLabState.swift"
-rg -Fq 'case ctDerivedMeshFallback' "$CLINICAL_TWIN_DIR/ClinicalTwinPose.swift"
+rg -Fq 'case anatomyToolBlenderUSDZ' "$CLINICAL_TWIN_DIR/ClinicalTwinPose.swift"
 rg -Fq 'Odyssey · Right Forearm' "$CLINICAL_TWIN_DIR/ClinicalTwinView.swift"
 rg -Fq 'Illustrative anatomical model — not patient-specific imaging.' "$CLINICAL_TWIN_DIR/ClinicalTwinView.swift"
 rg -Fq 'rightHandJointTransforms' "$CLINICAL_TWIN_DIR/ClinicalTwinImmersiveView.swift"
 rg -Fq 'rightForearmResolution' "$CLINICAL_TWIN_DIR/ClinicalTwinImmersiveView.swift"
 rg -Fq 'Tracking dots and procedural cylinders remain Diagnostics only' "$CLINICAL_TWIN_DIR/ClinicalTwinView.swift"
-rg -Fq 'CTForearmVolume.swift in Sources' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
-rg -Fq 'visible-human-male-forearm-1680-1740.r8 in Resources' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
-if rg -q 'generateCylinder|hand-to-elbow-overlay' "$CLINICAL_TWIN_DIR"; then
-    echo "Clinical twin must use CT-derived geometry, not diagnostic cylinders or AnatomyTOOL assets." >&2
+rg -Fq 'OnArmAnatomyRealityKitFactory.loadRoot()' "$CLINICAL_TWIN_DIR/ClinicalTwinRealityKit.swift"
+rg -Fq 'showFullAsset: true' "$CLINICAL_TWIN_DIR/ClinicalTwinRealityKit.swift"
+rg -Fq 'OnArmAnatomyAssetContract.referenceForearmLengthMetres' "$CLINICAL_TWIN_DIR/ClinicalTwinRealityKit.swift"
+rg -Fq 'Float(labState.revealAnatomy) * presentation.opacity' "$CLINICAL_TWIN_DIR/ClinicalTwinImmersiveView.swift"
+if rg -q 'CTForearmVolumeData.load|CTForearmTwinGeometryBuilder.build|generateCylinder' \
+    "$CLINICAL_TWIN_DIR/ClinicalTwinImmersiveView.swift" \
+    "$CLINICAL_TWIN_DIR/ClinicalTwinRealityKit.swift"; then
+    echo "Clinical twin must load the real Blender USDZ, not CT-derived or procedural fallback geometry." >&2
     exit 1
 fi
 ON_ARM_ANATOMY_DIR="$PROJECT_DIR/UpperLimbPOC/OnArmAnatomy"
@@ -289,7 +293,9 @@ if rg -q 'Debug-OdysseyIntegratedDemo|ODYSSEY_INTEGRATED_DEMO' \
     echo "Stable schemes must not enable the Odyssey integrated-demo compilation condition." >&2
     exit 1
 fi
-rg -Fq 'case ctDerivedMeshFallback' "$PROJECT_DIR/UpperLimbPOC/OdysseyClinicalSessionContract.swift"
+rg -Fq 'case anatomyToolBlenderUSDZ' "$PROJECT_DIR/UpperLimbPOC/OdysseyClinicalSessionContract.swift"
+rg -Fq '? [.anatomyToolBlenderUSDZ]' "$PROJECT_DIR/UpperLimbPOC/OdysseyClinicalSessionService.swift"
+rg -Fq 'rendererRoute: .anatomyToolBlenderUSDZ' "$PROJECT_DIR/UpperLimbPOC/OdysseyClinicalSessionService.swift"
 rg -Fq 'wearerView: .unavailable' "$PROJECT_DIR/UpperLimbPOC/OdysseyIntegratedDemo.swift"
 
 echo "[3/14] Checking snapshot compatibility"
@@ -689,4 +695,4 @@ test -f "$COMPANION_APP/visible-human-male-forearm-1680-1740.r8"
 test -f "$COMPANION_APP/visible-human-male-forearm-1680-1740.json"
 test ! -e "$COMPANION_APP/assistant-avatar.usdz"
 
-echo "Validation passed: mixed reality, gaze/accessibility invariants, AVP self-forearm axis/stale state, named USDZ on-arm asset/pose checks, CT-derived clinical-twin geometry/pose checks, hybrid landmark registration and index-finger kinematics logic, CT VRT resource/surface-depth checks, medical-assistant avatar/push-to-talk/streaming contracts, metric evaluator, five reference slices, clean builds, and static analysis."
+echo "Validation passed: mixed reality, gaze/accessibility invariants, AVP self-forearm axis/stale state, named USDZ on-arm asset/pose checks, AnatomyTOOL Blender USDZ clinical-twin asset/pose checks, isolated CT-derived geometry checks, hybrid landmark registration and index-finger kinematics logic, CT VRT resource/surface-depth checks, medical-assistant avatar/push-to-talk/streaming contracts, metric evaluator, five reference slices, clean builds, and static analysis."

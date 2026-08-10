@@ -59,7 +59,7 @@ enum OdysseyClinicalSessionContractCheck {
         let applied = OdysseyClinicalAppliedState(
             descriptor: .odysseyRightForearmReference,
             appliedReveal: desired.reveal,
-            rendererRoute: .ctDerivedMeshFallback,
+            rendererRoute: .anatomyToolBlenderUSDZ,
             trackingState: .live,
             presentation: .followArm,
             applicationState: .applied,
@@ -68,7 +68,7 @@ enum OdysseyClinicalSessionContractCheck {
             trackingFrame: frame,
             appliedAt: now,
             failureReason: nil,
-            detail: "CT-derived twin follows the live right forearm"
+            detail: "AnatomyTOOL Blender USDZ follows beside the live right forearm"
         )
         try require(applied.isValid, "representative live state must be valid")
 
@@ -132,7 +132,7 @@ enum OdysseyClinicalSessionContractCheck {
             supportedProtocolVersions: [1, 2],
             capabilities: capabilities,
             descriptor: .odysseyRightForearmReference,
-            availableRendererRoutes: [.spatialVRT, .ctDerivedMeshFallback],
+            availableRendererRoutes: [.spatialVRT, .ctDerivedMeshFallback, .anatomyToolBlenderUSDZ],
             peerDisplayName: "Odyssey Vision Pro"
         )
         try require(handshake.isValid, "future capabilities must remain decodable")
@@ -150,7 +150,7 @@ enum OdysseyClinicalSessionContractCheck {
             supportedProtocolVersions: [1],
             capabilities: missing,
             descriptor: .odysseyRightForearmReference,
-            availableRendererRoutes: [.ctDerivedMeshFallback],
+            availableRendererRoutes: [.anatomyToolBlenderUSDZ],
             peerDisplayName: nil
         )
         var adapter = OdysseyClinicalSessionAdapter()
@@ -223,7 +223,7 @@ enum OdysseyClinicalSessionContractCheck {
         let heldStale = OdysseyClinicalAppliedState(
             descriptor: .odysseyRightForearmReference,
             appliedReveal: OdysseyClinicalRevealValue(validating: 0.6),
-            rendererRoute: .ctDerivedMeshFallback,
+            rendererRoute: .anatomyToolBlenderUSDZ,
             trackingState: .stale,
             presentation: .held,
             applicationState: .heldStale,
@@ -242,7 +242,7 @@ enum OdysseyClinicalSessionContractCheck {
         let rejected = OdysseyClinicalAppliedState(
             descriptor: .odysseyRightForearmReference,
             appliedReveal: nil,
-            rendererRoute: .ctDerivedMeshFallback,
+            rendererRoute: .anatomyToolBlenderUSDZ,
             trackingState: .searching,
             presentation: nil,
             applicationState: .rejected,
@@ -485,7 +485,7 @@ enum OdysseyClinicalSessionContractCheck {
             supportedProtocolVersions: [OdysseyClinicalSessionProtocol.currentVersion],
             capabilities: OdysseyClinicalSessionCapability.requiredList,
             descriptor: .odysseyRightForearmReference,
-            availableRendererRoutes: [.ctDerivedMeshFallback],
+            availableRendererRoutes: [.anatomyToolBlenderUSDZ],
             peerDisplayName: "Odyssey Vision Pro"
         )
     }
@@ -508,7 +508,7 @@ enum OdysseyClinicalSessionContractCheck {
         OdysseyClinicalAppliedState(
             descriptor: .odysseyRightForearmReference,
             appliedReveal: OdysseyClinicalRevealValue(validating: reveal),
-            rendererRoute: .ctDerivedMeshFallback,
+            rendererRoute: .anatomyToolBlenderUSDZ,
             trackingState: .live,
             presentation: .followArm,
             applicationState: .applied,

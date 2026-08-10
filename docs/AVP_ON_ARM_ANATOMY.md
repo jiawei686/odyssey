@@ -8,7 +8,7 @@ Status: DEBUG-only isolated lab route. Automated gates can verify the asset and 
 
 The wearer-arm diagnostic route intentionally draws procedural dots, spheres, and cylinders. Those shapes prove that Apple Vision Pro hand/forearm joints are available, but they are not anatomy. The separate on-arm lab loads the bundled `hand-to-elbow-overlay.usdz` and fails explicitly if `Radius_r`, `Ulna_r`, metre-scale bounds, or the asset itself are unavailable.
 
-The stable production/demo route, the procedural diagnostics route, and the CT-derived beside-arm clinical-twin route are unchanged.
+The integrated beside-arm clinical-twin route now reuses this validated Blender USDZ and displays the complete hand-to-elbow skeletal asset. The procedural diagnostics route remains separate and is not presented as anatomy.
 
 ## Asset and mapping contract
 
@@ -34,6 +34,8 @@ The lab offers two separate immersive-space routes:
 2. **See-Through Anatomy** requests hidden system upper limbs. It substitutes the virtual generic model where the system hides real arms. It does not reveal anatomy beneath a visible real arm.
 
 The static gate shows the full opaque USDZ at a known location in front of the wearer. Only after the wearer confirms that asset does the lab allow right-forearm alignment. The tracked route hides all other hand/finger meshes and shows only `Radius_r` and `Ulna_r`.
+
+The integrated `ClinicalTwinSpace` is intentionally different: it keeps the full rigid hand-to-elbow asset, hides system upper limbs, places the twin 16 cm beside the tracked right forearm, and uses the negotiated reveal value as model opacity.
 
 ## Tracking failure behavior
 

@@ -277,14 +277,14 @@ final class OdysseyClinicalSessionService: ObservableObject,
             acknowledgedSequence: pendingApplication.sequence,
             disposition: .applied,
             appliedFrameIdentifier: frame.identifier,
-            detail: "Applied to the live CT-derived right-forearm twin"
+            detail: "Applied to the live AnatomyTOOL Blender USDZ twin"
         )
         send(sessionID: sessionID, payload: .acknowledgment(acknowledgment), now: now)
 
         let applied = OdysseyClinicalAppliedState(
             descriptor: .odysseyRightForearmReference,
             appliedReveal: pendingApplication.reveal,
-            rendererRoute: .ctDerivedMeshFallback,
+            rendererRoute: .anatomyToolBlenderUSDZ,
             trackingState: .live,
             presentation: .followArm,
             applicationState: .applied,
@@ -293,7 +293,7 @@ final class OdysseyClinicalSessionService: ObservableObject,
             trackingFrame: frame,
             appliedAt: now,
             failureReason: nil,
-            detail: "AVP-confirmed CT-derived mesh reveal"
+            detail: "AVP-confirmed Blender USDZ opacity"
         )
         send(sessionID: sessionID, payload: .appliedState(applied), now: now)
         lastApplied = applied
@@ -337,7 +337,7 @@ final class OdysseyClinicalSessionService: ObservableObject,
         endpointRole: OdysseyClinicalSessionEndpointRole
     ) {
         let routes: [OdysseyTwinRendererRoute] = endpointRole == .visionPro
-            ? [.ctDerivedMeshFallback]
+            ? [.anatomyToolBlenderUSDZ]
             : []
         let handshake = OdysseyClinicalSessionHandshake(
             endpointRole: endpointRole,

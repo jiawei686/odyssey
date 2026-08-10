@@ -88,11 +88,11 @@ final class OdysseyAVPCoordinator: ObservableObject, OdysseyExperienceControllin
             if opened {
                 self.odysseyViewState.phase = .activeSession
                 self.odysseyViewState.desiredAnatomyVisible = true
-                self.logger.notice("lifecycle=active renderer=ctDerivedMeshFallback")
+                self.logger.notice("lifecycle=active renderer=anatomyToolBlenderUSDZ")
             } else {
                 self.odysseyViewState.phase = .error
                 self.odysseyViewState.recoverableError = OdysseyRecoverableError(
-                    message: "The CT-derived immersive twin could not open."
+                    message: "The AnatomyTOOL skeletal twin could not open."
                 )
             }
         }

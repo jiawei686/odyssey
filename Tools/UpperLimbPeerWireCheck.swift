@@ -21,7 +21,7 @@ struct UpperLimbPeerWireCheck {
                 supportedProtocolVersions: [1],
                 capabilities: OdysseyClinicalSessionCapability.requiredList,
                 descriptor: .odysseyRightForearmReference,
-                availableRendererRoutes: [.ctDerivedMeshFallback],
+                availableRendererRoutes: [.anatomyToolBlenderUSDZ],
                 peerDisplayName: "Apple Vision Pro"
             ))
         )

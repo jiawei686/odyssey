@@ -34,7 +34,7 @@ struct ClinicalTwinView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Odyssey · Right Forearm")
                 .font(.largeTitle.bold())
-            Label("CT-derived mesh fallback", systemImage: "cube.transparent")
+            Label("AnatomyTOOL · Blender USDZ", systemImage: "cube.transparent")
                 .font(.headline)
                 .foregroundStyle(.cyan)
             Text("Static reference first, then attach the twin beside the tracked right forearm.")
@@ -52,8 +52,9 @@ struct ClinicalTwinView: View {
 
             if case .staticReady(let evidence) = labState.rendererPhase {
                 Text(
-                    "CT mesh: \(evidence.softTissueTriangles) soft-tissue triangles · "
-                        + "\(evidence.pairedBoneATriangles + evidence.pairedBoneBTriangles) paired bone-density triangles"
+                    "USDZ \(evidence.assetByteCount) bytes · "
+                        + "Radius \(millimetres(evidence.radiusLengthMetres)) mm · "
+                        + "Ulna \(millimetres(evidence.ulnaLengthMetres)) mm"
                 )
                 .font(.caption.monospacedDigit())
                 .foregroundStyle(.secondary)
@@ -89,22 +90,22 @@ struct ClinicalTwinView: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Text("Reveal Anatomy")
+                    Text("Skeletal model opacity")
                         .font(.headline)
                     Spacer()
                     Text("\(Int((labState.revealAnatomy * 100).rounded()))%")
                         .monospacedDigit()
                 }
                 Slider(value: $labState.revealAnatomy, in: 0 ... 1) {
-                    Text("Reveal Anatomy")
+                    Text("Skeletal model opacity")
                 } minimumValueLabel: {
-                    Text("Surface").font(.caption)
+                    Text("Hidden").font(.caption)
                 } maximumValueLabel: {
-                    Text("Bone").font(.caption)
+                    Text("Full").font(.caption)
                 }
                 .disabled(!immersiveSpaceIsOpen)
                 .accessibilityValue(
-                    "\(Int((labState.revealAnatomy * 100).rounded())) percent, Surface to Bone"
+                    "\(Int((labState.revealAnatomy * 100).rounded())) percent opacity"
                 )
             }
 
@@ -137,7 +138,7 @@ struct ClinicalTwinView: View {
             .font(.callout.bold())
             .foregroundStyle(.orange)
             Text(
-                "Public cadaver reference CT. The 60 mm source slab is stretched to an approximate forearm length. Right-side demonstration placement does not assert the source scan's anatomical laterality or orientation. The two bone-density components are consistent with paired forearm bones but await named anatomical review."
+                "Generic AnatomyTOOL-derived skeletal anatomy exported from Blender. It is not CT-derived, patient-specific, or registered internal anatomy. The twin stays beside the tracked right forearm as an educational reference."
             )
             .font(.footnote)
             .foregroundStyle(.secondary)
@@ -153,9 +154,9 @@ struct ClinicalTwinView: View {
         }
         switch labState.rendererPhase {
         case .idle: return "Ready to open static reference"
-        case .loading: return "Loading CT-derived spatial twin…"
-        case .staticReady: return "Static CT-derived twin ready"
-        case .failed: return "CT-derived twin unavailable"
+        case .loading: return "Loading Blender skeletal twin…"
+        case .staticReady: return "Static Blender skeletal twin ready"
+        case .failed: return "Blender skeletal twin unavailable"
         }
     }
 
@@ -167,7 +168,7 @@ struct ClinicalTwinView: View {
         case .idle:
             return "The stable production demo is unchanged. This is an explicit DEBUG lab route."
         case .loading:
-            return "Verifying the bundled R8 hash and building RealityKit meshes."
+            return "Loading the bundled USDZ and verifying Radius_r and Ulna_r."
         case .staticReady:
             return "Static reference is visible. Confirm it before attaching to tracking."
         case .failed(let detail):
@@ -182,6 +183,10 @@ struct ClinicalTwinView: View {
         case .staticReady: labState.trackingRequested ? "wave.3.right" : "cube"
         case .failed: "exclamationmark.triangle.fill"
         }
+    }
+
+    private func millimetres(_ metres: Float) -> String {
+        String(format: "%.1f", metres * 1_000)
     }
 
     @MainActor

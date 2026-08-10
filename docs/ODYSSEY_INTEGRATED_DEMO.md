@@ -16,17 +16,17 @@ Apps compiled by either integrated scheme reopen into the Odyssey shell even whe
 
 - A persistent Odyssey Home → Session → End → Home shell on Vision Pro.
 - A real Bonjour/Network.framework connection and versioned Odyssey clinical-session handshake between the companion and Vision Pro.
-- Companion-authoritative desired Surface-to-Bone reveal and Vision-Pro-authoritative applied acknowledgment.
+- Companion-authoritative desired skeletal-model opacity and Vision-Pro-authoritative applied acknowledgment.
 - One command in flight, replay/freshness checks, and stale-state fail-closed behavior.
-- A CT-derived educational forearm mesh fallback for the primary tracked twin.
+- The validated AnatomyTOOL/Blender hand-to-elbow USDZ as the primary tracked twin.
 - Setup & Diagnostics access to the separate named AnatomyTOOL USDZ on-arm lab, including the static Normal Overlay gate and explicit Radius/Ulna alignment action.
 - The teammate medical-assistant avatar and its explicit push-to-talk, on-device transcription, existing safety-governed response path, and speech output. The duplicate fallback voice backend was intentionally not retained. Microphone, transcription, model availability, avatar interaction, and speech output remain physical-device pending.
 
 ## Truthful capability boundary
 
-This candidate does not provide a live Vision Pro wearer-view stream, camera unprojection, patient-specific CT registration, diagnostic interpretation, or production annotation placement. Those controls remain unavailable. The Surface-to-Bone reveal applies only after the Odyssey session capability is negotiated; it must not be described as changing the separate AnatomyTOOL USDZ diagnostics asset.
+This candidate does not provide a live Vision Pro wearer-view stream, camera unprojection, patient-specific CT registration, diagnostic interpretation, or production annotation placement. Those controls remain unavailable. The negotiated reveal value fades the Blender USDZ model opacity; it does not switch to CT tissue layers.
 
-The models are generic/reference educational anatomy. The primary CT-derived route is a compact 60 mm public cadaver reference slab stretched to approximate tracked forearm length; source laterality/orientation and named bone identity are not clinically registered. The USDZ diagnostics route is AnatomyTOOL-derived generic anatomy, not CT-derived and not patient-specific imaging.
+The model is generic/reference educational AnatomyTOOL anatomy exported from Blender. It is not CT-derived, patient-specific imaging, or registered internal anatomy. The rigid twin is scaled to the tracked forearm length and displayed beside the arm.
 
 ## Physical gate
 

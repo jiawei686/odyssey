@@ -156,7 +156,7 @@ public struct OdysseyAnatomyDescriptor: Equatable, Sendable {
 
 // MARK: - Reveal
 
-/// Normalised Surface-to-Bone reveal. 0 = surface, 1 = bone.
+/// Normalised bone-model opacity. 0 = hidden, 1 = fully visible.
 public struct OdysseyRevealAmount: Equatable, Sendable, Comparable {
     public let value: Double
 
@@ -169,15 +169,9 @@ public struct OdysseyRevealAmount: Equatable, Sendable, Comparable {
 
     public static func < (lhs: Self, rhs: Self) -> Bool { lhs.value < rhs.value }
 
-    /// Clinical layer name for the current depth. Used for labels and
-    /// VoiceOver values so depth is never communicated by position alone.
+    /// Bone visibility name used for labels and VoiceOver values.
     public var layerName: String {
-        switch value {
-        case ..<0.25: "Surface"
-        case ..<0.55: "Fat"
-        case ..<0.85: "Muscle"
-        default: "Bone"
-        }
+        value <= 0.005 ? "Hidden" : "Bone \(percentText)"
     }
 
     public var percentText: String {
@@ -293,8 +287,8 @@ public struct OdysseyExperienceViewState: Equatable, Sendable {
         trackingHealth: OdysseyTrackingHealth = .notStarted,
         appliedAnatomyVisible: Bool = false,
         desiredAnatomyVisible: Bool = false,
-        appliedReveal: OdysseyRevealAmount = .surface,
-        desiredReveal: OdysseyRevealAmount = .surface,
+        appliedReveal: OdysseyRevealAmount = .bone,
+        desiredReveal: OdysseyRevealAmount = .bone,
         appliedMarkers: [OdysseyEducationalMarker] = [],
         hasPendingAcknowledgment: Bool = false,
         lastConfirmedAt: Date? = nil,
