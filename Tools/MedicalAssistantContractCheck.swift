@@ -76,8 +76,9 @@ struct MedicalAssistantContractCheck {
             "Markdown response renders"
         )
         expect(
-            !renderedResponse.runs.contains { $0.link != nil },
-            "model links are not interactive"
+            !sanitizedResponse.contains("](https://")
+                && !sanitizedResponse.contains("<https://"),
+            "model-supplied interactive link syntax is removed"
         )
 
         let citations = policy.citedSources(
@@ -119,6 +120,119 @@ struct MedicalAssistantContractCheck {
             combinedSource.contains("case .onDevice")
                 && combinedSource.contains("case .cloud"),
             "explicit provider routing"
+        )
+        expect(
+            combinedSource.contains("SFSpeechRecognizer")
+                && combinedSource.contains("requiresOnDeviceRecognition = true")
+                && combinedSource.contains("AVAudioEngine")
+                && combinedSource.contains("AVSpeechSynthesizer"),
+            "on-device live transcription and spoken replies"
+        )
+        expect(
+            combinedSource.contains("completeStreaming")
+                && combinedSource.contains("streamResponse")
+                && combinedSource.contains("session.bytes"),
+            "streaming on-device and cloud responses"
+        )
+
+        let avatarURL = assistantDirectory.appendingPathComponent(
+            "Resources/assistant-avatar.usdz"
+        )
+        let avatarValues = try avatarURL.resourceValues(
+            forKeys: [.isRegularFileKey, .fileSizeKey]
+        )
+        expect(avatarValues.isRegularFile == true, "avatar USDZ resource")
+        expect((avatarValues.fileSize ?? 0) > 1_000_000, "non-empty avatar model")
+
+        let avatarSource = try String(
+            contentsOf: assistantDirectory.appendingPathComponent(
+                "AssistantAvatarView.swift"
+            ),
+            encoding: .utf8
+        )
+        expect(
+            avatarSource.contains("targetedToAnyEntity")
+                && avatarSource.contains("openWindow(")
+                && avatarSource.contains("dismissWindow(id: \"MedicalAssistant\")")
+                && avatarSource.contains("toggleConversation()"),
+            "gaze-and-pinch conversation toggle"
+        )
+        expect(
+            avatarSource.contains("SceneEvents.Update.self")
+                && avatarSource.contains("maximumIdleYawDegrees: Float = 14")
+                && avatarSource.contains("idleOscillationDuration: TimeInterval = 7")
+                && avatarSource.contains("baseOrientation * idleRotation")
+                && avatarSource.contains("guard !reduceMotion else { return }")
+                && avatarSource.contains(".onChange(of: reduceMotion)"),
+            "bounded accessible avatar idle rotation"
+        )
+        guard let addIndex = avatarSource.range(
+            of: "content.add(avatar)"
+        )?.lowerBound,
+        let normalizeIndex = avatarSource.range(
+            of: "normalize(avatar)"
+        )?.lowerBound else {
+            fatalError("Medical assistant check failed: avatar scene normalization")
+        }
+        expect(
+            addIndex < normalizeIndex
+                && avatarSource.contains("Bundle.main.url(")
+                && avatarSource.contains("visualBounds(relativeTo: nil)"),
+            "bundle-backed scene-coordinate avatar normalization"
+        )
+
+        let appSource = try String(
+            contentsOf: projectDirectory.appendingPathComponent(
+                "UpperLimbPOC/UpperLimbPOCApp.swift"
+            ),
+            encoding: .utf8
+        )
+        let contentSource = try String(
+            contentsOf: projectDirectory.appendingPathComponent(
+                "UpperLimbPOC/ContentView.swift"
+            ),
+            encoding: .utf8
+        )
+        expect(
+            appSource.contains("WindowGroup(id: \"MedicalAssistantAvatar\")")
+                && appSource.contains(".windowStyle(.volumetric)")
+                && appSource.contains(
+                    "restorationBehavior(assistantSceneRestorationBehavior)"
+                )
+                && appSource.contains("return .disabled")
+                && appSource.contains("WindowPlacement(.leading(library))")
+                && appSource.contains("WindowPlacement(.trailing(library))"),
+            "non-restoring volumetric assistant scenes"
+        )
+        expect(
+            contentSource.contains("presentAssistantAvatarIfNeeded()")
+                && contentSource.contains(
+                    "assistantWindow.claimAutomaticAvatarPresentation()"
+                )
+                && contentSource.contains(
+                    "openWindow(id: \"MedicalAssistantAvatar\")"
+                ),
+            "automatic assistant-avatar entry flow"
+        )
+
+        let viewSource = try String(
+            contentsOf: assistantDirectory.appendingPathComponent(
+                "MedicalAssistantView.swift"
+            ),
+            encoding: .utf8
+        )
+        expect(
+            viewSource.contains("inputMode: AssistantInputMode = .voice")
+                && viewSource.contains("voice.liveTranscript")
+                && viewSource.contains("assistant.messages.last?.text"),
+            "voice-default live conversation UI"
+        )
+        expect(
+            viewSource.contains("Task { await voice.startListening() }")
+                && viewSource.contains("Push the microphone to start.")
+                && !viewSource.contains("startVoiceIfPossible")
+                && !viewSource.contains("onChange(of: voice.speechCompletionCount)"),
+            "voice starts only from explicit push-to-talk and never auto-resumes"
         )
 
         print("Medical assistant contract checks passed.")

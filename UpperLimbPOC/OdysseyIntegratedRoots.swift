@@ -4,6 +4,7 @@ import SwiftUI
 #if os(visionOS)
 struct OdysseyIntegratedAVPRoot: View {
     @EnvironmentObject private var coordinator: OdysseyAVPCoordinator
+    @EnvironmentObject private var assistantWindow: AssistantWindowCoordinator
     @Environment(\.openImmersiveSpace) private var openImmersiveSpace
     @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
     @Environment(\.openWindow) private var openWindow
@@ -46,13 +47,14 @@ struct OdysseyIntegratedAVPRoot: View {
                     await dismissImmersiveSpace()
                 },
                 presentAssistant: {
-                    openWindow(
-                        id: "MedicalAssistant",
-                        value: AssistantWindowRoute.primary
-                    )
+                    openWindow(id: "MedicalAssistantAvatar")
                 }
             )
             coordinator.connect()
+        }
+        .task {
+            guard assistantWindow.claimAutomaticAvatarPresentation() else { return }
+            openWindow(id: "MedicalAssistantAvatar")
         }
     }
 }

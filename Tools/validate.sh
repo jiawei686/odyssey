@@ -67,6 +67,13 @@ rg -Fq '#available(visionOS 26.0, *)' "$PROJECT_DIR/UpperLimbPOC/MedicalAssistan
 rg -q 'SystemLanguageModel.default' "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/AppleFoundationModelClient.swift"
 rg -q 'supportsLocale' "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/AppleFoundationModelClient.swift"
 rg -q '\-\-assistant-on-device-smoke' "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/MedicalAssistantView.swift"
+test -s "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/Resources/assistant-avatar.usdz"
+test "$(shasum -a 256 "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/Resources/assistant-avatar.usdz" | awk '{print $1}')" = "8a33c0625ded7a555c25475f47b0fae4c67c67320d26d70bb775ae38b8d2bd96"
+rg -q 'AssistantAvatarView.swift in Sources' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -q 'AssistantVoiceController.swift in Sources' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -q 'assistant-avatar.usdz in Resources' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+plutil -extract NSMicrophoneUsageDescription raw "$PROJECT_DIR/UpperLimbPOC/InfoVision.plist" >/dev/null
+plutil -extract NSSpeechRecognitionUsageDescription raw "$PROJECT_DIR/UpperLimbPOC/InfoVision.plist" >/dev/null
 test "$(plutil -extract UIApplicationSceneManifest.UIApplicationSupportsMultipleScenes raw "$PROJECT_DIR/UpperLimbPOC/InfoVision.plist")" = true
 rg -q 'HandTrackingProvider' "$PROJECT_DIR/UpperLimbPOC/LandmarkTrackingService.swift"
 rg -q 'func startHandJointProbe' "$PROJECT_DIR/UpperLimbPOC/LandmarkTrackingService.swift"
@@ -577,19 +584,6 @@ xcrun swiftc \
     -o "$BUILD_ROOT/medical-assistant-contract-check"
 "$BUILD_ROOT/medical-assistant-contract-check" "$PROJECT_DIR"
 
-echo "[8b/14] Checking push-to-talk voice-assistant contracts"
-xcrun swiftc \
-    -warnings-as-errors \
-    -strict-concurrency=complete \
-    -parse-as-library \
-    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
-    "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/MedicalAssistantModels.swift" \
-    "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/VoiceAssistantModels.swift" \
-    "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/VoiceAssistantController.swift" \
-    "$PROJECT_DIR/Tools/VoiceAssistantContractCheck.swift" \
-    -o "$BUILD_ROOT/voice-assistant-contract-check"
-"$BUILD_ROOT/voice-assistant-contract-check" "$PROJECT_DIR"
-
 echo "[9/14] Clean-building Vision Pro simulator target"
 run_xcode_stage "$BUILD_ROOT/vision-build.log" \
     -quiet \
@@ -661,8 +655,10 @@ test -f "$VISION_APP/reference-forearm-01.png"
 test -f "$VISION_APP/reference-forearm-05.png"
 test -f "$VISION_APP/visible-human-male-forearm-1680-1740.r8"
 test -f "$VISION_APP/visible-human-male-forearm-1680-1740.json"
+test -f "$VISION_APP/assistant-avatar.usdz"
 COMPANION_APP="$BUILD_ROOT/companion/Build/Products/Debug-iphonesimulator/UpperLimbCompanion.app"
 test -f "$COMPANION_APP/visible-human-male-forearm-1680-1740.r8"
 test -f "$COMPANION_APP/visible-human-male-forearm-1680-1740.json"
+test ! -e "$COMPANION_APP/assistant-avatar.usdz"
 
-echo "Validation passed: mixed reality, gaze/accessibility invariants, AVP self-forearm axis/stale state, named USDZ on-arm asset/pose checks, CT-derived clinical-twin geometry/pose checks, hybrid landmark registration and index-finger kinematics logic, CT VRT resource/surface-depth checks, metric evaluator, five reference slices, clean builds, and static analysis."
+echo "Validation passed: mixed reality, gaze/accessibility invariants, AVP self-forearm axis/stale state, named USDZ on-arm asset/pose checks, CT-derived clinical-twin geometry/pose checks, hybrid landmark registration and index-finger kinematics logic, CT VRT resource/surface-depth checks, medical-assistant avatar/push-to-talk/streaming contracts, metric evaluator, five reference slices, clean builds, and static analysis."

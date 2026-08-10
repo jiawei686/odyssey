@@ -104,6 +104,25 @@ struct UpperLimbPOCApp: App {
         .defaultSize(width: 980, height: 760)
         .windowStyle(.plain)
 
+        WindowGroup(id: "MedicalAssistantAvatar") {
+            AssistantAvatarView()
+                .environmentObject(assistantWindow)
+        }
+        .defaultSize(
+            width: 0.48,
+            height: 0.58,
+            depth: 0.40,
+            in: .meters
+        )
+        .windowStyle(.volumetric)
+        .defaultWindowPlacement { _, context in
+            guard let library = context.windows.first(where: {
+                $0.id == "AnatomyLibrary"
+            }) else { return WindowPlacement() }
+            return WindowPlacement(.leading(library))
+        }
+        .restorationBehavior(assistantSceneRestorationBehavior)
+
         WindowGroup(id: "MedicalAssistant", for: AssistantWindowRoute.self) { _ in
             MedicalAssistantView()
                 .environmentObject(medicalAssistant)
@@ -112,6 +131,13 @@ struct UpperLimbPOCApp: App {
         }
         .defaultSize(width: 620, height: 720)
         .windowStyle(.plain)
+        .defaultWindowPlacement { _, context in
+            guard let library = context.windows.first(where: {
+                $0.id == "AnatomyLibrary"
+            }) else { return WindowPlacement() }
+            return WindowPlacement(.trailing(library))
+        }
+        .restorationBehavior(assistantSceneRestorationBehavior)
 
         ImmersiveSpace(id: "BoneOverlay") {
             ImmersiveView()
@@ -153,5 +179,12 @@ struct UpperLimbPOCApp: App {
         .upperLimbVisibility(.hidden)
         .immersionStyle(selection: $onArmSeeThroughImmersionStyle, in: .mixed)
 #endif
+    }
+
+    private var assistantSceneRestorationBehavior: SceneRestorationBehavior {
+        if #available(visionOS 26.0, *) {
+            return .disabled
+        }
+        return .automatic
     }
 }

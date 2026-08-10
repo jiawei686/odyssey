@@ -104,6 +104,31 @@ enum AssistantAudience: String, CaseIterable, Codable, Identifiable, Sendable {
     }
 }
 
+enum AssistantInputMode: String, CaseIterable, Identifiable {
+    case voice
+    case text
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .voice:
+            "Voice"
+        case .text:
+            "Text"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .voice:
+            "waveform"
+        case .text:
+            "keyboard"
+        }
+    }
+}
+
 enum AssistantMessageRole: String, Codable, Sendable {
     case user
     case assistant
@@ -180,20 +205,29 @@ enum AssistantWindowRoute: String, Codable, Hashable, Sendable {
 
 @MainActor
 final class AssistantWindowCoordinator: ObservableObject {
-    @Published private(set) var isPresented = false
-    private var didRequestAutomaticPresentation = false
+    @Published private(set) var isAvatarPresented = false
+    @Published private(set) var isConversationPresented = false
+    private var didRequestAutomaticAvatarPresentation = false
 
-    func claimAutomaticPresentation() -> Bool {
-        guard !didRequestAutomaticPresentation, !isPresented else { return false }
-        didRequestAutomaticPresentation = true
-        return true
+    func claimAutomaticAvatarPresentation() -> Bool {
+        guard !didRequestAutomaticAvatarPresentation else { return false }
+        didRequestAutomaticAvatarPresentation = true
+        return !isAvatarPresented
     }
 
-    func didAppear() {
-        isPresented = true
+    func avatarDidAppear() {
+        isAvatarPresented = true
     }
 
-    func didDisappear() {
-        isPresented = false
+    func avatarDidDisappear() {
+        isAvatarPresented = false
+    }
+
+    func conversationDidAppear() {
+        isConversationPresented = true
+    }
+
+    func conversationDidDisappear() {
+        isConversationPresented = false
     }
 }

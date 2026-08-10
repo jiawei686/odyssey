@@ -4,7 +4,11 @@
 
 ## 1. 本次完成内容
 
-- 在 Vision Pro 端增加独立的 `Medical Education Assistant` 窗口，应用启动后自动请求显示在用户附近。
+- 启动 Vision Pro 端时，USDZ 助手模型会自动出现在解剖库左侧，不会自动弹出聊天面板。右上角按钮保留为隐藏或恢复整个助手的备用控件。
+- 凝视模型并 pinch 可打开 `Medical Education Assistant` 面板；再次凝视并 pinch 同一模型只关闭面板，模型始终保持可见。
+- 助手有 7 秒一个往复周期的待机动作，相对正面最多左右旋转 14 度，不会背对用户；开启系统“减少动态效果”后动画停用。
+- 新增 Voice / Text 输入切换，默认为 Voice。语音识别的中间结果实时显示，静默 1.3 秒后自动发送。
+- Apple Intelligence 和 GPT-5.4 Cloud 都使用流式回答，文字会在面板中逐步出现；回答完成后系统语音会朗读并恢复监听。
 - 默认 Provider 是 Apple Intelligence，通过 visionOS 26+ 的 Foundation Models 在设备端生成回答。
 - 保留 `GPT-5.4 Cloud` 作为显式可选 Provider，使用 OpenAI-compatible Chat Completions 接口。
 - 增加 Patient / Clinician 两种回答受众，回答会根据选择调整语言难度和术语密度。
@@ -19,6 +23,8 @@
 | 路径 | 职责 |
 | --- | --- |
 | `UpperLimbPOC/MedicalAssistant/MedicalAssistantView.swift` | 助手窗口、消息气泡、状态、设置和输入框 |
+| `UpperLimbPOC/MedicalAssistant/AssistantAvatarView.swift` | USDZ 模型加载、缩放、有限角度待机旋转、可交互碰撞体和 pinch 切换面板 |
+| `UpperLimbPOC/MedicalAssistant/AssistantVoiceController.swift` | 本地语音识别、实时转录、静默提交和回答朗读 |
 | `UpperLimbPOC/MedicalAssistant/MedicalAssistantStore.swift` | 主线程状态、会话上下文、Provider 路由和记忆 |
 | `UpperLimbPOC/MedicalAssistant/AppleFoundationModelClient.swift` | Apple Intelligence / Foundation Models 设备端调用 |
 | `UpperLimbPOC/MedicalAssistant/OpenAICompatibleClient.swift` | GPT-5.4 Cloud HTTP 调用 |
@@ -51,11 +57,14 @@ Xcode 中选择正确的 Scheme：
 
 如果要在模拟器中测试完整聊天流程：
 
-1. 启动 `UpperLimbPOC`。
-2. 打开助手右上角齿轮按钮。
-3. 在 Provider 中明确选择 `GPT-5.4 Cloud`。
-4. 在安全输入框中输入测试 API Key，保存到当前模拟器 Keychain。
-5. 返回助手后发送通用解剖问题。
+1. 启动 `UpperLimbPOC`，确认模型自动出现且聊天面板不会自动打开。
+2. 在模拟器中点击模型（真机上为凝视 + pinch）打开面板，再点一次确认只关闭面板。
+3. 打开助手右上角齿轮按钮。
+4. 在 Provider 中明确选择 `GPT-5.4 Cloud`。
+5. 在安全输入框中输入测试 API Key，保存到当前模拟器 Keychain。
+6. 返回助手，使用 Voice 或 Text 发送通用解剖问题。
+
+模拟器可检查模型和流式聊天界面，但真实凝视 + pinch、麦克风、本地语音识别和朗读体验必须在实体 Vision Pro 上验收。
 
 云端配置为：
 
@@ -73,8 +82,9 @@ API Key 不能写入 Swift、Info.plist、共享 Scheme 或 Git。发布版本�
 2. 在系统设置中打开 Apple Intelligence。
 3. 等待本地模型下载完成，建议连接电源和 Wi-Fi。
 4. 用数据线或网络连接实体 Vision Pro，在 Xcode Destination 中选择设备名称，不要选择 `Apple Vision Pro (Simulator)`。
-5. 运行 `UpperLimbPOC`，助手状态应变为 `Available on this device`。
-6. 发送英文或中文的通用解剖教育问题，测试追问、取消、离线能力和上下文记忆。
+5. 运行 `UpperLimbPOC`，确认模型自动出现，再凝视 + pinch 打开面板，助手状态应变为 `Available on this device`。
+6. 授予 Microphone 和 Speech Recognition 权限。
+7. 说出英文或中文的通用解剖教育问题，检查实时转录、流式回答、朗读、追问、取消、离线能力和上下文记忆。
 
 Apple Intelligence 失败时不会自动切换到云端；需要用户在设置中明确选择另一个 Provider。
 
@@ -111,4 +121,4 @@ Debug 模拟器可用以下参数验证设备端 Provider 会被正确拦截，�
 - 不要提交 API Key、Token、病历、患者图像、DICOM 或任何真实个人信息。
 - 修改 Provider、系统提示词或知识条目后，必须重新运行 `Tools/validate.sh`。
 - AHPedia 摘要和本地知识条目当前仍需具名临床审核，不能在演示中称为已审核医疗建议。
-- 后续增加 3D 助手、聊天气泡或语音时，应继续让文本助手保持无渲染控制权，并复用现有安全边界。
+- 后续为 3D 助手增加更多状态动画或空间聊天气泡时，应继续让模型只消费 ready / thinking / speaking / warning 等展示状态，不获得渲染控制权或医学决策权。

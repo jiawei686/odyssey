@@ -142,20 +142,13 @@ struct MedicalSafetyPolicy: Sendable {
 enum AssistantResponseFormatter {
     static func attributedText(from response: String) -> AttributedString {
         let sanitized = sanitizedMarkdown(response)
-        var attributed = (try? AttributedString(
+        return (try? AttributedString(
             markdown: sanitized,
             options: AttributedString.MarkdownParsingOptions(
                 interpretedSyntax: .full,
                 failurePolicy: .returnPartiallyParsedIfPossible
             )
         )) ?? AttributedString(sanitized)
-        let linkRanges = attributed.runs.compactMap { run in
-            run.link == nil ? nil : run.range
-        }
-        for range in linkRanges {
-            attributed[range].link = nil
-        }
-        return attributed
     }
 
     static func sanitizedMarkdown(_ response: String) -> String {

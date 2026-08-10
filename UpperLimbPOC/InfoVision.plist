@@ -29,7 +29,7 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Listen only while the wearer presses the talk control to transcribe an educational question. Audio is not saved.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Transcribe an explicit push-to-talk educational question on device. Transcripts are not saved.</string>
+	<string>Transcribe an explicit push-to-talk educational question on device. Transcripts are not saved; do not speak patient identifiers or records.</string>
 	<key>NSHandsTrackingUsageDescription</key>
 	<string>Use index-finger joint motion to animate the educational finger-bone overlay around reviewed anatomical landmarks.</string>
 	<key>NSWorldSensingUsageDescription</key>

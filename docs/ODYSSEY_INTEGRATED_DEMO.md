@@ -18,7 +18,7 @@ Normal production/demo routes are unchanged when the launch argument is absent.
 - One command in flight, replay/freshness checks, and stale-state fail-closed behavior.
 - A CT-derived educational forearm mesh fallback for the primary tracked twin.
 - Setup & Diagnostics access to the separate named AnatomyTOOL USDZ on-arm lab, including the static Normal Overlay gate and explicit Radius/Ulna alignment action.
-- The existing medical assistant plus an isolated push-to-talk backend foundation. Microphone, transcription, model availability, and speech output remain physical-device pending.
+- The teammate medical-assistant avatar and its explicit push-to-talk, on-device transcription, existing safety-governed response path, and speech output. The duplicate fallback voice backend was intentionally not retained. Microphone, transcription, model availability, avatar interaction, and speech output remain physical-device pending.
 
 ## Truthful capability boundary
 

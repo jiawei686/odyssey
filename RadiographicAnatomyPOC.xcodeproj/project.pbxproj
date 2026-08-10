@@ -69,12 +69,6 @@
 		0000000000000000000000C7 /* MedicalAssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000D7 /* MedicalAssistantView.swift */; };
 		0000000000000000000000C8 /* MedicalAssistantKnowledge.json in Resources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000D8 /* MedicalAssistantKnowledge.json */; };
 		0000000000000000000000C9 /* AppleFoundationModelClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000D9 /* AppleFoundationModelClient.swift */; };
-		000000000000000000000200 /* VoiceAssistantModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000210 /* VoiceAssistantModels.swift */; };
-		000000000000000000000201 /* VoiceAssistantController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000211 /* VoiceAssistantController.swift */; };
-		000000000000000000000202 /* AppleSpeechTranscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000212 /* AppleSpeechTranscriber.swift */; };
-		000000000000000000000203 /* AppleSpeechOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000213 /* AppleSpeechOutput.swift */; };
-		000000000000000000000204 /* MedicalAssistantVoiceResponder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000214 /* MedicalAssistantVoiceResponder.swift */; };
-		000000000000000000000205 /* VoiceAssistantLiveFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000215 /* VoiceAssistantLiveFactory.swift */; };
 		0000000000000000000000F6 /* ClinicianGuidanceContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000F0 /* ClinicianGuidanceContract.swift */; };
 		0000000000000000000000F7 /* ClinicianGuidanceContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000F0 /* ClinicianGuidanceContract.swift */; };
 		0000000000000000000000F8 /* ClinicianGuidanceWireCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000F1 /* ClinicianGuidanceWireCodec.swift */; };
@@ -145,6 +139,9 @@
 		00000000000000000000034B /* OdysseyClinicalSessionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000030B /* OdysseyClinicalSessionService.swift */; };
 		00000000000000000000034C /* OdysseyIntegratedDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000030C /* OdysseyIntegratedDemo.swift */; };
 		00000000000000000000034D /* OdysseyIntegratedRoots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000030D /* OdysseyIntegratedRoots.swift */; };
+		000000000000000000000400 /* AssistantAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000410 /* AssistantAvatarView.swift */; };
+		000000000000000000000401 /* AssistantVoiceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000411 /* AssistantVoiceController.swift */; };
+		000000000000000000000402 /* assistant-avatar.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000412 /* assistant-avatar.usdz */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -207,12 +204,6 @@
 		0000000000000000000000D7 /* MedicalAssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicalAssistantView.swift; sourceTree = "<group>"; };
 		0000000000000000000000D8 /* MedicalAssistantKnowledge.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = MedicalAssistantKnowledge.json; sourceTree = "<group>"; };
 		0000000000000000000000D9 /* AppleFoundationModelClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleFoundationModelClient.swift; sourceTree = "<group>"; };
-		000000000000000000000210 /* VoiceAssistantModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAssistantModels.swift; sourceTree = "<group>"; };
-		000000000000000000000211 /* VoiceAssistantController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAssistantController.swift; sourceTree = "<group>"; };
-		000000000000000000000212 /* AppleSpeechTranscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSpeechTranscriber.swift; sourceTree = "<group>"; };
-		000000000000000000000213 /* AppleSpeechOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSpeechOutput.swift; sourceTree = "<group>"; };
-		000000000000000000000214 /* MedicalAssistantVoiceResponder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicalAssistantVoiceResponder.swift; sourceTree = "<group>"; };
-		000000000000000000000215 /* VoiceAssistantLiveFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAssistantLiveFactory.swift; sourceTree = "<group>"; };
 		0000000000000000000000F0 /* ClinicianGuidanceContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicianGuidanceContract.swift; sourceTree = "<group>"; };
 		0000000000000000000000F1 /* ClinicianGuidanceWireCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicianGuidanceWireCodec.swift; sourceTree = "<group>"; };
 		0000000000000000000000F2 /* ClinicianConnectionStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicianConnectionStatusView.swift; sourceTree = "<group>"; };
@@ -260,6 +251,9 @@
 		00000000000000000000030B /* OdysseyClinicalSessionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OdysseyClinicalSessionService.swift; sourceTree = "<group>"; };
 		00000000000000000000030C /* OdysseyIntegratedDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OdysseyIntegratedDemo.swift; sourceTree = "<group>"; };
 		00000000000000000000030D /* OdysseyIntegratedRoots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OdysseyIntegratedRoots.swift; sourceTree = "<group>"; };
+		000000000000000000000410 /* AssistantAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantAvatarView.swift; sourceTree = "<group>"; };
+		000000000000000000000411 /* AssistantVoiceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantVoiceController.swift; sourceTree = "<group>"; };
+		000000000000000000000412 /* assistant-avatar.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = "assistant-avatar.usdz"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -404,12 +398,8 @@
 				0000000000000000000000D6 /* MedicalAssistantStore.swift */,
 				0000000000000000000000D7 /* MedicalAssistantView.swift */,
 				0000000000000000000000D9 /* AppleFoundationModelClient.swift */,
-				000000000000000000000210 /* VoiceAssistantModels.swift */,
-				000000000000000000000211 /* VoiceAssistantController.swift */,
-				000000000000000000000212 /* AppleSpeechTranscriber.swift */,
-				000000000000000000000213 /* AppleSpeechOutput.swift */,
-				000000000000000000000214 /* MedicalAssistantVoiceResponder.swift */,
-				000000000000000000000215 /* VoiceAssistantLiveFactory.swift */,
+				000000000000000000000410 /* AssistantAvatarView.swift */,
+				000000000000000000000411 /* AssistantVoiceController.swift */,
 				0000000000000000000000E1 /* Resources */,
 			);
 			path = MedicalAssistant;
@@ -419,6 +409,7 @@
 			isa = PBXGroup;
 			children = (
 				0000000000000000000000D8 /* MedicalAssistantKnowledge.json */,
+				000000000000000000000412 /* assistant-avatar.usdz */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -546,6 +537,7 @@
 				000000000000000000000137 /* visible-human-male-forearm-1680-1740.r8 in Resources */,
 				000000000000000000000138 /* visible-human-male-forearm-1680-1740.json in Resources */,
 				0000000000000000000000C8 /* MedicalAssistantKnowledge.json in Resources */,
+				000000000000000000000402 /* assistant-avatar.usdz in Resources */,
 				00000000000000000000002E /* Markers/elbow-marker.png in Resources */,
 				00000000000000000000002F /* Markers/wrist-marker.png in Resources */,
 				000000000000000000000060 /* reference-forearm-01.png in Resources */,
@@ -615,12 +607,8 @@
 				0000000000000000000000C6 /* MedicalAssistantStore.swift in Sources */,
 				0000000000000000000000C7 /* MedicalAssistantView.swift in Sources */,
 				0000000000000000000000C9 /* AppleFoundationModelClient.swift in Sources */,
-				000000000000000000000200 /* VoiceAssistantModels.swift in Sources */,
-				000000000000000000000201 /* VoiceAssistantController.swift in Sources */,
-				000000000000000000000202 /* AppleSpeechTranscriber.swift in Sources */,
-				000000000000000000000203 /* AppleSpeechOutput.swift in Sources */,
-				000000000000000000000204 /* MedicalAssistantVoiceResponder.swift in Sources */,
-				000000000000000000000205 /* VoiceAssistantLiveFactory.swift in Sources */,
+				000000000000000000000400 /* AssistantAvatarView.swift in Sources */,
+				000000000000000000000401 /* AssistantVoiceController.swift in Sources */,
 				000000000000000000000021 /* ContentView.swift in Sources */,
 				000000000000000000000022 /* ImmersiveView.swift in Sources */,
 				000000000000000000000023 /* OverlayState.swift in Sources */,
