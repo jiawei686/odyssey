@@ -100,7 +100,9 @@ public extension OdysseyExperienceActions {
         )
     }
 
-    /// No-op actions for static SwiftUI previews.
+    /// No-op actions for static SwiftUI previews. Main-actor isolated: the
+    /// shell is a SwiftUI surface, matching `forwarding(to:)` above.
+    @MainActor
     static let inert = OdysseyExperienceActions(
         connect: {},
         retryConnection: {},
