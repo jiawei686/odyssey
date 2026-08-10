@@ -20,6 +20,10 @@ struct ClinicalTwinImmersiveView: View {
                     radiusLengthMetres: loaded.evidence.radiusExtentsMetres.z,
                     ulnaLengthMetres: loaded.evidence.ulnaExtentsMetres.z
                 ))
+                // Renderer readiness is the deterministic session boundary.
+                // Start the provider here instead of waiting for coordinator
+                // polling to notice two independently published states.
+                await labState.startRightForearmTracking(using: tracking)
             } catch {
                 labState.markRendererFailed(error.localizedDescription)
             }

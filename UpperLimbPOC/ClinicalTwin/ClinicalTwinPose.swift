@@ -36,6 +36,8 @@ struct ClinicalTwinPresentation: Equatable, Sendable {
 }
 
 struct ClinicalTwinPresentationResolver: Sendable {
+    // Validated from the authored Ulna_r bounds in the bundled Blender USDZ.
+    static let referenceForearmLengthMetres: Float = 0.2625
     static let defaultSafeOffsetMetres: Float = 0.16
     static let staleOpacity: Float = 0.42
     static let staleHoldSeconds: Double = 3
@@ -153,12 +155,11 @@ struct ClinicalTwinPresentationResolver: Sendable {
             beside *= -1
         }
         lastBesideDirection = beside
-        let translation = pose.center
-            + beside * safeOffsetMetres
-            + worldUp * 0.025
+        let translation = pose.center + beside * safeOffsetMetres
+        let uniformScale = pose.length / Self.referenceForearmLengthMetres
 
         return ClinicalTwinSpatialTransform(
-            scale: SIMD3<Float>(1, pose.length, 1),
+            scale: SIMD3<Float>(repeating: uniformScale),
             rotation: rotation,
             translation: translation
         )
@@ -208,7 +209,7 @@ struct ClinicalTwinPresentationResolver: Sendable {
         axis: SIMD3<Float>,
         wristTransform: simd_float4x4?
     ) -> simd_quatf {
-        let localLongAxis = SIMD3<Float>(0, 1, 0)
+        let localLongAxis = SIMD3<Float>(0, 0, -1)
         let baseRotation = simd_quatf(from: localLongAxis, to: axis)
         guard let wristTransform,
               wristTransform.allFinite else { return baseRotation }
@@ -249,9 +250,9 @@ struct ClinicalTwinPresentationResolver: Sendable {
     }
 
     private static let staticTransform = ClinicalTwinSpatialTransform(
-        scale: SIMD3<Float>(1, 0.26, 1),
+        scale: SIMD3<Float>(repeating: 1),
         rotation: simd_quatf(
-            from: SIMD3<Float>(0, 1, 0),
+            from: SIMD3<Float>(0, 0, -1),
             to: SIMD3<Float>(1, 0, 0)
         ),
         translation: SIMD3<Float>(0.18, -0.06, -0.55)

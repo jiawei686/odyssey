@@ -63,10 +63,19 @@ final class ClinicalTwinLabState: ObservableObject {
         logger.error("route=anatomyToolBlenderUSDZ state=failed detail=\(detail, privacy: .public)")
     }
 
-    func requestRightForearmTracking() {
-        guard canAttachToRightForearm else { return }
+    func startRightForearmTracking(
+        using tracking: LandmarkTrackingService
+    ) async {
+        guard canAttachToRightForearm else {
+            logger.notice("tracking=right-only startup=ignored reason=not-ready-or-already-requested")
+            return
+        }
         trackingRequested = true
-        logger.notice("tracking=right-only state=requested")
+        logger.notice("tracking=right-only startup=requested renderer=static-ready")
+        await tracking.startHandJointProbe()
+        logger.notice(
+            "tracking=right-only startup=completed provider=\(tracking.handPhase.message, privacy: .public) generation=\(tracking.handTrackingGeneration)"
+        )
     }
 
     func resolvePresentation(

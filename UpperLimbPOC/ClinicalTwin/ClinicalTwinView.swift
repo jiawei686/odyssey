@@ -206,9 +206,8 @@ struct ClinicalTwinView: View {
 
     @MainActor
     private func attachToRightForearm() async {
-        labState.requestRightForearmTracking()
         let wasIdle = tracking.handPhase == .idle
-        await tracking.startHandJointProbe()
+        await labState.startRightForearmTracking(using: tracking)
         ownsTrackingSession = wasIdle && tracking.handPhase == .running
     }
 

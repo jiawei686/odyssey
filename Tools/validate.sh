@@ -216,7 +216,13 @@ rg -Fq 'rightForearmResolution' "$CLINICAL_TWIN_DIR/ClinicalTwinImmersiveView.sw
 rg -Fq 'Tracking dots and procedural cylinders remain Diagnostics only' "$CLINICAL_TWIN_DIR/ClinicalTwinView.swift"
 rg -Fq 'OnArmAnatomyRealityKitFactory.loadRoot()' "$CLINICAL_TWIN_DIR/ClinicalTwinRealityKit.swift"
 rg -Fq 'showFullAsset: true' "$CLINICAL_TWIN_DIR/ClinicalTwinRealityKit.swift"
-rg -Fq 'OnArmAnatomyAssetContract.referenceForearmLengthMetres' "$CLINICAL_TWIN_DIR/ClinicalTwinRealityKit.swift"
+rg -Fq 'static let referenceForearmLengthMetres: Float = 0.2625' "$CLINICAL_TWIN_DIR/ClinicalTwinPose.swift"
+rg -Fq 'localLongAxis = SIMD3<Float>(0, 0, -1)' "$CLINICAL_TWIN_DIR/ClinicalTwinPose.swift"
+rg -Fq 'await labState.startRightForearmTracking(using: tracking)' "$CLINICAL_TWIN_DIR/ClinicalTwinImmersiveView.swift"
+if rg -Fq 'loaded.root.transform =' "$CLINICAL_TWIN_DIR/ClinicalTwinRealityKit.swift"; then
+    echo "Clinical twin must preserve the centred Blender -Z asset basis without a child pre-rotation." >&2
+    exit 1
+fi
 rg -Fq 'Float(labState.revealAnatomy) * presentation.opacity' "$CLINICAL_TWIN_DIR/ClinicalTwinImmersiveView.swift"
 if rg -q 'CTForearmVolumeData.load|CTForearmTwinGeometryBuilder.build|generateCylinder' \
     "$CLINICAL_TWIN_DIR/ClinicalTwinImmersiveView.swift" \

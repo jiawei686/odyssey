@@ -17,23 +17,10 @@ enum ClinicalTwinRealityKitFactory {
             opacity: 1
         )
 
-        // The Blender USDZ is centred by its validated asset factory and uses
-        // local -Z as elbow-to-wrist. Adapt it once to the ClinicalTwin root's
-        // normalized +Y longitudinal axis; the existing tracked presentation
-        // can then keep its established beside-arm scale, roll, and offset.
+        // The validated factory has already centred the Blender USDZ. Keep its
+        // authored local -Z elbow-to-wrist axis unchanged: the presentation
+        // resolver maps that axis directly into the live AVP forearm pose.
         loaded.root.name = assetRootName
-        loaded.root.transform = Transform(
-            scale: SIMD3<Float>(
-                1,
-                1,
-                1 / OnArmAnatomyAssetContract.referenceForearmLengthMetres
-            ),
-            rotation: simd_quatf(
-                from: SIMD3<Float>(0, 0, -1),
-                to: SIMD3<Float>(0, 1, 0)
-            ),
-            translation: .zero
-        )
 
         let root = Entity()
         root.name = rootName

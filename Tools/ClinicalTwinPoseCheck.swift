@@ -5,7 +5,9 @@ import simd
 enum ClinicalTwinPoseCheck {
     static func main() throws {
         try staticPreviewIsTruthfulAndVisible()
-        try livePoseScalesAndOffsetsBesideRightForearm()
+        try localNegativeZMapsDirectlyToTrackedForearm()
+        try livePoseUsesUniformScaleAndExactBesideOffset()
+        try successiveLivePosesChangeTranslationAndRotation()
         try wristOrientationContributesRoll()
         try besideOffsetPreservesItsSideAcrossNearVerticalMotion()
         try staleTrackingFreezesTheLastSafePose()
@@ -29,9 +31,29 @@ enum ClinicalTwinPoseCheck {
         try expect(!result.isAttachedToWearer, "static reference must not claim attachment")
         try expect(result.opacity == 1, "static reference must remain visible")
         try expect(result.rendererRoute == .anatomyToolBlenderUSDZ, "renderer route must be truthful")
+        try expect(result.statusTitle.contains("Static"), "static fallback title must be explicit")
+        try expect(result.statusDetail.contains("Static reference"), "static fallback detail must be explicit")
     }
 
-    private static func livePoseScalesAndOffsetsBesideRightForearm() throws {
+    private static func localNegativeZMapsDirectlyToTrackedForearm() throws {
+        let pose = makePose(
+            proximal: SIMD3<Float>(-0.12, 0.73, -0.61),
+            distal: SIMD3<Float>(0.08, 0.59, -0.72)
+        )
+        var resolver = ClinicalTwinPresentationResolver()
+        let result = resolver.resolve(
+            resolution: live(pose),
+            wristTransform: nil,
+            timestamp: 1
+        )
+        let mappedAxis = result.transform.rotation.act(SIMD3<Float>(0, 0, -1))
+        try expect(
+            simd_distance(mappedAxis, pose.direction) < 0.000_01,
+            "the unchanged Blender local -Z axis must map directly to the tracked forearm axis"
+        )
+    }
+
+    private static func livePoseUsesUniformScaleAndExactBesideOffset() throws {
         let pose = makePose(
             proximal: SIMD3<Float>(0, 1.2, -0.45),
             distal: SIMD3<Float>(0, 0.94, -0.45)
@@ -49,9 +71,51 @@ enum ClinicalTwinPoseCheck {
         )
         try expect(result.mode == .following, "live tracking must follow")
         try expect(result.isAttachedToWearer, "live result must be labelled attached")
-        try expect(abs(result.transform.scale.y - pose.length) < 0.000_001, "longitudinal scale must match forearm length")
+        let expectedScale = pose.length
+            / ClinicalTwinPresentationResolver.referenceForearmLengthMetres
+        try expect(
+            simd_distance(result.transform.scale, SIMD3<Float>(repeating: expectedScale)) < 0.000_001,
+            "the centred USDZ must use one uniform live-length scale"
+        )
         let offset = result.transform.translation - pose.center
-        try expect(simd_length(offset) >= 0.16, "twin must be placed beside the real forearm")
+        try expect(
+            abs(simd_length(offset) - 0.16) < 0.000_001,
+            "twin centre must equal tracked centre plus the exact beside-arm offset"
+        )
+        try expect(
+            abs(simd_dot(offset, pose.direction)) < 0.000_001,
+            "beside-arm offset must be perpendicular to the forearm axis"
+        )
+    }
+
+    private static func successiveLivePosesChangeTranslationAndRotation() throws {
+        let firstPose = makePose(
+            proximal: SIMD3<Float>(0.02, 0.95, -0.58),
+            distal: SIMD3<Float>(0.02, 0.69, -0.58)
+        )
+        let secondPose = makePose(
+            proximal: SIMD3<Float>(0.18, 0.88, -0.47),
+            distal: SIMD3<Float>(0.36, 0.70, -0.51)
+        )
+        var resolver = ClinicalTwinPresentationResolver()
+        let first = resolver.resolve(
+            resolution: live(firstPose),
+            wristTransform: nil,
+            timestamp: 1
+        )
+        let second = resolver.resolve(
+            resolution: live(secondPose),
+            wristTransform: nil,
+            timestamp: 1.1
+        )
+        try expect(
+            simd_distance(first.transform.translation, second.transform.translation) > 0.05,
+            "successive live poses must move the twin"
+        )
+        try expect(
+            abs(simd_dot(first.transform.rotation.vector, second.transform.rotation.vector)) < 0.999,
+            "successive live axes must rotate the twin"
+        )
     }
 
     private static func wristOrientationContributesRoll() throws {

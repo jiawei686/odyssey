@@ -158,10 +158,6 @@ final class OdysseyAVPCoordinator: ObservableObject, OdysseyExperienceControllin
     func clearGuidance() {}
 
     private func refresh() {
-        if odysseyViewState.phase == .activeSession {
-            attachTrackingWhenRendererIsReady()
-        }
-
         let rendererReady: Bool
         switch clinicalTwin.rendererPhase {
         case .staticReady:
@@ -193,15 +189,6 @@ final class OdysseyAVPCoordinator: ObservableObject, OdysseyExperienceControllin
         odysseyViewState.supportsRevealControl = session.isNegotiated
         odysseyViewState.supportsAnatomyVisibilityControl = false
         odysseyViewState.supportsMarking = false
-    }
-
-    private func attachTrackingWhenRendererIsReady() {
-        guard case .staticReady = clinicalTwin.rendererPhase,
-              !clinicalTwin.trackingRequested else { return }
-        clinicalTwin.requestRightForearmTracking()
-        Task { @MainActor [weak tracking] in
-            await tracking?.startHandJointProbe()
-        }
     }
 
     private var connectionState: OdysseyConnectionState {
