@@ -111,6 +111,10 @@
 		000000000000000000000153 /* OnArmAnatomyLabState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000163 /* OnArmAnatomyLabState.swift */; };
 		000000000000000000000154 /* OnArmAnatomyImmersiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000164 /* OnArmAnatomyImmersiveView.swift */; };
 		000000000000000000000155 /* OnArmAnatomyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000165 /* OnArmAnatomyView.swift */; };
+		000000000000000000000610 /* PatientHistory/PatientHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000600 /* PatientHistory/PatientHistoryView.swift */; };
+		000000000000000000000611 /* PatientHistory/Resources/stage1.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000601 /* PatientHistory/Resources/stage1.usdz */; };
+		000000000000000000000612 /* PatientHistory/Resources/stage2.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000602 /* PatientHistory/Resources/stage2.usdz */; };
+		000000000000000000000613 /* PatientHistory/Resources/stage3.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000603 /* PatientHistory/Resources/stage3.usdz */; };
 		000000000000000000000320 /* OdysseyExperienceActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000300 /* OdysseyExperienceActions.swift */; };
 		000000000000000000000321 /* OdysseyExperienceViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000301 /* OdysseyExperienceViewState.swift */; };
 		000000000000000000000322 /* OdysseySessionUIComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000302 /* OdysseySessionUIComponents.swift */; };
@@ -239,6 +243,10 @@
 		000000000000000000000163 /* OnArmAnatomyLabState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnArmAnatomyLabState.swift; sourceTree = "<group>"; };
 		000000000000000000000164 /* OnArmAnatomyImmersiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnArmAnatomyImmersiveView.swift; sourceTree = "<group>"; };
 		000000000000000000000165 /* OnArmAnatomyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnArmAnatomyView.swift; sourceTree = "<group>"; };
+		000000000000000000000600 /* PatientHistory/PatientHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatientHistory/PatientHistoryView.swift; sourceTree = "<group>"; };
+		000000000000000000000601 /* PatientHistory/Resources/stage1.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = PatientHistory/Resources/stage1.usdz; sourceTree = "<group>"; };
+		000000000000000000000602 /* PatientHistory/Resources/stage2.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = PatientHistory/Resources/stage2.usdz; sourceTree = "<group>"; };
+		000000000000000000000603 /* PatientHistory/Resources/stage3.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = PatientHistory/Resources/stage3.usdz; sourceTree = "<group>"; };
 		000000000000000000000300 /* OdysseyExperienceActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OdysseyExperienceActions.swift; sourceTree = "<group>"; };
 		000000000000000000000301 /* OdysseyExperienceViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OdysseyExperienceViewState.swift; sourceTree = "<group>"; };
 		000000000000000000000302 /* OdysseySessionUIComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OdysseySessionUIComponents.swift; sourceTree = "<group>"; };
@@ -302,6 +310,10 @@
 				000000000000000000000010 /* UpperLimbPOCApp.swift */,
 				0000000000000000000000E0 /* MedicalAssistant */,
 				000000000000000000000011 /* ContentView.swift */,
+				000000000000000000000600 /* PatientHistory/PatientHistoryView.swift */,
+				000000000000000000000601 /* PatientHistory/Resources/stage1.usdz */,
+				000000000000000000000602 /* PatientHistory/Resources/stage2.usdz */,
+				000000000000000000000603 /* PatientHistory/Resources/stage3.usdz */,
 				000000000000000000000012 /* ImmersiveView.swift */,
 				000000000000000000000013 /* OverlayState.swift */,
 				000000000000000000000014 /* hand-to-elbow-overlay.usdz */,
@@ -537,6 +549,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				000000000000000000000611 /* PatientHistory/Resources/stage1.usdz in Resources */,
+				000000000000000000000612 /* PatientHistory/Resources/stage2.usdz in Resources */,
+				000000000000000000000613 /* PatientHistory/Resources/stage3.usdz in Resources */,
 				000000000000000000000024 /* hand-to-elbow-overlay.usdz in Resources */,
 				000000000000000000000137 /* visible-human-male-forearm-1680-1740.r8 in Resources */,
 				000000000000000000000138 /* visible-human-male-forearm-1680-1740.json in Resources */,
@@ -575,6 +590,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				000000000000000000000020 /* UpperLimbPOCApp.swift in Sources */,
+				000000000000000000000610 /* PatientHistory/PatientHistoryView.swift in Sources */,
 				000000000000000000000320 /* OdysseyExperienceActions.swift in Sources */,
 				000000000000000000000321 /* OdysseyExperienceViewState.swift in Sources */,
 				000000000000000000000322 /* OdysseySessionUIComponents.swift in Sources */,

@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var didRunAutomatedDemo = false
     @State private var showPlannedRegions = false
     @State private var showLegacyTools = false
+    @State private var showPatientHistory = false
     @State private var jointProbeRoute = JointProbeRoute()
 
     private let columns = [
@@ -99,7 +100,14 @@ struct ContentView: View {
             }
             .navigationTitle("Wearer Arm Overlay")
             .toolbar {
-                ToolbarItem(placement: .primaryAction) {
+                ToolbarItemGroup(placement: .primaryAction) {
+                    Button {
+                        showPatientHistory = true
+                    } label: {
+                        Label("History", systemImage: "clock.arrow.circlepath")
+                    }
+                    .help("Open treatment history")
+
                     Button {
                         toggleMedicalAssistant()
                     } label: {
@@ -120,9 +128,13 @@ struct ContentView: View {
             ) {
                 JointProbeView()
             }
+            .navigationDestination(isPresented: $showPatientHistory) {
+                PatientHistoryView()
+            }
         }
         .onAppear(perform: peer.start)
         .task {
+            presentHistoryDemoIfRequested()
             presentAssistantAvatarIfNeeded()
             await runAutomatedDemoIfRequested()
         }
@@ -142,6 +154,15 @@ struct ContentView: View {
         } else {
             openWindow(id: "MedicalAssistantAvatar")
         }
+    }
+
+    @MainActor
+    private func presentHistoryDemoIfRequested() {
+#if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--history-demo") {
+            showPatientHistory = true
+        }
+#endif
     }
 
     @MainActor
