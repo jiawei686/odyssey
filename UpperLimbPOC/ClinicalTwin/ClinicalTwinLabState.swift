@@ -30,7 +30,9 @@ final class ClinicalTwinLabState: ObservableObject {
     @Published private(set) var rendererPhase: ClinicalTwinRendererPhase = .idle
     @Published private(set) var currentPresentation: ClinicalTwinPresentation?
     @Published private(set) var trackingRequested = false
-    @Published var revealAnatomy = 0.0
+    // The integrated self-guided route must reveal the actual paired-bone
+    // geometry without depending on a connected companion control.
+    @Published var revealAnatomy = 1.0
 
     private var presentationResolver = ClinicalTwinPresentationResolver()
     private let logger = Logger(
@@ -94,7 +96,7 @@ final class ClinicalTwinLabState: ObservableObject {
         rendererPhase = .idle
         currentPresentation = nil
         trackingRequested = false
-        revealAnatomy = 0
+        revealAnatomy = 1
         presentationResolver = ClinicalTwinPresentationResolver()
         logger.notice("state=reset")
     }
