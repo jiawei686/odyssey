@@ -85,6 +85,10 @@
 		000000000000000000000110 /* AssistantAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000120 /* AssistantAvatarView.swift */; };
 		000000000000000000000111 /* AssistantVoiceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000121 /* AssistantVoiceController.swift */; };
 		000000000000000000000112 /* assistant-avatar.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000122 /* assistant-avatar.usdz */; };
+		000000000000000000000130 /* PatientHistory/PatientHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000140 /* PatientHistory/PatientHistoryView.swift */; };
+		000000000000000000000131 /* PatientHistory/Resources/stage1.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000141 /* PatientHistory/Resources/stage1.usdz */; };
+		000000000000000000000132 /* PatientHistory/Resources/stage2.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000142 /* PatientHistory/Resources/stage2.usdz */; };
+		000000000000000000000133 /* PatientHistory/Resources/stage3.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000143 /* PatientHistory/Resources/stage3.usdz */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -159,6 +163,10 @@
 		000000000000000000000120 /* AssistantAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantAvatarView.swift; sourceTree = "<group>"; };
 		000000000000000000000121 /* AssistantVoiceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantVoiceController.swift; sourceTree = "<group>"; };
 		000000000000000000000122 /* assistant-avatar.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = "assistant-avatar.usdz"; sourceTree = "<group>"; };
+		000000000000000000000140 /* PatientHistory/PatientHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatientHistory/PatientHistoryView.swift; sourceTree = "<group>"; };
+		000000000000000000000141 /* PatientHistory/Resources/stage1.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = PatientHistory/Resources/stage1.usdz; sourceTree = "<group>"; };
+		000000000000000000000142 /* PatientHistory/Resources/stage2.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = PatientHistory/Resources/stage2.usdz; sourceTree = "<group>"; };
+		000000000000000000000143 /* PatientHistory/Resources/stage3.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = PatientHistory/Resources/stage3.usdz; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -204,6 +212,10 @@
 				000000000000000000000010 /* UpperLimbPOCApp.swift */,
 				0000000000000000000000E0 /* MedicalAssistant */,
 				000000000000000000000011 /* ContentView.swift */,
+				000000000000000000000140 /* PatientHistory/PatientHistoryView.swift */,
+				000000000000000000000141 /* PatientHistory/Resources/stage1.usdz */,
+				000000000000000000000142 /* PatientHistory/Resources/stage2.usdz */,
+				000000000000000000000143 /* PatientHistory/Resources/stage3.usdz */,
 				000000000000000000000012 /* ImmersiveView.swift */,
 				000000000000000000000013 /* OverlayState.swift */,
 				000000000000000000000014 /* hand-to-elbow-overlay.usdz */,
@@ -379,6 +391,9 @@
 				000000000000000000000024 /* hand-to-elbow-overlay.usdz in Resources */,
 				0000000000000000000000C8 /* MedicalAssistantKnowledge.json in Resources */,
 				000000000000000000000112 /* assistant-avatar.usdz in Resources */,
+				000000000000000000000131 /* PatientHistory/Resources/stage1.usdz in Resources */,
+				000000000000000000000132 /* PatientHistory/Resources/stage2.usdz in Resources */,
+				000000000000000000000133 /* PatientHistory/Resources/stage3.usdz in Resources */,
 				00000000000000000000002E /* Markers/elbow-marker.png in Resources */,
 				00000000000000000000002F /* Markers/wrist-marker.png in Resources */,
 				000000000000000000000060 /* reference-forearm-01.png in Resources */,
@@ -410,6 +425,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				000000000000000000000020 /* UpperLimbPOCApp.swift in Sources */,
+				000000000000000000000130 /* PatientHistory/PatientHistoryView.swift in Sources */,
 				0000000000000000000000C0 /* MedicalAssistantModels.swift in Sources */,
 				0000000000000000000000C1 /* MedicalAssistantConfiguration.swift in Sources */,
 				0000000000000000000000C2 /* OpenAICompatibleClient.swift in Sources */,
