@@ -105,6 +105,12 @@
 		000000000000000000000136 /* ClinicalTwinView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000145 /* ClinicalTwinView.swift */; };
 		000000000000000000000137 /* visible-human-male-forearm-1680-1740.r8 in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000118 /* visible-human-male-forearm-1680-1740.r8 */; };
 		000000000000000000000138 /* visible-human-male-forearm-1680-1740.json in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000119 /* visible-human-male-forearm-1680-1740.json */; };
+		000000000000000000000150 /* OnArmAnatomyAssetContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000160 /* OnArmAnatomyAssetContract.swift */; };
+		000000000000000000000151 /* OnArmAnatomyPose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000161 /* OnArmAnatomyPose.swift */; };
+		000000000000000000000152 /* OnArmAnatomyRealityKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000162 /* OnArmAnatomyRealityKit.swift */; };
+		000000000000000000000153 /* OnArmAnatomyLabState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000163 /* OnArmAnatomyLabState.swift */; };
+		000000000000000000000154 /* OnArmAnatomyImmersiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000164 /* OnArmAnatomyImmersiveView.swift */; };
+		000000000000000000000155 /* OnArmAnatomyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000165 /* OnArmAnatomyView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -194,6 +200,12 @@
 		000000000000000000000143 /* ClinicalTwinRealityKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicalTwinRealityKit.swift; sourceTree = "<group>"; };
 		000000000000000000000144 /* ClinicalTwinImmersiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicalTwinImmersiveView.swift; sourceTree = "<group>"; };
 		000000000000000000000145 /* ClinicalTwinView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicalTwinView.swift; sourceTree = "<group>"; };
+		000000000000000000000160 /* OnArmAnatomyAssetContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnArmAnatomyAssetContract.swift; sourceTree = "<group>"; };
+		000000000000000000000161 /* OnArmAnatomyPose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnArmAnatomyPose.swift; sourceTree = "<group>"; };
+		000000000000000000000162 /* OnArmAnatomyRealityKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnArmAnatomyRealityKit.swift; sourceTree = "<group>"; };
+		000000000000000000000163 /* OnArmAnatomyLabState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnArmAnatomyLabState.swift; sourceTree = "<group>"; };
+		000000000000000000000164 /* OnArmAnatomyImmersiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnArmAnatomyImmersiveView.swift; sourceTree = "<group>"; };
+		000000000000000000000165 /* OnArmAnatomyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnArmAnatomyView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -293,6 +305,7 @@
 				00000000000000000000001B /* Markers/wrist-marker.png */,
 				00000000000000000000011B /* CTVolume */,
 				000000000000000000000146 /* ClinicalTwin */,
+				000000000000000000000166 /* OnArmAnatomy */,
 				000000000000000000000076 /* ReferenceSlices */,
 			);
 			path = UpperLimbPOC;
@@ -361,6 +374,19 @@
 				000000000000000000000145 /* ClinicalTwinView.swift */,
 			);
 			path = ClinicalTwin;
+			sourceTree = "<group>";
+		};
+		000000000000000000000166 /* OnArmAnatomy */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000160 /* OnArmAnatomyAssetContract.swift */,
+				000000000000000000000161 /* OnArmAnatomyPose.swift */,
+				000000000000000000000162 /* OnArmAnatomyRealityKit.swift */,
+				000000000000000000000163 /* OnArmAnatomyLabState.swift */,
+				000000000000000000000164 /* OnArmAnatomyImmersiveView.swift */,
+				000000000000000000000165 /* OnArmAnatomyView.swift */,
+			);
+			path = OnArmAnatomy;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -479,6 +505,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				000000000000000000000020 /* UpperLimbPOCApp.swift in Sources */,
+				000000000000000000000150 /* OnArmAnatomyAssetContract.swift in Sources */,
+				000000000000000000000151 /* OnArmAnatomyPose.swift in Sources */,
+				000000000000000000000152 /* OnArmAnatomyRealityKit.swift in Sources */,
+				000000000000000000000153 /* OnArmAnatomyLabState.swift in Sources */,
+				000000000000000000000154 /* OnArmAnatomyImmersiveView.swift in Sources */,
+				000000000000000000000155 /* OnArmAnatomyView.swift in Sources */,
 				000000000000000000000130 /* CTForearmVolume.swift in Sources */,
 				000000000000000000000131 /* ClinicalTwinPose.swift in Sources */,
 				000000000000000000000132 /* CTForearmTwinGeometry.swift in Sources */,
@@ -642,6 +674,12 @@
 				ENABLE_PREVIEWS = YES;
 				EXCLUDED_SOURCE_FILE_NAMES = (
 					CTForearmVolume.swift,
+					OnArmAnatomyAssetContract.swift,
+					OnArmAnatomyPose.swift,
+					OnArmAnatomyRealityKit.swift,
+					OnArmAnatomyLabState.swift,
+					OnArmAnatomyImmersiveView.swift,
+					OnArmAnatomyView.swift,
 					ClinicalTwinPose.swift,
 					CTForearmTwinGeometry.swift,
 					ClinicalTwinLabState.swift,

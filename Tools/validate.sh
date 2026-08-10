@@ -213,6 +213,35 @@ if rg -q 'generateCylinder|hand-to-elbow-overlay' "$CLINICAL_TWIN_DIR"; then
     echo "Clinical twin must use CT-derived geometry, not diagnostic cylinders or AnatomyTOOL assets." >&2
     exit 1
 fi
+ON_ARM_ANATOMY_DIR="$PROJECT_DIR/UpperLimbPOC/OnArmAnatomy"
+for file in \
+    OnArmAnatomyAssetContract.swift \
+    OnArmAnatomyPose.swift \
+    OnArmAnatomyRealityKit.swift \
+    OnArmAnatomyLabState.swift \
+    OnArmAnatomyImmersiveView.swift \
+    OnArmAnatomyView.swift; do
+    test -f "$ON_ARM_ANATOMY_DIR/$file"
+done
+test -f "$PROJECT_DIR/Tools/OnArmAnatomyAssetCheck.swift"
+test -f "$PROJECT_DIR/Tools/OnArmAnatomyPoseCheck.swift"
+test -f "$PROJECT_DIR/docs/AVP_ON_ARM_ANATOMY.md"
+test -f "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/xcshareddata/xcschemes/UpperLimbPOC-On-Arm-Anatomy-Lab.xcscheme"
+rg -Fq 'static let launchArgument = "--avp-on-arm-anatomy"' "$ON_ARM_ANATOMY_DIR/OnArmAnatomyLabState.swift"
+rg -Fq 'Entity(named: OnArmAnatomyAssetContract.assetName)' "$ON_ARM_ANATOMY_DIR/OnArmAnatomyRealityKit.swift"
+rg -Fq 'static let radiusNodeName = "Radius_r"' "$ON_ARM_ANATOMY_DIR/OnArmAnatomyAssetContract.swift"
+rg -Fq 'static let ulnaNodeName = "Ulna_r"' "$ON_ARM_ANATOMY_DIR/OnArmAnatomyAssetContract.swift"
+rg -Fq 'rightForearmResolution' "$ON_ARM_ANATOMY_DIR/OnArmAnatomyImmersiveView.swift"
+rg -Fq 'rightHandJointTransforms' "$ON_ARM_ANATOMY_DIR/OnArmAnatomyImmersiveView.swift"
+rg -Fq 'Reference anatomy alignment — not patient-specific imaging.' "$ON_ARM_ANATOMY_DIR/OnArmAnatomyView.swift"
+rg -Fq '.upperLimbVisibility(.visible)' "$PROJECT_DIR/UpperLimbPOC/UpperLimbPOCApp.swift"
+rg -Fq '.upperLimbVisibility(.hidden)' "$PROJECT_DIR/UpperLimbPOC/UpperLimbPOCApp.swift"
+rg -Fq 'OnArmAnatomyView.swift in Sources' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -Fq 'OnArmAnatomyView.swift,' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+if rg -q 'generateCylinder|generateSphere' "$ON_ARM_ANATOMY_DIR"; then
+    echo "On-arm anatomy must load named USDZ meshes, not procedural diagnostic geometry." >&2
+    exit 1
+fi
 if find "$PROJECT_DIR" -type f \( -iname '*.dcm' -o -iname '*.dicom' -o -iname '*.ima' \) -print -quit | rg -q .; then
     echo "Raw DICOM-like data must not be committed." >&2
     exit 1
@@ -433,6 +462,36 @@ xcrun swiftc \
     -strict-concurrency=complete \
     -parse-as-library \
     -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/AVPForearmOverlayPose.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/OnArmAnatomy/OnArmAnatomyAssetContract.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/OnArmAnatomy/OnArmAnatomyPose.swift" \
+    "$PROJECT_DIR/Tools/OnArmAnatomyPoseCheck.swift" \
+    -o "$BUILD_ROOT/on-arm-anatomy-pose-check"
+"$BUILD_ROOT/on-arm-anatomy-pose-check"
+
+/usr/bin/usdchecker "$PROJECT_DIR/UpperLimbPOC/hand-to-elbow-overlay.usdz"
+/usr/bin/usdcat \
+    "$PROJECT_DIR/UpperLimbPOC/hand-to-elbow-overlay.usdz" \
+    -o "$BUILD_ROOT/on-arm-anatomy.usda"
+xcrun swiftc \
+    -D DEBUG \
+    -warnings-as-errors \
+    -strict-concurrency=complete \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/OnArmAnatomy/OnArmAnatomyAssetContract.swift" \
+    "$PROJECT_DIR/Tools/OnArmAnatomyAssetCheck.swift" \
+    -o "$BUILD_ROOT/on-arm-anatomy-asset-check"
+"$BUILD_ROOT/on-arm-anatomy-asset-check" \
+    "$PROJECT_DIR/UpperLimbPOC/hand-to-elbow-overlay.usdz" \
+    "$BUILD_ROOT/on-arm-anatomy.usda"
+
+xcrun swiftc \
+    -D DEBUG \
+    -warnings-as-errors \
+    -strict-concurrency=complete \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
     "$PROJECT_DIR/UpperLimbPOC/CTVolume/CTForearmVolume.swift" \
     "$PROJECT_DIR/UpperLimbPOC/AVPForearmOverlayPose.swift" \
     "$PROJECT_DIR/UpperLimbPOC/ClinicalTwin/ClinicalTwinPose.swift" \
@@ -552,4 +611,4 @@ COMPANION_APP="$BUILD_ROOT/companion/Build/Products/Debug-iphonesimulator/UpperL
 test -f "$COMPANION_APP/visible-human-male-forearm-1680-1740.r8"
 test -f "$COMPANION_APP/visible-human-male-forearm-1680-1740.json"
 
-echo "Validation passed: mixed reality, gaze/accessibility invariants, AVP self-forearm axis/stale state, CT-derived clinical-twin geometry/pose checks, hybrid landmark registration and index-finger kinematics logic, CT VRT resource/surface-depth checks, metric evaluator, five reference slices, clean builds, and static analysis."
+echo "Validation passed: mixed reality, gaze/accessibility invariants, AVP self-forearm axis/stale state, named USDZ on-arm asset/pose checks, CT-derived clinical-twin geometry/pose checks, hybrid landmark registration and index-finger kinematics logic, CT VRT resource/surface-depth checks, metric evaluator, five reference slices, clean builds, and static analysis."

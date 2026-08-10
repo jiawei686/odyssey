@@ -10,11 +10,14 @@ struct UpperLimbPOCApp: App {
     @StateObject private var assistantWindow = AssistantWindowCoordinator()
 #if DEBUG
     @StateObject private var clinicalTwin = ClinicalTwinLabState()
+    @StateObject private var onArmAnatomy = OnArmAnatomyLabState()
 #endif
     @State private var immersionStyle: ImmersionStyle = .mixed
     @State private var probeImmersionStyle: ImmersionStyle = .mixed
 #if DEBUG
     @State private var clinicalTwinImmersionStyle: ImmersionStyle = .mixed
+    @State private var onArmNormalImmersionStyle: ImmersionStyle = .mixed
+    @State private var onArmSeeThroughImmersionStyle: ImmersionStyle = .mixed
 #endif
 
     init() {
@@ -33,7 +36,9 @@ struct UpperLimbPOCApp: App {
         WindowGroup(id: "AnatomyLibrary") {
             Group {
 #if DEBUG
-                if ClinicalTwinLabFeatureGate.isEnabled {
+                if OnArmAnatomyFeatureGate.isEnabled {
+                    OnArmAnatomyView()
+                } else if ClinicalTwinLabFeatureGate.isEnabled {
                     ClinicalTwinView()
                 } else {
                     ContentView()
@@ -49,6 +54,7 @@ struct UpperLimbPOCApp: App {
                 .environmentObject(assistantWindow)
 #if DEBUG
                 .environmentObject(clinicalTwin)
+                .environmentObject(onArmAnatomy)
 #endif
         }
         .defaultSize(width: 960, height: 720)
@@ -104,6 +110,22 @@ struct UpperLimbPOCApp: App {
                 .environmentObject(clinicalTwin)
         }
         .immersionStyle(selection: $clinicalTwinImmersionStyle, in: .mixed)
+
+        ImmersiveSpace(id: "OnArmAnatomyNormalSpace") {
+            OnArmAnatomyImmersiveView()
+                .environmentObject(tracking)
+                .environmentObject(onArmAnatomy)
+        }
+        .upperLimbVisibility(.visible)
+        .immersionStyle(selection: $onArmNormalImmersionStyle, in: .mixed)
+
+        ImmersiveSpace(id: "OnArmAnatomySeeThroughSpace") {
+            OnArmAnatomyImmersiveView()
+                .environmentObject(tracking)
+                .environmentObject(onArmAnatomy)
+        }
+        .upperLimbVisibility(.hidden)
+        .immersionStyle(selection: $onArmSeeThroughImmersionStyle, in: .mixed)
 #endif
     }
 }
