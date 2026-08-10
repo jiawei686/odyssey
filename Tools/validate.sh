@@ -536,6 +536,17 @@ xcrun swiftc \
     -o "$BUILD_ROOT/medical-assistant-contract-check"
 "$BUILD_ROOT/medical-assistant-contract-check" "$PROJECT_DIR"
 
+echo "[8b/14] Checking push-to-talk voice-assistant contracts"
+xcrun swiftc \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/MedicalAssistantModels.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/VoiceAssistantModels.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/VoiceAssistantController.swift" \
+    "$PROJECT_DIR/Tools/VoiceAssistantContractCheck.swift" \
+    -o "$BUILD_ROOT/voice-assistant-contract-check"
+"$BUILD_ROOT/voice-assistant-contract-check" "$PROJECT_DIR"
+
 echo "[9/14] Clean-building Vision Pro simulator target"
 run_xcode_stage "$BUILD_ROOT/vision-build.log" \
     -quiet \
