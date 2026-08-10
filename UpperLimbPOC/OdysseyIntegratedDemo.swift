@@ -6,7 +6,11 @@ enum OdysseyIntegratedDemoFeatureGate {
     static let launchArgument = "--odyssey-integrated-demo"
 
     static var isEnabled: Bool {
+#if ODYSSEY_INTEGRATED_DEMO
+        true
+#else
         ProcessInfo.processInfo.arguments.contains(launchArgument)
+#endif
     }
 }
 

@@ -271,6 +271,16 @@ test -f "$PROJECT_DIR/docs/ODYSSEY_INTEGRATED_DEMO.md"
 test -f "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/xcshareddata/xcschemes/UpperLimbPOC-Odyssey-Integrated-Demo.xcscheme"
 test -f "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/xcshareddata/xcschemes/UpperLimbCompanion-Odyssey-Integrated-Demo.xcscheme"
 rg -Fq 'static let launchArgument = "--odyssey-integrated-demo"' "$PROJECT_DIR/UpperLimbPOC/OdysseyIntegratedDemo.swift"
+rg -Fq '#if ODYSSEY_INTEGRATED_DEMO' "$PROJECT_DIR/UpperLimbPOC/OdysseyIntegratedDemo.swift"
+rg -Fq 'SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG ODYSSEY_INTEGRATED_DEMO $(inherited)";' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+test "$(rg -o 'buildConfiguration="Debug-OdysseyIntegratedDemo"' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/xcshareddata/xcschemes/UpperLimbPOC-Odyssey-Integrated-Demo.xcscheme" | wc -l | tr -d ' ')" = "3"
+test "$(rg -o 'buildConfiguration="Debug-OdysseyIntegratedDemo"' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/xcshareddata/xcschemes/UpperLimbCompanion-Odyssey-Integrated-Demo.xcscheme" | wc -l | tr -d ' ')" = "3"
+if rg -q 'Debug-OdysseyIntegratedDemo|ODYSSEY_INTEGRATED_DEMO' \
+    "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/xcshareddata/xcschemes/UpperLimbPOC.xcscheme" \
+    "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/xcshareddata/xcschemes/UpperLimbCompanion.xcscheme"; then
+    echo "Stable schemes must not enable the Odyssey integrated-demo compilation condition." >&2
+    exit 1
+fi
 rg -Fq 'case ctDerivedMeshFallback' "$PROJECT_DIR/UpperLimbPOC/OdysseyClinicalSessionContract.swift"
 rg -Fq 'wearerView: .unavailable' "$PROJECT_DIR/UpperLimbPOC/OdysseyIntegratedDemo.swift"
 

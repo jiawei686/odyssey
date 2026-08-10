@@ -6,9 +6,11 @@ Status: automated integration candidate; physical Apple Vision Pro behavior rema
 
 - Vision Pro scheme: `UpperLimbPOC-Odyssey-Integrated-Demo`
 - iPhone/iPad scheme: `UpperLimbCompanion-Odyssey-Integrated-Demo`
-- Shared DEBUG launch argument: `--odyssey-integrated-demo`
+- Scheme-only build configuration: `Debug-OdysseyIntegratedDemo`
+- Persistent compilation condition: `ODYSSEY_INTEGRATED_DEMO`
+- Optional simulator override: `--odyssey-integrated-demo`
 
-Normal production/demo routes are unchanged when the launch argument is absent.
+Apps compiled by either integrated scheme reopen into the Odyssey shell even when launched manually from the device app library. The optional launch argument remains useful for simulator automation. Stable schemes and their routes do not define the compilation condition and remain unchanged.
 
 ## What this candidate implements
 
