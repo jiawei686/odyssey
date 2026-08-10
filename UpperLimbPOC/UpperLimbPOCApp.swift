@@ -161,6 +161,7 @@ struct UpperLimbPOCApp: App {
                 .environmentObject(tracking)
                 .environmentObject(clinicalTwin)
         }
+        .upperLimbVisibility(.hidden)
         .immersionStyle(selection: $clinicalTwinImmersionStyle, in: .mixed)
 
         ImmersiveSpace(id: "OnArmAnatomyNormalSpace") {
