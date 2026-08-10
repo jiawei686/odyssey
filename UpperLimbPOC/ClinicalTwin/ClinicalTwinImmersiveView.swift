@@ -1,5 +1,6 @@
 #if DEBUG
 import ARKit
+import Foundation
 import RealityKit
 import SwiftUI
 import UIKit
@@ -7,14 +8,28 @@ import UIKit
 struct ClinicalTwinImmersiveView: View {
     @EnvironmentObject private var tracking: LandmarkTrackingService
     @EnvironmentObject private var labState: ClinicalTwinLabState
+    @StateObject private var sceneDriver = ClinicalTwinSceneUpdateDriver()
+    @State private var sceneUpdateSubscription: EventSubscription?
 
     var body: some View {
         RealityView { content in
+            sceneUpdateSubscription?.cancel()
+            sceneDriver.reset()
             labState.beginStaticSession()
-            content.add(ClinicalTwinTrackedJointOverlay.makeRoot())
+            let jointOverlayRoot = ClinicalTwinTrackedJointOverlay.makeRoot()
+            content.add(jointOverlayRoot)
             do {
                 let loaded = try await ClinicalTwinRealityKitFactory.loadRoot()
                 content.add(loaded.root)
+                sceneDriver.install(
+                    root: loaded.root,
+                    jointOverlayRoot: jointOverlayRoot
+                )
+                sceneUpdateSubscription = content.subscribe(
+                    to: SceneEvents.Update.self
+                ) { _ in
+                    sceneDriver.update(tracking: tracking, labState: labState)
+                }
                 labState.markStaticReady(ClinicalTwinRenderEvidence(
                     assetByteCount: loaded.evidence.assetByteCount,
                     radiusLengthMetres: loaded.evidence.radiusExtentsMetres.z,
@@ -27,41 +42,119 @@ struct ClinicalTwinImmersiveView: View {
             } catch {
                 labState.markRendererFailed(error.localizedDescription)
             }
-        } update: { content in
-            guard let root = content.entities.first(where: {
-                $0.name == ClinicalTwinRealityKitFactory.rootName
-            }) else { return }
+        }
+        .onDisappear {
+            sceneUpdateSubscription?.cancel()
+            sceneUpdateSubscription = nil
+            sceneDriver.reset()
+        }
+    }
+}
 
-            let resolution = labState.trackingRequested
-                ? tracking.rightForearmResolution
-                : AVPForearmOverlayResolution(
-                    state: .searching,
-                    trackedPointCount: 0,
-                    detail: "Static reference requested",
-                    pose: nil
-                )
-            let presentation = labState.resolvePresentation(
+@MainActor
+private final class ClinicalTwinSceneUpdateDriver: ObservableObject {
+    private var root: Entity?
+    private var jointOverlayRoot: Entity?
+    private var updateCount = 0
+
+    func install(root: Entity, jointOverlayRoot: Entity) {
+        self.root = root
+        self.jointOverlayRoot = jointOverlayRoot
+        updateCount = 0
+    }
+
+    func reset() {
+        root = nil
+        jointOverlayRoot = nil
+        updateCount = 0
+    }
+
+    func update(
+        tracking: LandmarkTrackingService,
+        labState: ClinicalTwinLabState
+    ) {
+        guard let root, let jointOverlayRoot else { return }
+        updateCount += 1
+
+        let resolution = labState.trackingRequested
+            ? tracking.rightForearmResolution
+            : AVPForearmOverlayResolution(
+                state: .searching,
+                trackedPointCount: 0,
+                detail: "Static reference requested",
+                pose: nil
+            )
+        let presentation = labState.resolvePresentation(
+            resolution: resolution,
+            wristTransform: tracking.rightHandJointTransforms[.wrist],
+            timestamp: ProcessInfo.processInfo.systemUptime
+        )
+        let sceneTransform = Transform(
+            scale: presentation.transform.scale,
+            rotation: presentation.transform.rotation,
+            translation: presentation.transform.translation
+        )
+        root.setTransformMatrix(sceneTransform.matrix, relativeTo: nil)
+        ClinicalTwinRealityKitFactory.setPresentationOpacity(
+            on: root,
+            opacity: Float(labState.revealAnatomy) * presentation.opacity
+        )
+        ClinicalTwinTrackedJointOverlay.update(
+            root: jointOverlayRoot,
+            transforms: tracking.rightHandJointTransforms,
+            visible: labState.trackingRequested
+                && tracking.handPhase == .running
+                && resolution.state == .live
+        )
+
+        if updateCount == 1 || updateCount.isMultiple(of: 30) {
+            emitDebugEvidence(
                 resolution: resolution,
-                wristTransform: tracking.rightHandJointTransforms[.wrist],
-                timestamp: ProcessInfo.processInfo.systemUptime
-            )
-            root.transform = Transform(
-                scale: presentation.transform.scale,
-                rotation: presentation.transform.rotation,
-                translation: presentation.transform.translation
-            )
-            ClinicalTwinRealityKitFactory.setPresentationOpacity(
-                on: root,
-                opacity: Float(labState.revealAnatomy) * presentation.opacity
-            )
-            ClinicalTwinTrackedJointOverlay.update(
-                in: content,
-                transforms: tracking.rightHandJointTransforms,
-                visible: labState.trackingRequested
-                    && tracking.handPhase == .running
-                    && tracking.rightForearmResolution.state == .live
+                presentation: presentation,
+                root: root
             )
         }
+    }
+
+    private func emitDebugEvidence(
+        resolution: AVPForearmOverlayResolution,
+        presentation: ClinicalTwinPresentation,
+        root: Entity
+    ) {
+        let local = root.transform.translation
+        let world = root.position(relativeTo: nil)
+        let pose: String
+        if let value = resolution.pose {
+            pose = String(
+                format: "center=(%.3f,%.3f,%.3f) direction=(%.3f,%.3f,%.3f) length=%.3f",
+                value.center.x,
+                value.center.y,
+                value.center.z,
+                value.direction.x,
+                value.direction.y,
+                value.direction.z,
+                value.length
+            )
+        } else {
+            pose = "pose=nil"
+        }
+        print(
+            String(
+                format: "CLINICAL_TWIN_FRAME count=%d resolution=%@ mode=%@ %@ root=%@ children=%d local=(%.3f,%.3f,%.3f) world=(%.3f,%.3f,%.3f)",
+                updateCount,
+                resolution.state.rawValue,
+                presentation.mode.rawValue,
+                pose,
+                root.name,
+                root.children.count,
+                local.x,
+                local.y,
+                local.z,
+                world.x,
+                world.y,
+                world.z
+            )
+        )
     }
 }
 
@@ -116,13 +209,10 @@ private enum ClinicalTwinTrackedJointOverlay {
     }
 
     static func update(
-        in content: RealityViewContent,
+        root: Entity,
         transforms: [HandSkeleton.JointName: simd_float4x4],
         visible: Bool
     ) {
-        guard let root = content.entities.first(where: { $0.name == rootName }) else {
-            return
-        }
         guard visible else {
             root.isEnabled = false
             return

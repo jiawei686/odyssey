@@ -216,9 +216,19 @@ rg -Fq 'rightForearmResolution' "$CLINICAL_TWIN_DIR/ClinicalTwinImmersiveView.sw
 rg -Fq 'Tracking dots and procedural cylinders remain Diagnostics only' "$CLINICAL_TWIN_DIR/ClinicalTwinView.swift"
 rg -Fq 'OnArmAnatomyRealityKitFactory.loadRoot()' "$CLINICAL_TWIN_DIR/ClinicalTwinRealityKit.swift"
 rg -Fq 'showFullAsset: true' "$CLINICAL_TWIN_DIR/ClinicalTwinRealityKit.swift"
+rg -Fq 'loaded.root.name = rootName' "$CLINICAL_TWIN_DIR/ClinicalTwinRealityKit.swift"
+if rg -q 'assetRootName|let root = Entity\(\)|root\.addChild\(loaded\.root\)' \
+    "$CLINICAL_TWIN_DIR/ClinicalTwinRealityKit.swift"; then
+    echo "Clinical twin must expose exactly one direct geometry-bearing scene root without a wrapper." >&2
+    exit 1
+fi
+test "$(rg -c 'loaded\.root\.name = rootName' "$CLINICAL_TWIN_DIR/ClinicalTwinRealityKit.swift")" = "1"
 rg -Fq 'static let referenceForearmLengthMetres: Float = 0.2625' "$CLINICAL_TWIN_DIR/ClinicalTwinPose.swift"
 rg -Fq 'localLongAxis = SIMD3<Float>(0, 0, -1)' "$CLINICAL_TWIN_DIR/ClinicalTwinPose.swift"
 rg -Fq 'await labState.startRightForearmTracking(using: tracking)' "$CLINICAL_TWIN_DIR/ClinicalTwinImmersiveView.swift"
+rg -Fq 'SceneEvents.Update.self' "$CLINICAL_TWIN_DIR/ClinicalTwinImmersiveView.swift"
+rg -Fq 'root.setTransformMatrix(sceneTransform.matrix, relativeTo: nil)' "$CLINICAL_TWIN_DIR/ClinicalTwinImmersiveView.swift"
+rg -Fq 'CLINICAL_TWIN_FRAME count=' "$CLINICAL_TWIN_DIR/ClinicalTwinImmersiveView.swift"
 if rg -Fq 'loaded.root.transform =' "$CLINICAL_TWIN_DIR/ClinicalTwinRealityKit.swift"; then
     echo "Clinical twin must preserve the centred Blender -Z asset basis without a child pre-rotation." >&2
     exit 1

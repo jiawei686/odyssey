@@ -4,7 +4,6 @@ import RealityKit
 @MainActor
 enum ClinicalTwinRealityKitFactory {
     static let rootName = "OdysseyRightForearmCTTwinRoot"
-    private static let assetRootName = "BlenderHandToElbowAssetRoot"
 
     static func loadRoot() async throws -> (
         root: Entity,
@@ -17,15 +16,11 @@ enum ClinicalTwinRealityKitFactory {
             opacity: 1
         )
 
-        // The validated factory has already centred the Blender USDZ. Keep its
-        // authored local -Z elbow-to-wrist axis unchanged: the presentation
-        // resolver maps that axis directly into the live AVP forearm pose.
-        loaded.root.name = assetRootName
-
-        let root = Entity()
-        root.name = rootName
-        root.addChild(loaded.root)
-        return (root, loaded.evidence)
+        // The validated factory has already centred the Blender USDZ under
+        // this root. Keep that exact geometry-bearing hierarchy and authored
+        // local -Z axis; the scene updater transforms this direct root.
+        loaded.root.name = rootName
+        return (loaded.root, loaded.evidence)
     }
 
     static func setPresentationOpacity(on root: Entity, opacity: Float) {
