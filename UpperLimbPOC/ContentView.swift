@@ -101,11 +101,15 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
-                        openMedicalAssistant()
+                        toggleMedicalAssistant()
                     } label: {
-                        Image(systemName: "message.fill")
+                        Image(systemName: assistantWindow.isAvatarPresented
+                              ? "person.crop.circle.badge.xmark"
+                              : "person.crop.circle.badge.plus")
                     }
-                    .help("Open medical education assistant")
+                    .help(assistantWindow.isAvatarPresented
+                          ? "Dismiss medical education assistant"
+                          : "Call medical education assistant")
                 }
             }
             .navigationDestination(
@@ -119,10 +123,7 @@ struct ContentView: View {
         }
         .onAppear(perform: peer.start)
         .task {
-            if !ProcessInfo.processInfo.arguments.contains("--automated-demo"),
-               assistantWindow.claimAutomaticPresentation() {
-                openWindow(id: "MedicalAssistant", value: AssistantWindowRoute.primary)
-            }
+            presentAssistantAvatarIfNeeded()
             await runAutomatedDemoIfRequested()
         }
         .onReceive(peer.$lastSnapshot.compactMap { $0 }) { snapshot in
@@ -134,9 +135,22 @@ struct ContentView: View {
         }
     }
 
-    private func openMedicalAssistant() {
-        guard !assistantWindow.isPresented else { return }
-        openWindow(id: "MedicalAssistant", value: AssistantWindowRoute.primary)
+    private func toggleMedicalAssistant() {
+        if assistantWindow.isAvatarPresented {
+            dismissWindow(id: "MedicalAssistantAvatar")
+            dismissWindow(id: "MedicalAssistant")
+        } else {
+            openWindow(id: "MedicalAssistantAvatar")
+        }
+    }
+
+    @MainActor
+    private func presentAssistantAvatarIfNeeded() {
+        guard !ProcessInfo.processInfo.arguments.contains("--automated-demo"),
+              assistantWindow.claimAutomaticAvatarPresentation()
+        else { return }
+
+        openWindow(id: "MedicalAssistantAvatar")
     }
 
     private var introduction: some View {
@@ -500,9 +514,15 @@ struct TrackingStatusView: View {
                     .buttonStyle(.bordered)
                 }
 
-                Button("Open medical assistant", systemImage: "message.fill") {
-                    guard !assistantWindow.isPresented else { return }
-                    openWindow(id: "MedicalAssistant", value: AssistantWindowRoute.primary)
+                Button(
+                    assistantWindow.isAvatarPresented
+                        ? "Dismiss medical assistant"
+                        : "Call medical assistant",
+                    systemImage: assistantWindow.isAvatarPresented
+                        ? "person.crop.circle.badge.xmark"
+                        : "person.crop.circle.badge.plus"
+                ) {
+                    toggleMedicalAssistant()
                 }
                 .buttonStyle(.bordered)
 
@@ -526,6 +546,15 @@ struct TrackingStatusView: View {
         .animation(reduceMotion ? nil : .snappy, value: overlay.sectionVisible)
         .padding(20)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24))
+    }
+
+    private func toggleMedicalAssistant() {
+        if assistantWindow.isAvatarPresented {
+            dismissWindow(id: "MedicalAssistantAvatar")
+            dismissWindow(id: "MedicalAssistant")
+        } else {
+            openWindow(id: "MedicalAssistantAvatar")
+        }
     }
 
     private let anatomyChoices = [

@@ -88,6 +88,19 @@ actor AppleFoundationModelClient {
         conversation: [AssistantMessage],
         locale: Locale = .current
     ) async throws -> String {
+        try await completeStreaming(
+            systemPrompt: systemPrompt,
+            conversation: conversation,
+            locale: locale
+        ) { _ in }
+    }
+
+    func completeStreaming(
+        systemPrompt: String,
+        conversation: [AssistantMessage],
+        locale: Locale = .current,
+        onPartial: @escaping @Sendable (String) async -> Void
+    ) async throws -> String {
         guard #available(visionOS 26.0, *) else {
             throw AppleFoundationModelError.unavailable(.requiresVisionOS26)
         }
@@ -101,11 +114,19 @@ actor AppleFoundationModelClient {
             model: .default,
             instructions: systemPrompt
         )
-        let response: LanguageModelSession.Response<String>
+        var content = ""
         do {
-            response = try await session.respond(
+            let stream = session.streamResponse(
                 to: Self.prompt(from: conversation)
             )
+            for try await snapshot in stream {
+                try Task.checkCancellation()
+                content = snapshot.content
+                guard content.count <= 20_000 else {
+                    throw AppleFoundationModelError.responseTooLarge
+                }
+                await onPartial(content)
+            }
         } catch let error as LanguageModelSession.GenerationError {
             throw Self.mapGenerationError(error)
         } catch {
@@ -117,7 +138,7 @@ actor AppleFoundationModelClient {
         }
         try Task.checkCancellation()
 
-        let content = response.content.trimmingCharacters(
+        content = content.trimmingCharacters(
             in: .whitespacesAndNewlines
         )
         guard !content.isEmpty else {
@@ -126,6 +147,7 @@ actor AppleFoundationModelClient {
         guard content.count <= 20_000 else {
             throw AppleFoundationModelError.responseTooLarge
         }
+        await onPartial(content)
         return content
     }
 

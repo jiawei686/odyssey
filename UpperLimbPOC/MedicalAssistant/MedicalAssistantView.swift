@@ -5,8 +5,11 @@ struct MedicalAssistantView: View {
     @EnvironmentObject private var overlay: OverlayState
     @EnvironmentObject private var windowCoordinator: AssistantWindowCoordinator
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @StateObject private var voice = AssistantVoiceController()
     @State private var isConfirmingClear = false
     @State private var didRunOnDeviceSmoke = false
+    @State private var inputMode: AssistantInputMode = .voice
+    @State private var lastSpokenMessageID: UUID?
 
     private var anatomyContext: AssistantAnatomyContext {
         AssistantAnatomyContext(overlay: overlay)
@@ -45,9 +48,44 @@ struct MedicalAssistantView: View {
         .task {
             await assistant.prepare()
             runOnDeviceSmokeIfRequested()
+            await startVoiceIfPossible()
         }
-        .onAppear(perform: windowCoordinator.didAppear)
-        .onDisappear(perform: windowCoordinator.didDisappear)
+        .onAppear(perform: windowCoordinator.conversationDidAppear)
+        .onDisappear {
+            voice.cancelListening()
+            voice.stopSpeaking()
+            windowCoordinator.conversationDidDisappear()
+        }
+        .onChange(of: inputMode) { _, mode in
+            if mode == .voice {
+                Task { await startVoiceIfPossible() }
+            } else {
+                voice.cancelListening()
+                voice.stopSpeaking()
+            }
+        }
+        .onChange(of: voice.completedUtterance) { _, utterance in
+            guard let utterance else { return }
+            assistant.draft = utterance.text
+            assistant.send(anatomyContext: anatomyContext)
+            speakLatestResponseIfNeeded()
+        }
+        .onChange(of: voice.speechCompletionCount) { _, _ in
+            Task { await startVoiceIfPossible() }
+        }
+        .onChange(of: assistant.activity) { _, activity in
+            if activity == .idle {
+                speakLatestResponseIfNeeded()
+            } else {
+                voice.cancelListening()
+            }
+        }
+        .onChange(of: assistant.messages.last?.id) { _, _ in
+            speakLatestResponseIfNeeded()
+        }
+        .onChange(of: assistant.isSelectedProviderAvailable) { _, _ in
+            Task { await startVoiceIfPossible() }
+        }
         .sheet(isPresented: $assistant.isShowingSettings) {
             MedicalAssistantSettingsView()
                 .environmentObject(assistant)
@@ -76,6 +114,48 @@ struct MedicalAssistantView: View {
         assistant.draft = "Explain the radius and its main function in plain language."
         assistant.send(anatomyContext: anatomyContext)
 #endif
+    }
+
+    private func startVoiceIfPossible() async {
+        guard inputMode == .voice,
+              assistant.activity == .idle,
+              assistant.isSelectedProviderAvailable,
+              voice.errorMessage == nil,
+              !voice.isListening,
+              !voice.isSpeaking,
+              !ProcessInfo.processInfo.arguments.contains(
+                "--assistant-on-device-smoke"
+              )
+        else { return }
+        await voice.startListening()
+    }
+
+    private func speakLatestResponseIfNeeded() {
+        guard inputMode == .voice,
+              assistant.activity == .idle,
+              let message = assistant.messages.last,
+              message.role == .assistant,
+              !message.text.isEmpty,
+              message.id != lastSpokenMessageID
+        else { return }
+
+        lastSpokenMessageID = message.id
+        let rendered = AssistantResponseFormatter.attributedText(
+            from: message.text
+        )
+        voice.speak(
+            String(rendered.characters),
+            language: speechLanguage(for: message.text)
+        )
+    }
+
+    private func speechLanguage(for text: String) -> String {
+        if text.unicodeScalars.contains(where: {
+            (0x4E00...0x9FFF).contains(Int($0.value))
+        }) {
+            return "zh-CN"
+        }
+        return Locale.current.identifier.replacingOccurrences(of: "_", with: "-")
     }
 
     private var statusHeader: some View {
@@ -170,8 +250,10 @@ struct MedicalAssistantView: View {
                         emptyConversation
                     } else {
                         ForEach(assistant.messages) { message in
-                            MessageBubble(message: message)
-                                .id(message.id)
+                            if !message.text.isEmpty {
+                                MessageBubble(message: message)
+                                    .id(message.id)
+                            }
                         }
                     }
 
@@ -204,6 +286,9 @@ struct MedicalAssistantView: View {
                 withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
                     proxy.scrollTo("conversation-bottom", anchor: .bottom)
                 }
+            }
+            .onChange(of: assistant.messages.last?.text) { _, _ in
+                proxy.scrollTo("conversation-bottom", anchor: .bottom)
             }
         }
     }
@@ -265,17 +350,41 @@ struct MedicalAssistantView: View {
     }
 
     private var composer: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Picker("Input mode", selection: $inputMode) {
+                ForEach(AssistantInputMode.allCases) { mode in
+                    Label(mode.displayName, systemImage: mode.systemImage)
+                        .tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            if inputMode == .voice {
+                voiceComposer
+            } else {
+                textComposer
+            }
+
+            Text("Do not enter names, identifiers, records, patient images, or DICOM data.")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+        .padding(16)
+    }
+
+    private var voiceComposer: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .bottom, spacing: 10) {
-                TextField(
-                    "Ask a general health or anatomy question",
-                    text: $assistant.draft,
-                    axis: .vertical
-                )
-                .lineLimit(1...5)
-                .textFieldStyle(.roundedBorder)
-                .onSubmit {
-                    assistant.send(anatomyContext: anatomyContext)
+            HStack(alignment: .center, spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Label(voice.state.label, systemImage: voice.state.systemImage)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(voice.isListening ? .green : .secondary)
+
+                    Text(voice.liveTranscript.isEmpty
+                         ? voice.state.label
+                         : voice.liveTranscript)
+                        .frame(maxWidth: .infinity, minHeight: 34, alignment: .leading)
+                        .textSelection(.enabled)
                 }
 
                 if assistant.activity == .waitingForResponse {
@@ -288,29 +397,85 @@ struct MedicalAssistantView: View {
                     .buttonStyle(.plain)
                     .frame(width: 44, height: 44)
                     .help("Stop response")
-                } else {
+                } else if voice.isSpeaking {
                     Button {
-                        assistant.send(anatomyContext: anatomyContext)
+                        voice.stopSpeaking()
+                        Task { await startVoiceIfPossible() }
                     } label: {
-                        Image(systemName: "arrow.up.circle.fill")
+                        Image(systemName: "speaker.slash.circle.fill")
                             .font(.title2)
                     }
                     .buttonStyle(.plain)
                     .frame(width: 44, height: 44)
-                    .disabled(
-                        assistant.draft.trimmingCharacters(
-                            in: .whitespacesAndNewlines
-                        ).isEmpty || !assistant.isSelectedProviderAvailable
-                    )
-                    .help("Send question")
+                    .help("Stop speaking")
+                } else {
+                    Button {
+                        if voice.isListening {
+                            voice.finishListening()
+                        } else {
+                            Task { await voice.startListening() }
+                        }
+                    } label: {
+                        Image(systemName: voice.isListening
+                              ? "waveform.circle.fill"
+                              : "mic.circle.fill")
+                            .font(.title2)
+                    }
+                    .buttonStyle(.plain)
+                    .frame(width: 44, height: 44)
+                    .disabled(!assistant.isSelectedProviderAvailable)
+                    .help(voice.isListening ? "Finish question" : "Start listening")
                 }
             }
 
-            Text("Do not enter names, identifiers, records, patient images, or DICOM data.")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+            if let errorMessage = voice.errorMessage {
+                Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            }
         }
-        .padding(16)
+    }
+
+    private var textComposer: some View {
+        HStack(alignment: .bottom, spacing: 10) {
+            TextField(
+                "Ask a general health or anatomy question",
+                text: $assistant.draft,
+                axis: .vertical
+            )
+            .lineLimit(1...5)
+            .textFieldStyle(.roundedBorder)
+            .onSubmit {
+                assistant.send(anatomyContext: anatomyContext)
+            }
+
+            if assistant.activity == .waitingForResponse {
+                Button {
+                    assistant.cancelRequest()
+                } label: {
+                    Image(systemName: "stop.circle.fill")
+                        .font(.title2)
+                }
+                .buttonStyle(.plain)
+                .frame(width: 44, height: 44)
+                .help("Stop response")
+            } else {
+                Button {
+                    assistant.send(anatomyContext: anatomyContext)
+                } label: {
+                    Image(systemName: "arrow.up.circle.fill")
+                        .font(.title2)
+                }
+                .buttonStyle(.plain)
+                .frame(width: 44, height: 44)
+                .disabled(
+                    assistant.draft.trimmingCharacters(
+                        in: .whitespacesAndNewlines
+                    ).isEmpty || !assistant.isSelectedProviderAvailable
+                )
+                .help("Send question")
+            }
+        }
     }
 }
 

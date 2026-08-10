@@ -2,10 +2,12 @@
 
 ## Purpose and boundary
 
-`MedicalAssistant` is a text-first visionOS learning assistant for patients and
-clinicians. It provides general educational information and can explain the
-deterministically selected anatomy entity. It is not a medical adviser,
-diagnostic system, treatment tool, or patient-specific clinical service.
+`MedicalAssistant` is a spatial visionOS learning assistant for patients and
+clinicians. An automatically presented USDZ avatar is its entry point, while a
+separate text panel remains the accessible conversation surface. It provides general
+educational information and can explain the deterministically selected anatomy
+entity. It is not a medical adviser, diagnostic system, treatment tool, or
+patient-specific clinical service.
 
 The assistant receives only the region name, laterality, focused anatomy name,
 conversation text, and retrieved public reference excerpts. It does not receive
@@ -14,11 +16,17 @@ confidence, or companion payloads, and it cannot mutate overlay state.
 
 ## Runtime architecture
 
-- `MedicalAssistantView`: independent visionOS window and settings surface.
+- `AssistantAvatarView`: volumetric USDZ scene, bounded idle rotation, and
+  gaze-plus-pinch conversation-panel toggle.
+- `MedicalAssistantView`: independent conversation window, streaming messages,
+  voice/text composer, and settings surface.
+- `AssistantVoiceController`: on-device partial speech recognition and system
+  speech synthesis. Captured audio is not saved.
 - `MedicalAssistantStore`: main-actor conversation and request state.
-- `AppleFoundationModelClient`: visionOS 26+ on-device Foundation Models client
+- `AppleFoundationModelClient`: visionOS 26+ streaming Foundation Models client
   with device, setting, model-readiness, and locale availability checks.
-- `OpenAICompatibleClient`: isolated OpenAI-compatible Chat Completions client.
+- `OpenAICompatibleClient`: isolated OpenAI-compatible streaming Chat
+  Completions client.
 - `AssistantCredentialStore`: device-only Keychain storage for the API key.
 - `AssistantConversationRepository`: optional protected local conversation file.
 - `MedicalKnowledgeRepository`: local retrieval over versioned JSON entries.
@@ -38,6 +46,7 @@ The cloud configuration is:
 Base URL: https://api.xcode.best/v1/
 Model:    gpt-5.4
 API:      POST /chat/completions
+Mode:     streamed SSE response
 ```
 
 An authenticated non-streaming Chat Completions probe returned a valid
@@ -51,6 +60,28 @@ and retrieved excerpts used by the cloud path, and checks
 `SystemLanguageModel.default.availability` plus `supportsLocale` before sending.
 There is no automatic cloud fallback: changing from on-device to cloud is a
 visible user choice. Simulator availability is not physical-device evidence.
+
+## Spatial and voice interaction
+
+1. Launch `UpperLimbPOC`; the assistant avatar opens automatically to the left
+   of the anatomy library without opening the conversation panel.
+2. Look at the avatar and pinch to open the conversation panel. Pinch the avatar
+   again to close only the panel; the avatar stays present throughout.
+3. Voice mode is selected by default. Partial speech recognition appears live
+   in the composer; 1.3 seconds of silence submits the completed utterance.
+4. Provider output streams into the assistant message as it arrives. After the
+   final answer, the system voice reads it aloud and listening resumes.
+5. Switch to Text for keyboard input at any time. The toolbar control can hide
+   both assistant scenes or restore the avatar if needed.
+
+The avatar uses a seven-second idle cycle and turns only 14 degrees to either
+side of its imported forward orientation, so it never rotates away from the
+user. The animation is disabled when Reduce Motion is enabled.
+
+Voice input requires microphone and Speech Recognition permission. Recognition
+is constrained to Apple's on-device recognizer; if the current locale has no
+on-device recognizer, use Text instead. Speech synthesis uses the system voice
+and does not send answer audio to the model provider.
 
 ## API key setup
 
@@ -85,10 +116,13 @@ clickable source links come only from the locally retrieved citation allow-list.
 ## Validation
 
 `Tools/MedicalAssistantContractCheck.swift` verifies multilingual retrieval,
-identifier rejection, urgent local handling, diagnostic and renderer boundaries,
-citation allow-listing, guarded Foundation Models integration, explicit provider
-routing, and absence of embedded credentials or spatial transforms. It runs
-from `Tools/validate.sh` before the clean platform builds.
+identifier rejection, urgent local handling, diagnostic and renderer
+boundaries, citation allow-listing, automatic avatar presentation, panel
+toggling, bounded idle motion, voice-default live transcription, both provider
+routes, guarded Foundation Models integration, and absence of embedded
+credentials or spatial transforms. The
+validation script also checks the avatar checksum, Xcode resource registration,
+and privacy usage descriptions before the clean platform builds.
 
 For a Debug simulator smoke route, launch with
 `--assistant-on-device-smoke`. It attempts one generic Radius education
@@ -98,15 +132,17 @@ Pro is required. Select GPT-5.4 Cloud explicitly for simulator chat testing.
 A successful physical Vision Pro response remains required evidence for the
 on-device provider.
 
-Physical Vision Pro review still needs to confirm window placement, text entry,
-comfort, accessibility, Keychain behavior, cancellation, and recovery from
-provider/network failures. A named clinical reviewer must approve source text
-and the adversarial prompt set before any external demonstration presents the
-answers as medically reviewed.
+Physical Vision Pro review still needs to confirm avatar placement and scale,
+real gaze-plus-pinch activation, microphone recognition, speech playback,
+window comfort, accessibility, Keychain behavior, cancellation, and recovery
+from provider/network failures. A named clinical reviewer must approve source
+text and the adversarial prompt set before any external demonstration presents
+the answers as medically reviewed.
 
 ## Future presentation layer
 
-A later avatar or spatial speech bubble may consume only presentation states
-such as ready, thinking, speaking, and warning. Text UI remains the accessible
-fallback. The avatar must not receive credentials, medical memory, tracking
-coordinates, or authority to manipulate anatomy.
+The current avatar has presentation-only idle rotation. It may later gain
+state-specific animation and spatial speech bubbles for ready, thinking,
+speaking, and warning. Text UI remains the accessible fallback. The avatar must
+not receive credentials, medical memory, tracking coordinates, or authority to
+manipulate anatomy.

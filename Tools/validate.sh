@@ -67,6 +67,13 @@ rg -Fq '#available(visionOS 26.0, *)' "$PROJECT_DIR/UpperLimbPOC/MedicalAssistan
 rg -q 'SystemLanguageModel.default' "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/AppleFoundationModelClient.swift"
 rg -q 'supportsLocale' "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/AppleFoundationModelClient.swift"
 rg -q '\-\-assistant-on-device-smoke' "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/MedicalAssistantView.swift"
+test -s "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/Resources/assistant-avatar.usdz"
+test "$(shasum -a 256 "$PROJECT_DIR/UpperLimbPOC/MedicalAssistant/Resources/assistant-avatar.usdz" | awk '{print $1}')" = "8a33c0625ded7a555c25475f47b0fae4c67c67320d26d70bb775ae38b8d2bd96"
+rg -q 'AssistantAvatarView.swift in Sources' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -q 'AssistantVoiceController.swift in Sources' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -q 'assistant-avatar.usdz in Resources' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+plutil -extract NSMicrophoneUsageDescription raw "$PROJECT_DIR/UpperLimbPOC/InfoVision.plist" >/dev/null
+plutil -extract NSSpeechRecognitionUsageDescription raw "$PROJECT_DIR/UpperLimbPOC/InfoVision.plist" >/dev/null
 test "$(plutil -extract UIApplicationSceneManifest.UIApplicationSupportsMultipleScenes raw "$PROJECT_DIR/UpperLimbPOC/InfoVision.plist")" = true
 rg -q 'HandTrackingProvider' "$PROJECT_DIR/UpperLimbPOC/LandmarkTrackingService.swift"
 rg -q 'func startHandJointProbe' "$PROJECT_DIR/UpperLimbPOC/LandmarkTrackingService.swift"
@@ -412,5 +419,9 @@ run_xcode_stage "$BUILD_ROOT/companion-analyze.log" \
 VISION_APP="$BUILD_ROOT/vision/Build/Products/Debug-xrsimulator/UpperLimbPOC.app"
 test -f "$VISION_APP/reference-forearm-01.png"
 test -f "$VISION_APP/reference-forearm-05.png"
+test -f "$VISION_APP/assistant-avatar.usdz"
 
-echo "Validation passed: mixed reality, gaze/accessibility invariants, AVP self-forearm axis/stale state, hybrid landmark registration and index-finger kinematics logic, metric evaluator, five reference slices, clean builds, and static analysis."
+COMPANION_APP="$BUILD_ROOT/companion/Build/Products/Debug-iphonesimulator/UpperLimbCompanion.app"
+test ! -e "$COMPANION_APP/assistant-avatar.usdz"
+
+echo "Validation passed: mixed reality, gaze/accessibility invariants, AVP self-forearm axis/stale state, hybrid landmark registration and index-finger kinematics logic, medical-assistant avatar/voice/streaming contracts, metric evaluator, five reference slices, clean builds, and static analysis."
