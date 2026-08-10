@@ -96,6 +96,15 @@
 		000000000000000000000123 /* CTForearmVRTPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000117 /* CTForearmVRTPreview.swift */; };
 		000000000000000000000124 /* visible-human-male-forearm-1680-1740.r8 in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000118 /* visible-human-male-forearm-1680-1740.r8 */; };
 		000000000000000000000125 /* visible-human-male-forearm-1680-1740.json in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000119 /* visible-human-male-forearm-1680-1740.json */; };
+		000000000000000000000130 /* CTForearmVolume.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000114 /* CTForearmVolume.swift */; };
+		000000000000000000000131 /* ClinicalTwinPose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000140 /* ClinicalTwinPose.swift */; };
+		000000000000000000000132 /* CTForearmTwinGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000141 /* CTForearmTwinGeometry.swift */; };
+		000000000000000000000133 /* ClinicalTwinLabState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000142 /* ClinicalTwinLabState.swift */; };
+		000000000000000000000134 /* ClinicalTwinRealityKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000143 /* ClinicalTwinRealityKit.swift */; };
+		000000000000000000000135 /* ClinicalTwinImmersiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000144 /* ClinicalTwinImmersiveView.swift */; };
+		000000000000000000000136 /* ClinicalTwinView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000145 /* ClinicalTwinView.swift */; };
+		000000000000000000000137 /* visible-human-male-forearm-1680-1740.r8 in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000118 /* visible-human-male-forearm-1680-1740.r8 */; };
+		000000000000000000000138 /* visible-human-male-forearm-1680-1740.json in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000119 /* visible-human-male-forearm-1680-1740.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -179,6 +188,12 @@
 		000000000000000000000118 /* visible-human-male-forearm-1680-1740.r8 */ = {isa = PBXFileReference; lastKnownFileType = file; path = "visible-human-male-forearm-1680-1740.r8"; sourceTree = "<group>"; };
 		000000000000000000000119 /* visible-human-male-forearm-1680-1740.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "visible-human-male-forearm-1680-1740.json"; sourceTree = "<group>"; };
 		00000000000000000000011A /* PROVENANCE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = PROVENANCE.md; sourceTree = "<group>"; };
+		000000000000000000000140 /* ClinicalTwinPose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicalTwinPose.swift; sourceTree = "<group>"; };
+		000000000000000000000141 /* CTForearmTwinGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CTForearmTwinGeometry.swift; sourceTree = "<group>"; };
+		000000000000000000000142 /* ClinicalTwinLabState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicalTwinLabState.swift; sourceTree = "<group>"; };
+		000000000000000000000143 /* ClinicalTwinRealityKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicalTwinRealityKit.swift; sourceTree = "<group>"; };
+		000000000000000000000144 /* ClinicalTwinImmersiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicalTwinImmersiveView.swift; sourceTree = "<group>"; };
+		000000000000000000000145 /* ClinicalTwinView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicalTwinView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -277,6 +292,7 @@
 				00000000000000000000001A /* Markers/elbow-marker.png */,
 				00000000000000000000001B /* Markers/wrist-marker.png */,
 				00000000000000000000011B /* CTVolume */,
+				000000000000000000000146 /* ClinicalTwin */,
 				000000000000000000000076 /* ReferenceSlices */,
 			);
 			path = UpperLimbPOC;
@@ -332,6 +348,19 @@
 				00000000000000000000011A /* PROVENANCE.md */,
 			);
 			path = CTVolume;
+			sourceTree = "<group>";
+		};
+		000000000000000000000146 /* ClinicalTwin */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000140 /* ClinicalTwinPose.swift */,
+				000000000000000000000141 /* CTForearmTwinGeometry.swift */,
+				000000000000000000000142 /* ClinicalTwinLabState.swift */,
+				000000000000000000000143 /* ClinicalTwinRealityKit.swift */,
+				000000000000000000000144 /* ClinicalTwinImmersiveView.swift */,
+				000000000000000000000145 /* ClinicalTwinView.swift */,
+			);
+			path = ClinicalTwin;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -414,6 +443,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				000000000000000000000024 /* hand-to-elbow-overlay.usdz in Resources */,
+				000000000000000000000137 /* visible-human-male-forearm-1680-1740.r8 in Resources */,
+				000000000000000000000138 /* visible-human-male-forearm-1680-1740.json in Resources */,
 				0000000000000000000000C8 /* MedicalAssistantKnowledge.json in Resources */,
 				00000000000000000000002E /* Markers/elbow-marker.png in Resources */,
 				00000000000000000000002F /* Markers/wrist-marker.png in Resources */,
@@ -448,6 +479,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				000000000000000000000020 /* UpperLimbPOCApp.swift in Sources */,
+				000000000000000000000130 /* CTForearmVolume.swift in Sources */,
+				000000000000000000000131 /* ClinicalTwinPose.swift in Sources */,
+				000000000000000000000132 /* CTForearmTwinGeometry.swift in Sources */,
+				000000000000000000000133 /* ClinicalTwinLabState.swift in Sources */,
+				000000000000000000000134 /* ClinicalTwinRealityKit.swift in Sources */,
+				000000000000000000000135 /* ClinicalTwinImmersiveView.swift in Sources */,
+				000000000000000000000136 /* ClinicalTwinView.swift in Sources */,
 				0000000000000000000000C0 /* MedicalAssistantModels.swift in Sources */,
 				0000000000000000000000C1 /* MedicalAssistantConfiguration.swift in Sources */,
 				0000000000000000000000C2 /* OpenAICompatibleClient.swift in Sources */,
@@ -602,6 +640,17 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = QLYUY93X5V;
 				ENABLE_PREVIEWS = YES;
+				EXCLUDED_SOURCE_FILE_NAMES = (
+					CTForearmVolume.swift,
+					ClinicalTwinPose.swift,
+					CTForearmTwinGeometry.swift,
+					ClinicalTwinLabState.swift,
+					ClinicalTwinRealityKit.swift,
+					ClinicalTwinImmersiveView.swift,
+					ClinicalTwinView.swift,
+					"visible-human-male-forearm-1680-1740.r8",
+					"visible-human-male-forearm-1680-1740.json",
+				);
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = UpperLimbPOC/InfoVision.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Radiographic Anatomy POC";

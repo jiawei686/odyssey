@@ -8,8 +8,14 @@ struct UpperLimbPOCApp: App {
     @StateObject private var tracking = LandmarkTrackingService()
     @StateObject private var medicalAssistant = MedicalAssistantStore()
     @StateObject private var assistantWindow = AssistantWindowCoordinator()
+#if DEBUG
+    @StateObject private var clinicalTwin = ClinicalTwinLabState()
+#endif
     @State private var immersionStyle: ImmersionStyle = .mixed
     @State private var probeImmersionStyle: ImmersionStyle = .mixed
+#if DEBUG
+    @State private var clinicalTwinImmersionStyle: ImmersionStyle = .mixed
+#endif
 
     init() {
         let peer = PeerSession(role: .client)
@@ -25,12 +31,25 @@ struct UpperLimbPOCApp: App {
 
     var body: some Scene {
         WindowGroup(id: "AnatomyLibrary") {
-            ContentView()
+            Group {
+#if DEBUG
+                if ClinicalTwinLabFeatureGate.isEnabled {
+                    ClinicalTwinView()
+                } else {
+                    ContentView()
+                }
+#else
+                ContentView()
+#endif
+            }
                 .environmentObject(overlay)
                 .environmentObject(peer)
                 .environmentObject(clinicianGuidance)
                 .environmentObject(tracking)
                 .environmentObject(assistantWindow)
+#if DEBUG
+                .environmentObject(clinicalTwin)
+#endif
         }
         .defaultSize(width: 960, height: 720)
 
@@ -77,5 +96,14 @@ struct UpperLimbPOCApp: App {
                 .environmentObject(clinicianGuidance)
         }
         .immersionStyle(selection: $probeImmersionStyle, in: .mixed)
+
+#if DEBUG
+        ImmersiveSpace(id: "ClinicalTwinSpace") {
+            ClinicalTwinImmersiveView()
+                .environmentObject(tracking)
+                .environmentObject(clinicalTwin)
+        }
+        .immersionStyle(selection: $clinicalTwinImmersionStyle, in: .mixed)
+#endif
     }
 }

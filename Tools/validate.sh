@@ -191,6 +191,28 @@ rg -Fq 'Reveal Anatomy' "$CT_VOLUME_DIR/CTForearmVRTPreview.swift"
 rg -Fq 'Surface preset' "$CT_VOLUME_DIR/CTForearmVRTPreview.swift"
 rg -Fq 'Bone preset' "$CT_VOLUME_DIR/CTForearmVRTPreview.swift"
 rg -Fq 'static let isEnabledByDefault = false' "$PROJECT_DIR/UpperLimbPOC/AnatomicalAnnotationContract.swift"
+CLINICAL_TWIN_DIR="$PROJECT_DIR/UpperLimbPOC/ClinicalTwin"
+test -f "$CLINICAL_TWIN_DIR/ClinicalTwinPose.swift"
+test -f "$CLINICAL_TWIN_DIR/CTForearmTwinGeometry.swift"
+test -f "$CLINICAL_TWIN_DIR/ClinicalTwinLabState.swift"
+test -f "$CLINICAL_TWIN_DIR/ClinicalTwinRealityKit.swift"
+test -f "$CLINICAL_TWIN_DIR/ClinicalTwinImmersiveView.swift"
+test -f "$CLINICAL_TWIN_DIR/ClinicalTwinView.swift"
+test -f "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/xcshareddata/xcschemes/UpperLimbPOC.xcscheme"
+test -f "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/xcshareddata/xcschemes/UpperLimbPOC-Clinical-Twin-Lab.xcscheme"
+rg -Fq 'static let launchArgument = "--odyssey-clinical-twin"' "$CLINICAL_TWIN_DIR/ClinicalTwinLabState.swift"
+rg -Fq 'case ctDerivedMeshFallback' "$CLINICAL_TWIN_DIR/ClinicalTwinPose.swift"
+rg -Fq 'Odyssey · Right Forearm' "$CLINICAL_TWIN_DIR/ClinicalTwinView.swift"
+rg -Fq 'Illustrative anatomical model — not patient-specific imaging.' "$CLINICAL_TWIN_DIR/ClinicalTwinView.swift"
+rg -Fq 'rightHandJointTransforms' "$CLINICAL_TWIN_DIR/ClinicalTwinImmersiveView.swift"
+rg -Fq 'rightForearmResolution' "$CLINICAL_TWIN_DIR/ClinicalTwinImmersiveView.swift"
+rg -Fq 'Tracking dots and procedural cylinders remain Diagnostics only' "$CLINICAL_TWIN_DIR/ClinicalTwinView.swift"
+rg -Fq 'CTForearmVolume.swift in Sources' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+rg -Fq 'visible-human-male-forearm-1680-1740.r8 in Resources' "$PROJECT_DIR/RadiographicAnatomyPOC.xcodeproj/project.pbxproj"
+if rg -q 'generateCylinder|hand-to-elbow-overlay' "$CLINICAL_TWIN_DIR"; then
+    echo "Clinical twin must use CT-derived geometry, not diagnostic cylinders or AnatomyTOOL assets." >&2
+    exit 1
+fi
 if find "$PROJECT_DIR" -type f \( -iname '*.dcm' -o -iname '*.dicom' -o -iname '*.ima' \) -print -quit | rg -q .; then
     echo "Raw DICOM-like data must not be committed." >&2
     exit 1
@@ -395,6 +417,31 @@ xcrun swiftc \
 "$BUILD_ROOT/avp-forearm-overlay-pose-check"
 
 xcrun swiftc \
+    -warnings-as-errors \
+    -strict-concurrency=complete \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/AVPForearmOverlayPose.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/ClinicalTwin/ClinicalTwinPose.swift" \
+    "$PROJECT_DIR/Tools/ClinicalTwinPoseCheck.swift" \
+    -o "$BUILD_ROOT/clinical-twin-pose-check"
+"$BUILD_ROOT/clinical-twin-pose-check"
+
+xcrun swiftc \
+    -D DEBUG \
+    -warnings-as-errors \
+    -strict-concurrency=complete \
+    -parse-as-library \
+    -module-cache-path "$BUILD_ROOT/swift-module-cache" \
+    "$PROJECT_DIR/UpperLimbPOC/CTVolume/CTForearmVolume.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/AVPForearmOverlayPose.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/ClinicalTwin/ClinicalTwinPose.swift" \
+    "$PROJECT_DIR/UpperLimbPOC/ClinicalTwin/CTForearmTwinGeometry.swift" \
+    "$PROJECT_DIR/Tools/CTForearmTwinGeometryCheck.swift" \
+    -o "$BUILD_ROOT/ct-forearm-twin-geometry-check"
+"$BUILD_ROOT/ct-forearm-twin-geometry-check" "$PROJECT_DIR"
+
+xcrun swiftc \
     -parse-as-library \
     -module-cache-path "$BUILD_ROOT/swift-module-cache" \
     "$PROJECT_DIR/UpperLimbPOC/JointProbeRoute.swift" \
@@ -499,8 +546,10 @@ run_xcode_stage "$BUILD_ROOT/companion-analyze.log" \
 VISION_APP="$BUILD_ROOT/vision/Build/Products/Debug-xrsimulator/UpperLimbPOC.app"
 test -f "$VISION_APP/reference-forearm-01.png"
 test -f "$VISION_APP/reference-forearm-05.png"
+test -f "$VISION_APP/visible-human-male-forearm-1680-1740.r8"
+test -f "$VISION_APP/visible-human-male-forearm-1680-1740.json"
 COMPANION_APP="$BUILD_ROOT/companion/Build/Products/Debug-iphonesimulator/UpperLimbCompanion.app"
 test -f "$COMPANION_APP/visible-human-male-forearm-1680-1740.r8"
 test -f "$COMPANION_APP/visible-human-male-forearm-1680-1740.json"
 
-echo "Validation passed: mixed reality, gaze/accessibility invariants, AVP self-forearm axis/stale state, hybrid landmark registration and index-finger kinematics logic, CT VRT resource/surface-depth checks, metric evaluator, five reference slices, clean builds, and static analysis."
+echo "Validation passed: mixed reality, gaze/accessibility invariants, AVP self-forearm axis/stale state, CT-derived clinical-twin geometry/pose checks, hybrid landmark registration and index-finger kinematics logic, CT VRT resource/surface-depth checks, metric evaluator, five reference slices, clean builds, and static analysis."
