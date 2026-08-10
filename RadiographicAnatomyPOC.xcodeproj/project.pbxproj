@@ -82,6 +82,9 @@
 		000000000000000000000103 /* ClinicianGuidanceSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000FF /* ClinicianGuidanceSession.swift */; };
 		000000000000000000000104 /* ClinicianGuidanceSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000FF /* ClinicianGuidanceSession.swift */; };
 		000000000000000000000105 /* AVPClinicianGuidanceSpatialMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000100 /* AVPClinicianGuidanceSpatialMapper.swift */; };
+		000000000000000000000110 /* AssistantAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000120 /* AssistantAvatarView.swift */; };
+		000000000000000000000111 /* AssistantVoiceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000121 /* AssistantVoiceController.swift */; };
+		000000000000000000000112 /* assistant-avatar.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000122 /* assistant-avatar.usdz */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -153,6 +156,9 @@
 		0000000000000000000000FE /* ClinicianGuidanceSyncEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicianGuidanceSyncEngine.swift; sourceTree = "<group>"; };
 		0000000000000000000000FF /* ClinicianGuidanceSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClinicianGuidanceSession.swift; sourceTree = "<group>"; };
 		000000000000000000000100 /* AVPClinicianGuidanceSpatialMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVPClinicianGuidanceSpatialMapper.swift; sourceTree = "<group>"; };
+		000000000000000000000120 /* AssistantAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantAvatarView.swift; sourceTree = "<group>"; };
+		000000000000000000000121 /* AssistantVoiceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantVoiceController.swift; sourceTree = "<group>"; };
+		000000000000000000000122 /* assistant-avatar.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = "assistant-avatar.usdz"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -275,6 +281,8 @@
 				0000000000000000000000D6 /* MedicalAssistantStore.swift */,
 				0000000000000000000000D7 /* MedicalAssistantView.swift */,
 				0000000000000000000000D9 /* AppleFoundationModelClient.swift */,
+				000000000000000000000120 /* AssistantAvatarView.swift */,
+				000000000000000000000121 /* AssistantVoiceController.swift */,
 				0000000000000000000000E1 /* Resources */,
 			);
 			path = MedicalAssistant;
@@ -284,6 +292,7 @@
 			isa = PBXGroup;
 			children = (
 				0000000000000000000000D8 /* MedicalAssistantKnowledge.json */,
+				000000000000000000000122 /* assistant-avatar.usdz */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -369,6 +378,7 @@
 			files = (
 				000000000000000000000024 /* hand-to-elbow-overlay.usdz in Resources */,
 				0000000000000000000000C8 /* MedicalAssistantKnowledge.json in Resources */,
+				000000000000000000000112 /* assistant-avatar.usdz in Resources */,
 				00000000000000000000002E /* Markers/elbow-marker.png in Resources */,
 				00000000000000000000002F /* Markers/wrist-marker.png in Resources */,
 				000000000000000000000060 /* reference-forearm-01.png in Resources */,
@@ -409,6 +419,8 @@
 				0000000000000000000000C6 /* MedicalAssistantStore.swift in Sources */,
 				0000000000000000000000C7 /* MedicalAssistantView.swift in Sources */,
 				0000000000000000000000C9 /* AppleFoundationModelClient.swift in Sources */,
+				000000000000000000000110 /* AssistantAvatarView.swift in Sources */,
+				000000000000000000000111 /* AssistantVoiceController.swift in Sources */,
 				000000000000000000000021 /* ContentView.swift in Sources */,
 				000000000000000000000022 /* ImmersiveView.swift in Sources */,
 				000000000000000000000023 /* OverlayState.swift in Sources */,

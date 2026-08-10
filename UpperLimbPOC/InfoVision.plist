@@ -26,6 +26,10 @@
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Connect to the Upper-Limb Companion on the local network to synchronize non-identifying overlay controls.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Transcribe your spoken general anatomy questions for the medical education assistant. Audio is not saved.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Convert spoken general anatomy questions into text on this device. Do not speak patient identifiers or records.</string>
 	<key>NSHandsTrackingUsageDescription</key>
 	<string>Use index-finger joint motion to animate the educational finger-bone overlay around reviewed anatomical landmarks.</string>
 	<key>NSWorldSensingUsageDescription</key>

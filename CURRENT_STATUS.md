@@ -1,6 +1,6 @@
 # Current development status
 
-Last verified: 2026-08-09
+Last verified: 2026-08-10
 
 ## Active feature
 
@@ -44,13 +44,18 @@ from the Codex contract checkpoint.
   overlay and remote guidance rendering are DEVICE-PENDING / NOT VERIFIED,
   never passed by simulator evidence.
 
-## Preserved medical-assistant slice
+## Medical-assistant avatar and voice slice
 
-`MED-ASSIST-001` remains an independent, text-first
-medical-education assistant for the Vision Pro app. It supports patient and
-clinician language modes, bounded session context, optional protected local
-memory, deterministic anatomy context, locally retrieved public reference
-excerpts, citation allow-listing, and local privacy/emergency handling.
+`MED-ASSIST-001` is an independent spatial medical-education assistant for the
+Vision Pro app. A 0.42 m USDZ avatar now appears to the left of the anatomy
+library when the app opens. Gaze-plus-pinch toggles the conversation panel while
+the avatar remains visible, and presentation-only idle motion turns it slowly
+within 14 degrees of its forward pose. Voice is the default input mode, with
+on-device partial transcription, silence-based submission, streamed answer
+text, spoken responses, and an explicit Text alternative. Patient and clinician
+language modes, bounded context, optional protected local memory, deterministic
+anatomy context, local retrieval, citation allow-listing, and local
+privacy/emergency handling remain intact.
 
 The assistant is educational only. It cannot diagnose, prescribe, provide
 patient-specific treatment, inspect the wearer, receive images/DICOM/tracking
@@ -102,26 +107,40 @@ GitHub feature branch baseline before this checkpoint:
 
 ## Evidence
 
-- `[AUTO]` The medical-assistant contract checks pass for multilingual local
+- `[AUTO]` The medical-assistant contract checks cover multilingual local
   retrieval, identifier rejection, urgent local response, scope boundaries,
-  citation allow-listing, safe Markdown rendering, secret absence, and spatial
-  transform absence.
+  citation allow-listing, safe Markdown rendering, secret absence, avatar
+  resource, automatic presentation, panel toggling, bounded idle motion,
+  voice-default live transcription, streaming provider routes, and
+  spatial-transform absence.
 - `[BUILD]` The medical assistant compiles for the Vision simulator with the
   existing overlay app. Foundation Models weak-links correctly while the
   project deployment target remains visionOS 2.0; the iOS companion remains
   isolated from assistant code.
-- `[SIM]` The signed Vision simulator app automatically opened one assistant
-  window, stored its development credential in Keychain, and returned a
-  grounded Radius answer with `[S1]` using `gpt-5.4`.
+- `[BUILD]` The launch-presented avatar, pinch-toggle behavior, bounded idle
+  rotation, Speech/AVAudio controller, and streamed
+  Foundation Models/OpenAI-compatible paths compile in the Vision simulator
+  target with Xcode 26.6. The 40 MB USDZ passes `usdchecker`, is registered only
+  in the Vision target, and is checksum-protected by `Tools/validate.sh`.
+- `[SIM]` A clean visionOS 26.5 simulator install automatically opens the
+  textured 0.42 m avatar to the library's left without opening the panel.
+  Clicking the model opens the Voice-default panel to the right while retaining
+  the avatar; activating the model again closes only the panel. Frames captured
+  1.75 seconds apart show the bounded idle turn while the model remains
+  forward-facing. Assistant scene restoration remains disabled on visionOS 26.
+- `[HISTORICAL SIM]` Before the avatar flow, the signed Vision simulator app
+  stored its development credential in Keychain and returned a grounded Radius
+  answer with `[S1]` using `gpt-5.4`.
 - `[SOURCE]` `gpt-5.4` returned a successful authenticated provider probe on
   2026-08-09. `gpt-5.6-luna` was unavailable and is not the configured default.
 - `[SIM]` The visionOS 26.5 simulator does not contain Apple Intelligence
   generation assets. The app now identifies the simulator before calling
   Foundation Models, reports that a physical Vision Pro is required, and offers
   an explicit provider-selection path without cloud fallback.
-- `[BLOCKED]` Physical Vision Pro comfort, window placement, dictation/text
-  entry, cancellation, persistence/relaunch, and error-recovery review remain
-  pending.
+- `[BLOCKED]` Physical Vision Pro avatar scale/placement, gaze-plus-pinch panel
+  toggling, idle-motion comfort and Reduce Motion behavior, microphone
+  permission, real-time speech recognition, answer playback, window comfort,
+  cancellation, persistence/relaunch, and error recovery remain pending.
 - `[BLOCKED]` Current AHPedia excerpts and the adversarial prompt set still need
   approval by a named clinical reviewer.
 - `[BLOCKED]` A physical Vision Pro running visionOS 26 or later must have Apple
@@ -154,16 +173,22 @@ GitHub feature branch baseline before this checkpoint:
 
 Complete `MED-ASSIST-001` acceptance on a physical Vision Pro:
 
-1. open the app and confirm exactly one assistant window appears nearby;
-2. compare the same anatomy question in Patient and Clinician modes;
-3. ask a follow-up without repeating the anatomy name and confirm context;
-4. verify clear, optional persistence/relaunch, cancellation, and retry;
-5. force offline and provider-error states and verify recovery wording;
-6. review window placement, text entry, accessibility, comfort, and citations;
-7. enable Apple Intelligence on the headset, verify an on-device English and
+1. launch the app and confirm one avatar appears automatically without a panel;
+2. gaze at and pinch the avatar to open the panel, then pinch it again and
+   confirm only the panel closes;
+3. observe a full idle cycle, confirm the avatar never turns away, then enable
+   Reduce Motion and confirm the movement stops;
+4. grant microphone/Speech permissions and verify live partial transcription,
+   silence submission, streamed answer text, spoken response, and Text mode;
+5. compare the same anatomy question in Patient and Clinician modes;
+6. ask a follow-up without repeating the anatomy name and confirm context;
+7. verify clear, optional persistence/relaunch, cancellation, and retry;
+8. force offline and provider-error states and verify recovery wording;
+9. review model/panel placement, accessibility, comfort, and citations;
+10. enable Apple Intelligence on the headset, verify an on-device English and
    Chinese anatomy response, then switch explicitly to GPT-5.4 Cloud and verify
    the route does not change automatically;
-8. have a named clinical reviewer approve or revise the reference excerpts and
+11. have a named clinical reviewer approve or revise the reference excerpts and
    adversarial prompt set.
 
 Then complete the preserved articulated-overlay physical retest:

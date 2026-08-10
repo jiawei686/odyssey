@@ -41,8 +41,14 @@ POC is not patient-specific and is not procedural guidance.
 
 ## Version 4: medical education assistant
 
-- Opening the Vision app requests a separate medical-education chat window that
-  remains independent of the mixed-reality renderer.
+- A volumetric medical-assistant avatar appears beside the anatomy library when
+  the app opens and gently turns within 14 degrees of its forward pose. A
+  gaze-plus-pinch toggles the separate chat panel without dismissing the avatar;
+  the toolbar control remains available to hide or restore the whole assistant.
+- Voice is the default input mode. On-device partial speech recognition appears
+  live in the panel, while Text remains available as an explicit mode.
+- Apple Intelligence and GPT-5.4 provider output stream into the answer bubble.
+  Completed answers can be read aloud by the system speech synthesizer.
 - Patient and clinician modes share bounded conversational context while using
   different reading levels. Optional cross-launch memory is local and off by
   default.
@@ -63,8 +69,8 @@ POC is not patient-specific and is not procedural guidance.
 - Privacy screening rejects common identifiers, and urgent phrases produce a
   local emergency response without waiting for the external model.
 
-Architecture, setup, provider status, safety limitations, and the future avatar
-contract are documented in `MEDICAL_ASSISTANT.md`.
+Architecture, avatar/voice operation, provider setup, and safety limitations are
+documented in `MEDICAL_ASSISTANT.md`.
 
 ## Version 3: reference sectional imaging
 
@@ -215,9 +221,10 @@ Xcode 27 build patch.
 
 Apple Intelligence generation is unavailable in the Vision Pro Simulator because
 the simulator does not contain the on-device model. For simulator chat testing,
-open the assistant settings and explicitly select **GPT-5.4 Cloud**. Test the
-Apple Intelligence provider only on a physical Vision Pro with Apple
-Intelligence enabled and its model download complete.
+click the automatically presented avatar, open the assistant settings, and select
+**GPT-5.4 Cloud**. Test real gaze-plus-pinch, microphone recognition, speech
+playback, and the Apple Intelligence provider only on a physical Vision Pro
+with Apple Intelligence enabled and its model download complete.
    A compact tracking-status window remains visible alongside the overlay.
 6. Enable **Reference sectional-imaging plane** before opening the overlay, or control it later from the companion. Move the slice from elbow to wrist and adjust its opacity.
 7. Use the companion sliders to align the centred 0.42 m hand-to-elbow model, select a bone colour, and set opacity with the slider or 5% minus/plus controls, then press **Lock placement**. If the model is out of view or too faint, press **Centre & brighten** on the companion.

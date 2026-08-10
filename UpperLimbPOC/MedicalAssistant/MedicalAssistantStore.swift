@@ -258,6 +258,7 @@ final class MedicalAssistantStore: ObservableObject {
         anatomyContext: AssistantAnatomyContext,
         provider: AssistantProvider
     ) async {
+        let responseID = UUID()
         defer {
             activity = .idle
             activeTask = nil
@@ -274,48 +275,99 @@ final class MedicalAssistantStore: ObservableObject {
                 knowledge: knowledge
             )
             let conversation = boundedConversation(for: provider)
-            let answer: String
-            switch provider {
-            case .onDevice:
-                answer = try await onDeviceTransport.complete(
-                    systemPrompt: prompt,
-                    conversation: conversation
-                )
-            case .cloud:
+            let cloudAPIKey: String?
+            if provider == .cloud {
                 guard let apiKey = try credentialStore.loadAPIKey() else {
                     isAPIKeyConfigured = false
                     isShowingSettings = true
                     errorMessage = "Configure the cloud API key to send this question."
                     return
                 }
-                answer = try await transport.complete(
+                cloudAPIKey = apiKey
+            } else {
+                cloudAPIKey = nil
+            }
+
+            messages.append(AssistantMessage(
+                id: responseID,
+                role: .assistant,
+                text: ""
+            ))
+
+            let answer: String
+            switch provider {
+            case .onDevice:
+                answer = try await onDeviceTransport.completeStreaming(
+                    systemPrompt: prompt,
+                    conversation: conversation
+                ) { [weak self] partial in
+                    await self?.updateStreamingResponse(
+                        id: responseID,
+                        text: partial
+                    )
+                }
+            case .cloud:
+                guard let cloudAPIKey else {
+                    throw AssistantTransportError.invalidResponse
+                }
+                answer = try await transport.completeStreaming(
                     systemPrompt: prompt,
                     conversation: conversation,
-                    apiKey: apiKey
-                )
+                    apiKey: cloudAPIKey
+                ) { [weak self] partial in
+                    await self?.updateStreamingResponse(
+                        id: responseID,
+                        text: partial
+                    )
+                }
             }
             try Task.checkCancellation()
 
-            messages.append(AssistantMessage(
-                role: .assistant,
+            updateStreamingResponse(
+                id: responseID,
                 text: answer,
                 citations: safetyPolicy.citedSources(
                     in: answer,
                     from: knowledge
                 )
-            ))
+            )
             lastFailedInput = nil
             errorMessage = nil
             persistConversationIfNeeded()
         } catch is CancellationError {
+            removeStreamingResponse(id: responseID)
             errorMessage = nil
         } catch {
+            removeStreamingResponse(id: responseID)
             if let onDeviceError = error as? AppleFoundationModelError,
                onDeviceError.indicatesModelNotReady {
                 onDeviceAvailability = .modelNotReady
             }
             errorMessage = friendlyErrorMessage(for: error)
         }
+    }
+
+    private func updateStreamingResponse(
+        id: UUID,
+        text: String,
+        citations: [AssistantCitation]? = nil
+    ) {
+        guard let index = messages.firstIndex(where: { $0.id == id }) else {
+            return
+        }
+        let existing = messages[index]
+        messages[index] = AssistantMessage(
+            id: existing.id,
+            role: .assistant,
+            text: text,
+            createdAt: existing.createdAt,
+            citations: citations ?? existing.citations,
+            isLocalSafetyResponse: false
+        )
+    }
+
+    private func removeStreamingResponse(id: UUID) {
+        messages.removeAll { $0.id == id }
     }
 
     private func boundedConversation(
